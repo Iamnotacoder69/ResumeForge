@@ -170,7 +170,7 @@ const CVBuilder = () => {
           </div>
           
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <FormProvider {...form.formState} {...form.register} {...form.trigger} {...form}>
+            <FormProvider {...form}>
               <form onSubmit={handleSubmit}>
                   <Tabs 
                     value={activeTab} 
