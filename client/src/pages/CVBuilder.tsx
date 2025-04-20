@@ -14,6 +14,7 @@ import CertificatesSection from "@/components/cv/CertificatesSection";
 import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
 import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
+import { FormProvider } from "react-hook-form";
 
 enum CVTabs {
   PERSONAL = "personal",
@@ -169,116 +170,117 @@ const CVBuilder = () => {
           </div>
           
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <form onSubmit={handleSubmit}>
-              <Tabs 
-                value={activeTab} 
-                onValueChange={(value) => setActiveTab(value as CVTabs)}
-                className="space-y-8"
-              >
-                <TabsList className="hidden">
-                  <TabsTrigger value={CVTabs.PERSONAL}>Personal</TabsTrigger>
-                  <TabsTrigger value={CVTabs.EXPERIENCE}>Experience</TabsTrigger>
-                  <TabsTrigger value={CVTabs.EDUCATION}>Education</TabsTrigger>
-                  <TabsTrigger value={CVTabs.ADDITIONAL}>Additional</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value={CVTabs.PERSONAL} className="space-y-8">
-                  <PersonalInfoSection form={form} />
-                  <SummarySection form={form} />
+            <FormProvider {...form.formState} {...form.register} {...form.trigger} {...form}>
+              <form onSubmit={handleSubmit}>
+                  <Tabs 
+                    value={activeTab} 
+                    onValueChange={(value) => setActiveTab(value as CVTabs)}
+                    className="space-y-8"
+                  >
+                    <TabsList className="hidden">
+                      <TabsTrigger value={CVTabs.PERSONAL}>Personal</TabsTrigger>
+                      <TabsTrigger value={CVTabs.EXPERIENCE}>Experience</TabsTrigger>
+                      <TabsTrigger value={CVTabs.EDUCATION}>Education</TabsTrigger>
+                      <TabsTrigger value={CVTabs.ADDITIONAL}>Additional</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value={CVTabs.PERSONAL} className="space-y-8">
+                      <PersonalInfoSection form={form} />
+                      <SummarySection form={form} />
+                      
+                      <div className="flex justify-end">
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                        >
+                          Next: Experience
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value={CVTabs.EXPERIENCE} className="space-y-8">
+                      <ExperienceSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                        >
+                          Next: Education
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value={CVTabs.EDUCATION} className="space-y-8">
+                      <EducationSection form={form} />
+                      <CertificatesSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                        >
+                          Next: Additional Info
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value={CVTabs.ADDITIONAL} className="space-y-8">
+                      <AdditionalInfoSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                        >
+                          Back
+                        </Button>
+                        <div>
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            className="mr-3"
+                            onClick={handlePreview}
+                          >
+                            <Eye className="mr-2 h-4 w-4" /> Preview CV
+                          </Button>
+                          <Button 
+                            type="submit"
+                          >
+                            <FileText className="mr-2 h-4 w-4" /> Generate PDF
+                          </Button>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                   
-                  <div className="flex justify-end">
-                    <Button 
-                      type="button" 
-                      onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
-                    >
-                      Next: Experience
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value={CVTabs.EXPERIENCE} className="space-y-8">
-                  <ExperienceSection form={form} />
-                  
-                  <div className="flex justify-between">
+                  <div className="mt-8 flex justify-between">
                     <Button 
                       type="button" 
                       variant="outline"
-                      onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                      onClick={saveAsDraft}
+                      disabled={saveMutation.isPending}
                     >
-                      Back
-                    </Button>
-                    <Button 
-                      type="button" 
-                      onClick={() => setActiveTab(CVTabs.EDUCATION)}
-                    >
-                      Next: Education
+                      {saveMutation.isPending ? "Saving..." : "Save as Draft"}
                     </Button>
                   </div>
-                </TabsContent>
-                
-                <TabsContent value={CVTabs.EDUCATION} className="space-y-8">
-                  <EducationSection form={form} />
-                  <CertificatesSection form={form} />
-                  
-                  <div className="flex justify-between">
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
-                    >
-                      Back
-                    </Button>
-                    <Button 
-                      type="button" 
-                      onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
-                    >
-                      Next: Additional Info
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value={CVTabs.ADDITIONAL} className="space-y-8">
-                  <AdditionalInfoSection form={form} />
-                  
-                  <div className="flex justify-between">
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      onClick={() => setActiveTab(CVTabs.EDUCATION)}
-                    >
-                      Back
-                    </Button>
-                    <div>
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        className="mr-3"
-                        onClick={handlePreview}
-                      >
-                        <Eye className="mr-2 h-4 w-4" /> Preview CV
-                      </Button>
-                      <Button 
-                        type="submit"
-                        isLoading={submitMutation.isPending}
-                      >
-                        <FileText className="mr-2 h-4 w-4" /> Generate PDF
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-              
-              <div className="mt-8 flex justify-between">
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={saveAsDraft}
-                  isLoading={saveMutation.isPending}
-                >
-                  Save as Draft
-                </Button>
-              </div>
-            </form>
+              </form>
+            </FormProvider>
           </main>
         </>
       )}
