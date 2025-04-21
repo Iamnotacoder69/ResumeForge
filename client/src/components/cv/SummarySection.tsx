@@ -80,28 +80,29 @@ const SummarySection = ({ form }: SummarySectionProps) => {
                   <Textarea 
                     rows={4} 
                     placeholder="Write a professional summary that highlights your skills and experience..." 
-                    className="resize-none pr-32"
+                    className="resize-none pr-4 md:pr-32"
                     {...field}
                   />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    className="absolute bottom-2 right-2 bg-primary bg-opacity-10 hover:bg-opacity-20 text-primary border-none"
-                    onClick={handleEnhance}
-                    disabled={isEnhancing}
-                  >
-                    {isEnhancing ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                        Rewriting...
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 className="mr-1 h-4 w-4" /> Rewrite with AI
-                      </>
-                    )}
-                  </Button>
+                  <div className="w-full flex justify-end mt-2 md:mt-0">
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="absolute bottom-2 right-2 bg-primary text-white hover:bg-primary/90 rounded-md border border-primary md:static md:mb-0 md:mt-2 md:z-10"
+                      onClick={handleEnhance}
+                      disabled={isEnhancing}
+                    >
+                      {isEnhancing ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          Rewriting...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="mr-1 h-4 w-4" /> Rewrite with AI
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </FormControl>
               <FormMessage />

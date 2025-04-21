@@ -15,11 +15,11 @@ type PersonalInfoSectionProps = {
 
 const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <h2 className="text-xl font-semibold text-neutral-dark mb-6">Personal Information</h2>
+    <Card className="shadow-sm">
+      <CardContent className="pt-5 sm:pt-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Personal Information</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <FormField
             control={form.control}
             name="personal.firstName"

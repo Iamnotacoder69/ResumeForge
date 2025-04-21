@@ -131,25 +131,29 @@ const CVBuilder = () => {
         />
       ) : (
         <>
-          <header className="bg-white shadow-sm">
+          <header className="bg-white shadow-sm sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
                   <FileText className="text-primary text-2xl mr-3" />
                   <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
                 </div>
-                <div>
+                <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="mr-2"
+                    className="text-xs sm:text-sm"
                   >
                     <Eye className="mr-1 h-4 w-4" /> Preview
                   </Button>
-                  <Button variant="outline" onClick={() => toast({
-                    title: "Help",
-                    description: "Help documentation will be available soon",
-                  })}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => toast({
+                      title: "Help",
+                      description: "Help documentation will be available soon",
+                    })}
+                    className="text-xs sm:text-sm"
+                  >
                     <HelpCircle className="mr-1 h-4 w-4" /> Help
                   </Button>
                 </div>
@@ -169,13 +173,13 @@ const CVBuilder = () => {
             </div>
           </div>
           
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
             <FormProvider {...form}>
               <form onSubmit={handleSubmit}>
                   <Tabs 
                     value={activeTab} 
                     onValueChange={(value) => setActiveTab(value as CVTabs)}
-                    className="space-y-8"
+                    className="space-y-4 sm:space-y-8"
                   >
                     <TabsList className="hidden">
                       <TabsTrigger value={CVTabs.PERSONAL}>Personal</TabsTrigger>
