@@ -119,10 +119,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PDF Generation - Has Extracurricular:", !!req.body.extracurricular);
       console.log("PDF Generation - Sections:", req.body.templateSettings?.sectionOrder?.map((s: any) => s.id));
       
-      const validatedData = completeCvSchema.parse(req.body);
+      // For preview mode, use a relaxed parsing that allows empty fields
+      // instead of rejecting the entire request
+      let data;
+      
+      try {
+        // Try to validate with the regular schema
+        data = completeCvSchema.parse(req.body);
+      } catch (validationError) {
+        console.log("PDF validation issues detected, using relaxed mode for preview");
+        
+        // Create default data structure with empty values
+        data = {
+          personal: { 
+            firstName: req.body.personal?.firstName || "",
+            lastName: req.body.personal?.lastName || "",
+            email: req.body.personal?.email || "",
+            phone: req.body.personal?.phone || "",
+            linkedin: req.body.personal?.linkedin || ""
+          },
+          professional: { 
+            summary: req.body.professional?.summary || ""
+          },
+          keyCompetencies: {
+            technicalSkills: req.body.keyCompetencies?.technicalSkills || [],
+            softSkills: req.body.keyCompetencies?.softSkills || []
+          },
+          experience: req.body.experience || [],
+          education: req.body.education || [],
+          certificates: req.body.certificates || [],
+          extracurricular: req.body.extracurricular || [],
+          additional: { 
+            skills: req.body.additional?.skills || []
+          },
+          languages: req.body.languages || [],
+          templateSettings: {
+            template: req.body.templateSettings?.template || "professional",
+            includePhoto: req.body.templateSettings?.includePhoto || false,
+            sectionOrder: req.body.templateSettings?.sectionOrder || [
+              { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
+              { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 1 },
+              { id: 'experience', name: 'Work Experience', visible: true, order: 2 },
+              { id: 'education', name: 'Education', visible: true, order: 3 },
+              { id: 'certificates', name: 'Certificates', visible: true, order: 4 },
+              { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 5 },
+              { id: 'additional', name: 'Additional Information', visible: true, order: 6 },
+            ]
+          }
+        };
+      }
       
       // Generate PDF buffer
-      const pdfBuffer = await generatePDF(validatedData);
+      const pdfBuffer = await generatePDF(data);
       
       // Set headers
       res.setHeader('Content-Type', 'application/pdf');

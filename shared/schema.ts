@@ -147,15 +147,15 @@ export type TemplateSettings = typeof templateSettings.$inferSelect;
 // Complete CV Schema with all sections for form submission
 export const completeCvSchema = z.object({
   personal: z.object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(1, "Phone number is required"),
+    firstName: z.string().default(""),
+    lastName: z.string().default(""),
+    email: z.string().default(""),
+    phone: z.string().default(""),
     linkedin: z.string().optional(),
     photoUrl: z.string().optional(),
   }),
   professional: z.object({
-    summary: z.string().min(1, "Summary is required"),
+    summary: z.string().default(""),
   }),
   keyCompetencies: z.object({
     technicalSkills: z.array(z.string()).default([]),
@@ -163,40 +163,40 @@ export const completeCvSchema = z.object({
   }),
   experience: z.array(
     z.object({
-      companyName: z.string().min(1, "Company name is required"),
-      jobTitle: z.string().min(1, "Job title is required"),
-      startDate: z.string().min(1, "Start date is required"),
+      companyName: z.string().default(""),
+      jobTitle: z.string().default(""),
+      startDate: z.string().default(""),
       endDate: z.string().optional(),
       isCurrent: z.boolean().optional().default(false),
-      responsibilities: z.string().min(1, "Responsibilities are required"),
+      responsibilities: z.string().default(""),
     })
-  ).optional(),
+  ).default([]),
   education: z.array(
     z.object({
-      schoolName: z.string().min(1, "School name is required"),
-      major: z.string().min(1, "Major is required"),
-      startDate: z.string().min(1, "Start date is required"),
-      endDate: z.string().min(1, "End date is required"),
+      schoolName: z.string().default(""),
+      major: z.string().default(""),
+      startDate: z.string().default(""),
+      endDate: z.string().default(""),
       achievements: z.string().optional(),
     })
-  ).optional(),
+  ).default([]),
   certificates: z.array(
     z.object({
-      institution: z.string().min(1, "Institution name is required"),
-      name: z.string().min(1, "Certificate name is required"),
-      dateAcquired: z.string().min(1, "Date acquired is required"),
+      institution: z.string().default(""),
+      name: z.string().default(""),
+      dateAcquired: z.string().default(""),
       expirationDate: z.string().optional(),
       achievements: z.string().optional(),
     })
-  ).optional(),
+  ).default([]),
   extracurricular: z.array(
     z.object({
-      organization: z.string().min(1, "Organization name is required"),
-      role: z.string().min(1, "Role is required"),
-      startDate: z.string().min(1, "Start date is required"),
+      organization: z.string().default(""),
+      role: z.string().default(""),
+      startDate: z.string().default(""),
       endDate: z.string().optional(),
       isCurrent: z.boolean().optional().default(false),
-      description: z.string().min(1, "Description is required"),
+      description: z.string().default(""),
     })
   ).default([]),
   additional: z.object({
@@ -204,10 +204,10 @@ export const completeCvSchema = z.object({
   }),
   languages: z.array(
     z.object({
-      name: z.string().min(1, "Language name is required"),
-      proficiency: z.string().min(1, "Proficiency level is required"),
+      name: z.string().default(""),
+      proficiency: z.string().default("intermediate"),
     })
-  ).optional(),
+  ).default([]),
   templateSettings: z.object({
     template: z.enum(['minimalist', 'professional', 'creative', 'academic']).default("professional"),
     includePhoto: z.boolean().default(false),
@@ -215,11 +215,19 @@ export const completeCvSchema = z.object({
       z.object({
         id: z.enum(['personal', 'summary', 'keyCompetencies', 'experience', 'education', 'certificates', 'extracurricular', 'additional']),
         name: z.string(),
-        visible: z.boolean(),
+        visible: z.boolean().default(true),
         order: z.number(),
       })
-    ).optional(),
-  }).optional(),
+    ).default([
+      { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
+      { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 1 },
+      { id: 'experience', name: 'Work Experience', visible: true, order: 2 },
+      { id: 'education', name: 'Education', visible: true, order: 3 },
+      { id: 'certificates', name: 'Certificates', visible: true, order: 4 },
+      { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 5 },
+      { id: 'additional', name: 'Additional Information', visible: true, order: 6 },
+    ]),
+  }).default({}),
 });
 
 export type CompleteCv = z.infer<typeof completeCvSchema>;

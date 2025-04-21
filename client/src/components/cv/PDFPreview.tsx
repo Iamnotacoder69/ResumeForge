@@ -97,11 +97,16 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Editor
           </Button>
           
-          <div className="flex items-center">
-            <h2 className="text-lg font-semibold">CV Preview</h2>
-            <div className={`ml-2 text-xs ${getTemplateStyles(templateType)} rounded px-2 py-0.5`}>
-              {templateType.charAt(0).toUpperCase() + templateType.slice(1)} Template
+          <div className="flex flex-col items-center">
+            <div className="flex items-center">
+              <h2 className="text-lg font-semibold">CV Preview</h2>
+              <div className={`ml-2 text-xs ${getTemplateStyles(templateType)} rounded px-2 py-0.5`}>
+                {templateType.charAt(0).toUpperCase() + templateType.slice(1)} Template
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              You can preview your CV at any time, even with incomplete information.
+            </p>
           </div>
           
           <div className="flex space-x-2 self-end sm:self-auto">
