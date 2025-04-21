@@ -22,6 +22,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     const templatePath = path.resolve('./server/templates', `${templateType}.hbs`);
     console.log("Template path:", templatePath);
     
+    // Verify that template file exists
+    if (!fs.existsSync(templatePath)) {
+      throw new Error(`Template file not found at path: ${templatePath}`);
+    }
+    
     // Read the template file
     const templateSource = fs.readFileSync(templatePath, 'utf-8');
     
@@ -39,7 +44,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     // Generate HTML
     const html = template(templateData);
     
-    // Generate PDF
+    // Generate PDF with additional options for Replit environment
     const pdfOptions = {
       format: 'A4',
       margin: {
@@ -47,7 +52,17 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         right: '10mm',
         bottom: '10mm',
         left: '10mm'
-      }
+      },
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ],
+      timeout: 30000 // Longer timeout of 30 seconds
     };
     
     const file = { content: html };
