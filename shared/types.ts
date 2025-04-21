@@ -37,20 +37,48 @@ export type Certificate = {
   achievements?: string;
 };
 
+export type ExtracurricularActivity = {
+  id?: number;
+  organization: string;
+  role: string;
+  startDate: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  description: string;
+};
+
 export type PersonalInfo = {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   linkedin?: string;
+  photoUrl?: string;
 };
 
 export type ProfessionalSummary = {
   summary: string;
 };
 
+export type KeyCompetencies = {
+  technicalSkills: string[];
+};
+
 export type AdditionalInfo = {
   skills: string[];
+};
+
+export type TemplateType = "professional" | "modern" | "creative" | "minimalist" | "academic";
+
+export type SectionOrder = {
+  sectionIds: string[];
+};
+
+export type CVPreferences = {
+  templateType: TemplateType;
+  includePhoto: boolean;
+  sectionOrder: SectionOrder;
+  accentColor?: string;
 };
 
 export type CompleteCV = z.infer<typeof completeCvSchema>;
