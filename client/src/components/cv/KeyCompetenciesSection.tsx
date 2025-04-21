@@ -1,9 +1,9 @@
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Card, CardContent } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { ChipIcon, Code, Database, Globe, Server, Smartphone } from 'lucide-react';
-import { TagInput } from "@/components/ui/tag-input";
+import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { Code, Database, Globe, Server, Smartphone } from 'lucide-react';
+import TagInput from "@/components/ui/tag-input";
 import { CompleteCV } from '@shared/types';
 
 type KeyCompetenciesSectionProps = {
@@ -31,7 +31,7 @@ const KeyCompetenciesSection: React.FC<KeyCompetenciesSectionProps> = ({ form })
                   <TagInput
                     placeholder="Add a technical skill..."
                     tags={field.value || []}
-                    setTags={(newTags) => field.onChange(newTags)}
+                    setTags={(newTags: string[]) => field.onChange(newTags)}
                   />
                 </FormControl>
                 <FormMessage />

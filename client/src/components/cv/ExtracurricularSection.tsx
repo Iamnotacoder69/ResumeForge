@@ -14,6 +14,10 @@ type ExtracurricularSectionProps = {
   form: UseFormReturn<CompleteCV>;
 };
 
+interface AIResponse {
+  enhancedText: string;
+}
+
 const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form }) => {
   const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null);
   
@@ -47,7 +51,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form })
         return;
       }
       
-      const response = await apiRequest<{ enhancedText: string }>('/api/enhance-text', {
+      const response = await apiRequest<AIResponse>('/api/enhance-text', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +62,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form })
         }),
       });
       
-      if (response.enhancedText) {
+      if (response && response.enhancedText) {
         form.setValue(`extracurricular.${index}.description`, response.enhancedText);
       }
     } catch (error) {
