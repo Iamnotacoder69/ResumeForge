@@ -113,6 +113,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate PDF
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {
+      // Add debugging logs
+      console.log("PDF Generation - Template:", req.body.templateSettings?.template);
+      console.log("PDF Generation - Has Key Competencies:", !!req.body.keyCompetencies);
+      console.log("PDF Generation - Has Extracurricular:", !!req.body.extracurricular);
+      console.log("PDF Generation - Sections:", req.body.templateSettings?.sectionOrder?.map((s: any) => s.id));
+      
       const validatedData = completeCvSchema.parse(req.body);
       
       // Generate PDF buffer

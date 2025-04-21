@@ -158,9 +158,9 @@ export const completeCvSchema = z.object({
     summary: z.string().min(1, "Summary is required"),
   }),
   keyCompetencies: z.object({
-    technicalSkills: z.array(z.string()).optional(),
-    softSkills: z.array(z.string()).optional(),
-  }).optional(),
+    technicalSkills: z.array(z.string()).default([]),
+    softSkills: z.array(z.string()).default([]),
+  }),
   experience: z.array(
     z.object({
       companyName: z.string().min(1, "Company name is required"),
