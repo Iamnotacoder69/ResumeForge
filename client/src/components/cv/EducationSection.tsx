@@ -127,11 +127,7 @@ const EducationSection = ({ form }: EducationSectionProps) => {
                   <FormItem>
                     <FormLabel>Start Date*</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        className="cursor-pointer"
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -145,11 +141,7 @@ const EducationSection = ({ form }: EducationSectionProps) => {
                   <FormItem>
                     <FormLabel>End Date*</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        className="cursor-pointer"
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

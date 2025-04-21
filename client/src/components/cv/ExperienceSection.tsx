@@ -175,11 +175,7 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                   <FormItem>
                     <FormLabel>Start Date*</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        className="cursor-pointer"
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -218,11 +214,7 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                       <FormItem className="mt-2">
                         <FormLabel>End Date*</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="date" 
-                            {...field} 
-                            className="cursor-pointer"
-                          />
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

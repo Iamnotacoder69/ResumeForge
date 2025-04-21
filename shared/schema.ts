@@ -25,14 +25,8 @@ export const cvs = pgTable("cvs", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   linkedin: text("linkedin"),
-  photoUrl: text("photo_url"),
   summary: text("summary").notNull(),
-  technicalSkills: text("technical_skills").array(),
   skills: text("skills").array(),
-  templateType: text("template_type").default("professional"),
-  includePhoto: boolean("include_photo").default(false),
-  sectionOrder: jsonb("section_order"),
-  accentColor: text("accent_color"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -114,58 +108,18 @@ export const insertLanguageSchema = createInsertSchema(languages).omit({
 export type InsertLanguage = z.infer<typeof insertLanguageSchema>;
 export type Language = typeof languages.$inferSelect;
 
-// Extracurricular Activities schema
-export const extracurricularActivities = pgTable("extracurricular_activities", {
-  id: serial("id").primaryKey(),
-  cvId: integer("cv_id").notNull(),
-  organization: text("organization").notNull(),
-  role: text("role").notNull(),
-  startDate: text("start_date").notNull(),
-  endDate: text("end_date"),
-  isCurrent: boolean("is_current").default(false),
-  description: text("description").notNull(),
-});
-
-export const insertExtracurricularActivitySchema = createInsertSchema(extracurricularActivities).omit({
-  id: true,
-});
-
-export type InsertExtracurricularActivity = z.infer<typeof insertExtracurricularActivitySchema>;
-export type ExtracurricularActivity = typeof extracurricularActivities.$inferSelect;
-
 // Complete CV Schema with all sections for form submission
 export const completeCvSchema = z.object({
-  // Template preferences
-  preferences: z.object({
-    templateType: z.enum(["professional", "modern", "creative", "minimalist", "academic"]).default("professional"),
-    includePhoto: z.boolean().default(false),
-    accentColor: z.string().optional(),
-    sectionOrder: z.object({
-      sectionIds: z.array(z.string()).optional()
-    }).optional()
-  }).optional().default({}),
-  
-  // Personal information
   personal: z.object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Invalid email address"),
     phone: z.string().min(1, "Phone number is required"),
     linkedin: z.string().optional(),
-    photoUrl: z.string().optional(),
   }),
-  
-  // Professional summary
   professional: z.object({
     summary: z.string().min(1, "Summary is required"),
   }),
-  
-  // Key competencies (technical skills)
-  competencies: z.object({
-    technicalSkills: z.array(z.string()).optional().default([]),
-  }).optional().default({}),
-  
-  // Work experience
   experience: z.array(
     z.object({
       companyName: z.string().min(1, "Company name is required"),
@@ -175,9 +129,7 @@ export const completeCvSchema = z.object({
       isCurrent: z.boolean().optional().default(false),
       responsibilities: z.string().min(1, "Responsibilities are required"),
     })
-  ).optional().default([]),
-  
-  // Education
+  ).min(1, "At least one experience entry is required"),
   education: z.array(
     z.object({
       schoolName: z.string().min(1, "School name is required"),
@@ -186,9 +138,7 @@ export const completeCvSchema = z.object({
       endDate: z.string().min(1, "End date is required"),
       achievements: z.string().optional(),
     })
-  ).optional().default([]),
-  
-  // Certificates
+  ).min(1, "At least one education entry is required"),
   certificates: z.array(
     z.object({
       institution: z.string().min(1, "Institution name is required"),
@@ -197,32 +147,16 @@ export const completeCvSchema = z.object({
       expirationDate: z.string().optional(),
       achievements: z.string().optional(),
     })
-  ).optional().default([]),
-  
-  // Extracurricular activities
-  extracurricular: z.array(
-    z.object({
-      organization: z.string().min(1, "Organization name is required"),
-      role: z.string().min(1, "Role is required"),
-      startDate: z.string().min(1, "Start date is required"),
-      endDate: z.string().optional(),
-      isCurrent: z.boolean().optional().default(false),
-      description: z.string().min(1, "Description is required"),
-    })
-  ).optional().default([]),
-  
-  // Additional info
+  ).optional(),
   additional: z.object({
-    skills: z.array(z.string()).optional().default([]),
-  }).optional().default({}),
-  
-  // Languages
+    skills: z.array(z.string()).min(1, "At least one skill is required"),
+  }),
   languages: z.array(
     z.object({
       name: z.string().min(1, "Language name is required"),
       proficiency: z.string().min(1, "Proficiency level is required"),
     })
-  ).optional().default([]),
+  ).min(1, "At least one language is required"),
 });
 
 export type CompleteCv = z.infer<typeof completeCvSchema>;

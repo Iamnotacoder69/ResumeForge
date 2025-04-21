@@ -133,11 +133,7 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                   <FormItem>
                     <FormLabel>Date Acquired*</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        className="cursor-pointer"
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -151,11 +147,7 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                   <FormItem>
                     <FormLabel>Expiration Date (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field} 
-                        className="cursor-pointer"
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

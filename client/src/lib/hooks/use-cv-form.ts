@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { completeCvSchema } from "@shared/schema";
-import { CompleteCV, TemplateType } from "@shared/types";
+import { CompleteCV } from "@shared/types";
 
 export function useCVForm() {
   const defaultValues: CompleteCV = {
@@ -11,13 +11,9 @@ export function useCVForm() {
       email: "",
       phone: "",
       linkedin: "",
-      photoUrl: "",
     },
     professional: {
       summary: "",
-    },
-    competencies: {
-      technicalSkills: [],
     },
     experience: [
       {
@@ -39,16 +35,6 @@ export function useCVForm() {
       },
     ],
     certificates: [],
-    extracurricular: [
-      {
-        organization: "",
-        role: "",
-        startDate: "",
-        endDate: "",
-        isCurrent: false,
-        description: "",
-      },
-    ],
     additional: {
       skills: [],
     },
@@ -58,15 +44,6 @@ export function useCVForm() {
         proficiency: "intermediate",
       },
     ],
-    preferences: {
-      templateType: "professional" as TemplateType,
-      includePhoto: false,
-      sectionOrder: {
-        sectionIds: [
-          'experience', 'education', 'competencies', 'certificates', 'extracurricular'
-        ]
-      }
-    }
   };
 
   const form = useForm<CompleteCV>({

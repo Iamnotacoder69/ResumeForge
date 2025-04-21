@@ -4,8 +4,7 @@ import {
   experiences, type Experience, type InsertExperience, 
   educations, type Education, type InsertEducation,
   certificates, type Certificate, type InsertCertificate,
-  languages, type Language, type InsertLanguage,
-  extracurricularActivities, type ExtracurricularActivity, type InsertExtracurricularActivity
+  languages, type Language, type InsertLanguage
 } from "@shared/schema";
 import { CompleteCV } from "@shared/types";
 
@@ -37,10 +36,6 @@ export interface IStorage {
   createLanguage(language: InsertLanguage): Promise<Language>;
   getLanguagesByCvId(cvId: number): Promise<Language[]>;
   
-  // Extracurricular Activity operations
-  createExtracurricularActivity(activity: InsertExtracurricularActivity): Promise<ExtracurricularActivity>;
-  getExtracurricularActivitiesByCvId(cvId: number): Promise<ExtracurricularActivity[]>;
-  
   // Get complete CV with all related data
   getCompleteCV(id: number): Promise<CompleteCV | undefined>;
 }
@@ -52,7 +47,6 @@ export class MemStorage implements IStorage {
   private educations: Map<number, Education[]>;
   private certificates: Map<number, Certificate[]>;
   private languages: Map<number, Language[]>;
-  private extracurricular: Map<number, ExtracurricularActivity[]>;
   
   private userCurrentId: number;
   private cvCurrentId: number;
@@ -60,7 +54,6 @@ export class MemStorage implements IStorage {
   private educationCurrentId: number;
   private certificateCurrentId: number;
   private languageCurrentId: number;
-  private extracurricularCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -69,7 +62,6 @@ export class MemStorage implements IStorage {
     this.educations = new Map();
     this.certificates = new Map();
     this.languages = new Map();
-    this.extracurricular = new Map();
     
     this.userCurrentId = 1;
     this.cvCurrentId = 1;
@@ -77,7 +69,6 @@ export class MemStorage implements IStorage {
     this.educationCurrentId = 1;
     this.certificateCurrentId = 1;
     this.languageCurrentId = 1;
-    this.extracurricularCurrentId = 1;
   }
 
   // User methods (kept for reference)
@@ -255,22 +246,6 @@ export class MemStorage implements IStorage {
   
   async getLanguagesByCvId(cvId: number): Promise<Language[]> {
     return this.languages.get(cvId) || [];
-  }
-  
-  // Extracurricular Activity methods
-  async createExtracurricularActivity(activity: InsertExtracurricularActivity): Promise<ExtracurricularActivity> {
-    const id = this.extracurricularCurrentId++;
-    const newActivity: ExtracurricularActivity = { ...activity, id };
-    
-    const cvActivities = this.extracurricular.get(activity.cvId) || [];
-    cvActivities.push(newActivity);
-    this.extracurricular.set(activity.cvId, cvActivities);
-    
-    return newActivity;
-  }
-  
-  async getExtracurricularActivitiesByCvId(cvId: number): Promise<ExtracurricularActivity[]> {
-    return this.extracurricular.get(cvId) || [];
   }
   
   // Get complete CV with all related data
