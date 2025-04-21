@@ -108,6 +108,42 @@ export const insertLanguageSchema = createInsertSchema(languages).omit({
 export type InsertLanguage = z.infer<typeof insertLanguageSchema>;
 export type Language = typeof languages.$inferSelect;
 
+// Extracurricular Activities schema
+export const extracurricular = pgTable("extracurricular", {
+  id: serial("id").primaryKey(),
+  cvId: integer("cv_id").notNull(),
+  organization: text("organization").notNull(),
+  role: text("role").notNull(),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date"),
+  isCurrent: boolean("is_current").default(false),
+  description: text("description").notNull(),
+});
+
+export const insertExtracurricularSchema = createInsertSchema(extracurricular).omit({
+  id: true,
+});
+
+export type InsertExtracurricular = z.infer<typeof insertExtracurricularSchema>;
+export type Extracurricular = typeof extracurricular.$inferSelect;
+
+// Template Settings
+export const templateSettings = pgTable("template_settings", {
+  id: serial("id").primaryKey(),
+  cvId: integer("cv_id").notNull(),
+  template: text("template").notNull(),
+  includePhoto: boolean("include_photo").default(false),
+  photoUrl: text("photo_url"),
+  sectionOrder: jsonb("section_order").notNull(),
+});
+
+export const insertTemplateSettingsSchema = createInsertSchema(templateSettings).omit({
+  id: true,
+});
+
+export type InsertTemplateSettings = z.infer<typeof insertTemplateSettingsSchema>;
+export type TemplateSettings = typeof templateSettings.$inferSelect;
+
 // Complete CV Schema with all sections for form submission
 export const completeCvSchema = z.object({
   personal: z.object({
@@ -116,10 +152,15 @@ export const completeCvSchema = z.object({
     email: z.string().email("Invalid email address"),
     phone: z.string().min(1, "Phone number is required"),
     linkedin: z.string().optional(),
+    photoUrl: z.string().optional(),
   }),
   professional: z.object({
     summary: z.string().min(1, "Summary is required"),
   }),
+  keyCompetencies: z.object({
+    technicalSkills: z.array(z.string()).optional(),
+    softSkills: z.array(z.string()).optional(),
+  }).optional(),
   experience: z.array(
     z.object({
       companyName: z.string().min(1, "Company name is required"),
@@ -129,7 +170,7 @@ export const completeCvSchema = z.object({
       isCurrent: z.boolean().optional().default(false),
       responsibilities: z.string().min(1, "Responsibilities are required"),
     })
-  ).min(1, "At least one experience entry is required"),
+  ).optional(),
   education: z.array(
     z.object({
       schoolName: z.string().min(1, "School name is required"),
@@ -138,7 +179,7 @@ export const completeCvSchema = z.object({
       endDate: z.string().min(1, "End date is required"),
       achievements: z.string().optional(),
     })
-  ).min(1, "At least one education entry is required"),
+  ).optional(),
   certificates: z.array(
     z.object({
       institution: z.string().min(1, "Institution name is required"),
@@ -148,15 +189,37 @@ export const completeCvSchema = z.object({
       achievements: z.string().optional(),
     })
   ).optional(),
+  extracurricular: z.array(
+    z.object({
+      organization: z.string().min(1, "Organization name is required"),
+      role: z.string().min(1, "Role is required"),
+      startDate: z.string().min(1, "Start date is required"),
+      endDate: z.string().optional(),
+      isCurrent: z.boolean().optional().default(false),
+      description: z.string().min(1, "Description is required"),
+    })
+  ).optional(),
   additional: z.object({
-    skills: z.array(z.string()).min(1, "At least one skill is required"),
-  }),
+    skills: z.array(z.string()).optional(),
+  }).optional(),
   languages: z.array(
     z.object({
       name: z.string().min(1, "Language name is required"),
       proficiency: z.string().min(1, "Proficiency level is required"),
     })
-  ).min(1, "At least one language is required"),
+  ).optional(),
+  templateSettings: z.object({
+    template: z.string().min(1, "Template is required").default("professional"),
+    includePhoto: z.boolean().default(false),
+    sectionOrder: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        visible: z.boolean(),
+        order: z.number(),
+      })
+    ).optional(),
+  }).optional(),
 });
 
 export type CompleteCv = z.infer<typeof completeCvSchema>;

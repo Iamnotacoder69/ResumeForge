@@ -1,0 +1,268 @@
+import React, { useState } from 'react';
+import { useFieldArray } from "react-hook-form";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2, Wand2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
+
+type ExtracurricularSectionProps = {
+  form: any;
+};
+
+const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
+  const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null);
+  
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "extracurricular",
+  });
+  
+  const enhanceMutation = useMutation({
+    mutationFn: async (text: string) => {
+      const response = await apiRequest("/api/enhance-text", {
+        method: "POST",
+        body: JSON.stringify({
+          text,
+          type: "responsibilities"
+        }),
+      });
+      return response as { enhancedText: string };
+    },
+    onSuccess: (data, variables, context) => {
+      if (enhancingIndex !== null && data.enhancedText) {
+        form.setValue(`extracurricular.${enhancingIndex}.description`, data.enhancedText);
+        toast({
+          title: "Text Enhanced",
+          description: "Your description has been professionally rewritten with AI.",
+        });
+      }
+      setEnhancingIndex(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Enhancement Failed",
+        description: "Could not enhance text. Please try again later.",
+        variant: "destructive",
+      });
+      setEnhancingIndex(null);
+    }
+  });
+  
+  const addExtracurricular = () => {
+    append({
+      organization: "",
+      role: "",
+      startDate: "",
+      endDate: "",
+      isCurrent: false,
+      description: "",
+    });
+  };
+  
+  const handleRemove = (index: number) => {
+    if (fields.length > 1) {
+      remove(index);
+    } else {
+      toast({
+        title: "Cannot Remove",
+        description: "You need at least one extracurricular entry.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleEnhance = (index: number) => {
+    const description = form.getValues(`extracurricular.${index}.description`);
+    if (description.trim().length < 10) {
+      toast({
+        title: "Text Too Short",
+        description: "Please enter more text before enhancing.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setEnhancingIndex(index);
+    enhanceMutation.mutate(description);
+  };
+  
+  return (
+    <Card className="shadow-sm">
+      <CardContent className="pt-5 sm:pt-6">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark">Extracurricular Activities</h2>
+          <Button 
+            type="button"
+            size="sm"
+            onClick={addExtracurricular}
+            className="self-start sm:self-auto"
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add Activity
+          </Button>
+        </div>
+        
+        {fields.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            <p>No extracurricular activities added yet. Add your volunteer work, personal projects, or other activities by clicking the button above.</p>
+          </div>
+        )}
+        
+        {fields.map((field, index) => (
+          <div 
+            key={field.id} 
+            className="extracurricular-item border border-gray-200 rounded-md p-4 mb-6"
+          >
+            <div className="flex justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Activity</h3>
+              <div>
+                <Button 
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemove(index)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <FormField
+                control={form.control}
+                name={`extracurricular.${index}.organization`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Organization/Project*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Community Center" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name={`extracurricular.${index}.role`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Volunteer Coordinator" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name={`extracurricular.${index}.startDate`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Start Date*</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div>
+                <FormField
+                  control={form.control}
+                  name={`extracurricular.${index}.isCurrent`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-8">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) {
+                              form.setValue(`extracurricular.${index}.endDate`, "");
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Current Activity</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                {!form.watch(`extracurricular.${index}.isCurrent`) && (
+                  <FormField
+                    control={form.control}
+                    name={`extracurricular.${index}.endDate`}
+                    render={({ field }) => (
+                      <FormItem className="mt-2">
+                        <FormLabel>End Date*</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name={`extracurricular.${index}.description`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description*</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Textarea 
+                        rows={4} 
+                        placeholder="Describe your activities, responsibilities, and achievements..." 
+                        className="resize-none pr-4 md:pr-32"
+                        {...field}
+                      />
+                      <div className="w-full flex justify-end mt-2 md:mt-0">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="absolute bottom-2 right-2 bg-primary text-white hover:bg-primary/90 rounded-md border border-primary md:static md:mb-0 md:mt-2 md:z-10"
+                          onClick={() => handleEnhance(index)}
+                          disabled={enhancingIndex === index}
+                        >
+                          {enhancingIndex === index ? (
+                            <>
+                              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              Rewriting...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="mr-1 h-4 w-4" /> Rewrite with AI
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ExtracurricularSection;
