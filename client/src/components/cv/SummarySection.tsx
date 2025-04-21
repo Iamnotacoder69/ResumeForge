@@ -65,9 +65,9 @@ const SummarySection = ({ form }: SummarySectionProps) => {
   };
   
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <h2 className="text-xl font-semibold text-neutral-dark mb-6">Professional Summary</h2>
+    <Card className="shadow-sm">
+      <CardContent className="pt-5 sm:pt-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Professional Summary</h2>
         
         <FormField
           control={form.control}

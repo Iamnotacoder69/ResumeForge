@@ -57,14 +57,15 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
   };
   
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-neutral-dark">Certificates</h2>
+    <Card className="shadow-sm">
+      <CardContent className="pt-5 sm:pt-6">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark">Certificates</h2>
           <Button 
             type="button"
             size="sm"
             onClick={addCertificate}
+            className="self-start sm:self-auto"
           >
             <Plus className="mr-1 h-4 w-4" /> Add Certificate
           </Button>

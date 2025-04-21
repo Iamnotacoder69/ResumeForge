@@ -63,9 +63,9 @@ const AdditionalInfoSection = ({ form }: AdditionalInfoSectionProps) => {
   };
   
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <h2 className="text-xl font-semibold text-neutral-dark mb-6">Additional Information</h2>
+    <Card className="shadow-sm">
+      <CardContent className="pt-5 sm:pt-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Additional Information</h2>
         
         <div className="mb-6">
           <h3 className="text-lg font-medium text-gray-900 mb-3">Computer Skills</h3>
