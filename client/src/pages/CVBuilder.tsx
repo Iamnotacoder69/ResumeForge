@@ -1,39 +1,97 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
+import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
 import ExperienceSection from "@/components/cv/ExperienceSection";
 import EducationSection from "@/components/cv/EducationSection";
 import CertificatesSection from "@/components/cv/CertificatesSection";
+import ExtracurricularSection from "@/components/cv/ExtracurricularSection"; 
 import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
+import SectionOrderer from "@/components/cv/SectionOrderer";
+import TemplateSelector from "@/components/cv/TemplateSelector";
 import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
+import { SectionOrder, TemplateType } from "@shared/types";
 
 enum CVTabs {
+  TEMPLATE = "template",
   PERSONAL = "personal",
+  SUMMARY = "summary",
+  KEY_COMPETENCIES = "keyCompetencies",
   EXPERIENCE = "experience",
   EDUCATION = "education",
+  EXTRACURRICULAR = "extracurricular",
   ADDITIONAL = "additional",
+  REORDER = "reorder",
 }
 
 const CVBuilder = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.PERSONAL);
+  const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
   const form = useCVForm();
   
+  // Template selection state
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
+  const [includePhoto, setIncludePhoto] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
+    form.getValues().templateSettings?.sectionOrder || (form.getValues().templateSettings?.sectionOrder as SectionOrder[]) || []
+  );
+  
+  // Update form when template settings change
+  useEffect(() => {
+    form.setValue('templateSettings.template', selectedTemplate);
+    form.setValue('templateSettings.includePhoto', includePhoto);
+  }, [selectedTemplate, includePhoto, form]);
+  
+  // Update form when section order changes
+  useEffect(() => {
+    form.setValue('templateSettings.sectionOrder', sectionOrder);
+  }, [sectionOrder, form]);
+  
+  // Progress map for progress bar
   const progressMap = {
-    [CVTabs.PERSONAL]: 25,
+    [CVTabs.TEMPLATE]: 10,
+    [CVTabs.PERSONAL]: 20,
+    [CVTabs.SUMMARY]: 30,
+    [CVTabs.KEY_COMPETENCIES]: 40,
     [CVTabs.EXPERIENCE]: 50,
-    [CVTabs.EDUCATION]: 75,
-    [CVTabs.ADDITIONAL]: 100,
+    [CVTabs.EDUCATION]: 60,
+    [CVTabs.EXTRACURRICULAR]: 70,
+    [CVTabs.ADDITIONAL]: 80,
+    [CVTabs.REORDER]: 100,
+  };
+  
+  // Handle template selection
+  const handleTemplateChange = (template: TemplateType) => {
+    setSelectedTemplate(template);
+  };
+  
+  // Handle photo inclusion toggling
+  const handlePhotoInclusionChange = (include: boolean) => {
+    setIncludePhoto(include);
+  };
+  
+  // Handle section reordering
+  const handleSectionReorder = (updatedSections: SectionOrder[]) => {
+    setSectionOrder(updatedSections);
+  };
+  
+  // Handle section visibility toggling
+  const handleSectionVisibilityToggle = (sectionId: string, visible: boolean) => {
+    setSectionOrder(prevSections => 
+      prevSections.map(section => 
+        section.id === sectionId ? { ...section, visible } : section
+      )
+    );
   };
 
   const submitMutation = useMutation({
@@ -164,11 +222,16 @@ const CVBuilder = () => {
           <div className="bg-white border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
               <Progress value={progressMap[activeTab]} className="h-2.5" />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Personal Info</span>
+              <div className="flex justify-between text-xs text-gray-500 mt-1 flex-wrap">
+                <span>Template</span>
+                <span>Personal</span>
+                <span className="hidden sm:inline">Summary</span>
+                <span className="hidden md:inline">Key Skills</span>
                 <span>Experience</span>
                 <span>Education</span>
-                <span>Additional Info</span>
+                <span className="hidden md:inline">Extracurricular</span>
+                <span>Additional</span>
+                <span>Organize</span>
               </div>
             </div>
           </div>
@@ -182,28 +245,60 @@ const CVBuilder = () => {
                     className="space-y-4 sm:space-y-8"
                   >
                     <TabsList className="hidden">
+                      <TabsTrigger value={CVTabs.TEMPLATE}>Template</TabsTrigger>
                       <TabsTrigger value={CVTabs.PERSONAL}>Personal</TabsTrigger>
+                      <TabsTrigger value={CVTabs.SUMMARY}>Summary</TabsTrigger>
+                      <TabsTrigger value={CVTabs.KEY_COMPETENCIES}>Key Competencies</TabsTrigger>
                       <TabsTrigger value={CVTabs.EXPERIENCE}>Experience</TabsTrigger>
                       <TabsTrigger value={CVTabs.EDUCATION}>Education</TabsTrigger>
+                      <TabsTrigger value={CVTabs.EXTRACURRICULAR}>Extracurricular</TabsTrigger>
                       <TabsTrigger value={CVTabs.ADDITIONAL}>Additional</TabsTrigger>
+                      <TabsTrigger value={CVTabs.REORDER}>Reorder</TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value={CVTabs.PERSONAL} className="space-y-8">
-                      <PersonalInfoSection form={form} />
-                      <SummarySection form={form} />
+                    {/* Template Selection Tab */}
+                    <TabsContent value={CVTabs.TEMPLATE} className="space-y-8">
+                      <TemplateSelector 
+                        selectedTemplate={selectedTemplate}
+                        includePhoto={includePhoto}
+                        onTemplateChange={handleTemplateChange}
+                        onPhotoInclusionChange={handlePhotoInclusionChange}
+                      />
                       
                       <div className="flex justify-end">
                         <Button 
                           type="button" 
-                          onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                          onClick={() => setActiveTab(CVTabs.PERSONAL)}
                         >
-                          Next: Experience
+                          Next: Personal Information <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
                     
-                    <TabsContent value={CVTabs.EXPERIENCE} className="space-y-8">
-                      <ExperienceSection form={form} />
+                    {/* Personal Info Tab */}
+                    <TabsContent value={CVTabs.PERSONAL} className="space-y-8">
+                      <PersonalInfoSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.TEMPLATE)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                        >
+                          Next: Professional Summary <Check className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    {/* Summary Tab */}
+                    <TabsContent value={CVTabs.SUMMARY} className="space-y-8">
+                      <SummarySection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -215,13 +310,56 @@ const CVBuilder = () => {
                         </Button>
                         <Button 
                           type="button" 
-                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
                         >
-                          Next: Education
+                          Next: Key Competencies <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
                     
+                    {/* Key Competencies Tab */}
+                    <TabsContent value={CVTabs.KEY_COMPETENCIES} className="space-y-8">
+                      <KeyCompetenciesSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                        >
+                          Next: Work Experience <Check className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    {/* Experience Tab */}
+                    <TabsContent value={CVTabs.EXPERIENCE} className="space-y-8">
+                      <ExperienceSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                        >
+                          Next: Education <Check className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    {/* Education Tab */}
                     <TabsContent value={CVTabs.EDUCATION} className="space-y-8">
                       <EducationSection form={form} />
                       <CertificatesSection form={form} />
@@ -236,13 +374,35 @@ const CVBuilder = () => {
                         </Button>
                         <Button 
                           type="button" 
-                          onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                          onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
                         >
-                          Next: Additional Info
+                          Next: Extracurricular Activities <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
                     
+                    {/* Extracurricular Tab */}
+                    <TabsContent value={CVTabs.EXTRACURRICULAR} className="space-y-8">
+                      <ExtracurricularSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                        >
+                          Next: Additional Information <Check className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    {/* Additional Info Tab */}
                     <TabsContent value={CVTabs.ADDITIONAL} className="space-y-8">
                       <AdditionalInfoSection form={form} />
                       
@@ -250,7 +410,32 @@ const CVBuilder = () => {
                         <Button 
                           type="button" 
                           variant="outline"
-                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.REORDER)}
+                        >
+                          Next: Organize Sections <Check className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    {/* Reorder Sections Tab */}
+                    <TabsContent value={CVTabs.REORDER} className="space-y-8">
+                      <SectionOrderer 
+                        sections={sectionOrder}
+                        onReorder={handleSectionReorder}
+                        onToggleVisibility={handleSectionVisibilityToggle}
+                      />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
                         >
                           Back
                         </Button>

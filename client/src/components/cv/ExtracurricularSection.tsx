@@ -25,14 +25,22 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
   
   const enhanceMutation = useMutation({
     mutationFn: async (text: string) => {
-      const response = await apiRequest("/api/enhance-text", {
+      const response = await fetch("/api/enhance-text", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           text,
           type: "responsibilities"
         }),
       });
-      return response as { enhancedText: string };
+      
+      if (!response.ok) {
+        throw new Error('Failed to enhance text');
+      }
+      
+      return response.json();
     },
     onSuccess: (data, variables, context) => {
       if (enhancingIndex !== null && data.enhancedText) {
