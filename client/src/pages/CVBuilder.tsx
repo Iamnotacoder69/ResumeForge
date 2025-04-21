@@ -66,8 +66,24 @@ const CVBuilder = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/generate-pdf", data);
-      return response.blob();
+      try {
+        const response = await apiRequest("/api/generate-pdf", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response || !response.ok) {
+          throw new Error("Failed to generate PDF");
+        }
+        
+        return await response.blob();
+      } catch (error) {
+        console.error("PDF generation error:", error);
+        throw error;
+      }
     },
     onSuccess: (blob) => {
       // Create a URL for the blob
@@ -91,6 +107,7 @@ const CVBuilder = () => {
       });
     },
     onError: (error) => {
+      console.error("PDF mutation error:", error);
       toast({
         title: "Error",
         description: `Failed to generate PDF: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -101,7 +118,24 @@ const CVBuilder = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", "/api/cv", data);
+      try {
+        const response = await apiRequest("/api/cv", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response) {
+          throw new Error("Failed to save CV");
+        }
+        
+        return response;
+      } catch (error) {
+        console.error("CV save error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
@@ -111,6 +145,7 @@ const CVBuilder = () => {
       });
     },
     onError: (error) => {
+      console.error("CV save mutation error:", error);
       toast({
         title: "Error",
         description: `Failed to save CV: ${error instanceof Error ? error.message : "Unknown error"}`,
