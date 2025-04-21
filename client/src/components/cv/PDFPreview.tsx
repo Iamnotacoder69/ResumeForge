@@ -4,6 +4,22 @@ import { Card } from "@/components/ui/card";
 import { X, Download, ArrowLeft, RefreshCw } from "lucide-react";
 import { CompleteCV, TemplateType } from "@shared/types";
 
+// Helper function to get template-specific styles
+const getTemplateStyles = (template: TemplateType): string => {
+  switch (template) {
+    case 'minimalist':
+      return 'text-gray-800 bg-gray-200 border border-gray-300';
+    case 'professional':
+      return 'text-blue-800 bg-blue-100 border border-blue-300';
+    case 'creative':
+      return 'text-purple-800 bg-purple-100 border border-purple-300';
+    case 'academic':
+      return 'text-teal-800 bg-teal-100 border border-teal-300';
+    default:
+      return 'text-gray-500 bg-gray-100';
+  }
+};
+
 type PDFPreviewProps = {
   data: CompleteCV;
   onClose: () => void;
@@ -83,7 +99,7 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
           
           <div className="flex items-center">
             <h2 className="text-lg font-semibold">CV Preview</h2>
-            <div className="ml-2 text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5">
+            <div className={`ml-2 text-xs ${getTemplateStyles(templateType)} rounded px-2 py-0.5`}>
               {templateType.charAt(0).toUpperCase() + templateType.slice(1)} Template
             </div>
           </div>
