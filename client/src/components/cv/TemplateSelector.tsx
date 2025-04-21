@@ -84,9 +84,19 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               onClick={() => handleTemplateClick(template.value)}
               className={`relative cursor-pointer transition-all duration-200 transform hover:scale-105 ${
                 selectedTemplate === template.value 
-                  ? 'ring-2 ring-primary ring-offset-2' 
-                  : 'border border-gray-200 hover:border-primary'
+                  ? 'ring-2 ring-primary ring-offset-2 shadow-md' 
+                  : 'border border-gray-200 hover:border-primary hover:shadow-md'
               } rounded-lg overflow-hidden`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleTemplateClick(template.value);
+                  e.preventDefault();
+                }
+              }}
+              aria-pressed={selectedTemplate === template.value}
+              aria-label={`Select ${template.title} template`}
             >
               <div className="aspect-w-3 aspect-h-4 bg-gray-50">
                 <img 
@@ -110,24 +120,36 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           ))}
         </div>
 
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-gray-900 mb-2">Template Settings</h3>
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h3 className="font-medium text-gray-900 mb-4">Template Settings</h3>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Switch 
               id="include-photo" 
               checked={includePhoto} 
               onCheckedChange={(checked) => onPhotoChange(checked)}
               disabled={!currentTemplate.photoSupported}
+              aria-label="Include photo in CV"
             />
             <Label 
               htmlFor="include-photo" 
-              className="flex items-center cursor-pointer"
+              className={`flex items-center ${currentTemplate.photoSupported ? 'cursor-pointer' : 'text-gray-400'}`}
             >
               <FileImage className="mr-2 h-4 w-4" />
-              Include Photo {!currentTemplate.photoSupported && "(Not supported in this template)"}
+              Include Photo 
+              {!currentTemplate.photoSupported && (
+                <span className="ml-2 text-sm text-gray-500 italic">
+                  (Not supported in this template)
+                </span>
+              )}
             </Label>
           </div>
+          
+          {currentTemplate.photoSupported && includePhoto && (
+            <div className="mt-3 pl-10 text-sm text-gray-500">
+              You'll be able to upload your photo in the Personal Information section.
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

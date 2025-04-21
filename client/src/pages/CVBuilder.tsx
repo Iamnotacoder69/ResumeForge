@@ -67,13 +67,7 @@ const CVBuilder = () => {
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
       try {
-        const response = await apiRequest("/api/generate-pdf", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
+        const response = await apiRequest("POST", "/api/generate-pdf", data);
         
         if (!response || !response.ok) {
           throw new Error("Failed to generate PDF");
@@ -119,13 +113,7 @@ const CVBuilder = () => {
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
       try {
-        const response = await apiRequest("/api/cv", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
+        const response = await apiRequest("POST", "/api/cv", data);
         
         if (!response) {
           throw new Error("Failed to save CV");
