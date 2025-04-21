@@ -198,10 +198,10 @@ export const completeCvSchema = z.object({
       isCurrent: z.boolean().optional().default(false),
       description: z.string().min(1, "Description is required"),
     })
-  ).optional(),
+  ).default([]),
   additional: z.object({
-    skills: z.array(z.string()).optional(),
-  }).optional(),
+    skills: z.array(z.string()).default([]),
+  }),
   languages: z.array(
     z.object({
       name: z.string().min(1, "Language name is required"),

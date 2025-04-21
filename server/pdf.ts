@@ -175,44 +175,42 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         
       case 'keyCompetencies':
         // Key Competencies section
-        if (data.keyCompetencies) {
-          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont(titleFont, "bold");
+        doc.setFontSize(subtitleFontSize);
+        doc.text("Key Competencies", margin, yPos);
+        yPos += lineHeight + 2;
+        
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        
+        // Technical Skills
+        if (data.keyCompetencies?.technicalSkills?.length > 0) {
           doc.setFont(titleFont, "bold");
-          doc.setFontSize(subtitleFontSize);
-          doc.text("Key Competencies", margin, yPos);
-          yPos += lineHeight + 2;
+          doc.setFontSize(sectionTitleFontSize);
+          doc.text("Technical Skills", margin, yPos);
+          yPos += lineHeight;
           
-          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.setFont(bodyFont, "normal");
+          doc.setFontSize(bodyFontSize);
+          const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
+          const techSkillsLines = doc.splitTextToSize(techSkillsText, contentWidth);
+          doc.text(techSkillsLines, margin, yPos);
+          yPos += (techSkillsLines.length * lineHeight) + 3;
+        }
+        
+        // Soft Skills
+        if (data.keyCompetencies?.softSkills?.length > 0) {
+          doc.setFont(titleFont, "bold");
+          doc.setFontSize(sectionTitleFontSize);
+          doc.text("Soft Skills", margin, yPos);
+          yPos += lineHeight;
           
-          // Technical Skills
-          if (data.keyCompetencies.technicalSkills && data.keyCompetencies.technicalSkills.length > 0) {
-            doc.setFont(titleFont, "bold");
-            doc.setFontSize(sectionTitleFontSize);
-            doc.text("Technical Skills", margin, yPos);
-            yPos += lineHeight;
-            
-            doc.setFont(bodyFont, "normal");
-            doc.setFontSize(bodyFontSize);
-            const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
-            const techSkillsLines = doc.splitTextToSize(techSkillsText, contentWidth);
-            doc.text(techSkillsLines, margin, yPos);
-            yPos += (techSkillsLines.length * lineHeight) + 3;
-          }
-          
-          // Soft Skills
-          if (data.keyCompetencies.softSkills && data.keyCompetencies.softSkills.length > 0) {
-            doc.setFont(titleFont, "bold");
-            doc.setFontSize(sectionTitleFontSize);
-            doc.text("Soft Skills", margin, yPos);
-            yPos += lineHeight;
-            
-            doc.setFont(bodyFont, "normal");
-            doc.setFontSize(bodyFontSize);
-            const softSkillsText = data.keyCompetencies.softSkills.join(", ");
-            const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
-            doc.text(softSkillsLines, margin, yPos);
-            yPos += (softSkillsLines.length * lineHeight) + 5;
-          }
+          doc.setFont(bodyFont, "normal");
+          doc.setFontSize(bodyFontSize);
+          const softSkillsText = data.keyCompetencies.softSkills.join(", ");
+          const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
+          doc.text(softSkillsLines, margin, yPos);
+          yPos += (softSkillsLines.length * lineHeight) + 5;
         }
         break;
         
@@ -245,7 +243,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format dates
             const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDateDisplay = exp.isCurrent ? 'Present' : 
-                                 exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                               exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
@@ -330,7 +328,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format date
             const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const expirationText = cert.expirationDate ? 
-                                 ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
+                               ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
             
             doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, margin, yPos);
             yPos += lineHeight;
@@ -375,7 +373,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format dates
             const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDateDisplay = activity.isCurrent ? 'Present' : 
-                                 activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                               activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
