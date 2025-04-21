@@ -209,11 +209,11 @@ export const completeCvSchema = z.object({
     })
   ).optional(),
   templateSettings: z.object({
-    template: z.string().min(1, "Template is required").default("professional"),
+    template: z.enum(['minimalist', 'professional', 'creative', 'academic']).default("professional"),
     includePhoto: z.boolean().default(false),
     sectionOrder: z.array(
       z.object({
-        id: z.string(),
+        id: z.enum(['personal', 'summary', 'keyCompetencies', 'experience', 'education', 'certificates', 'extracurricular', 'additional']),
         name: z.string(),
         visible: z.boolean(),
         order: z.number(),

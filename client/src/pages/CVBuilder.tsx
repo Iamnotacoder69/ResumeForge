@@ -39,11 +39,22 @@ const CVBuilder = () => {
   const [showPreview, setShowPreview] = useState(false);
   const form = useCVForm();
   
+  // Default section order (matching the one in use-cv-form.ts)
+  const defaultSectionOrder: SectionOrder[] = [
+    { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
+    { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 1 },
+    { id: 'experience', name: 'Work Experience', visible: true, order: 2 },
+    { id: 'education', name: 'Education', visible: true, order: 3 },
+    { id: 'certificates', name: 'Certificates', visible: true, order: 4 },
+    { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 5 },
+    { id: 'additional', name: 'Additional Information', visible: true, order: 6 },
+  ];
+  
   // Template selection state
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
-    form.getValues().templateSettings?.sectionOrder || (form.getValues().templateSettings?.sectionOrder as SectionOrder[]) || []
+    form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
   );
   
   // Update form when template settings change
