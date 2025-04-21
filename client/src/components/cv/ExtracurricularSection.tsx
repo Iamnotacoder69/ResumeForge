@@ -14,9 +14,7 @@ type ExtracurricularSectionProps = {
   form: UseFormReturn<CompleteCV>;
 };
 
-interface AIResponse {
-  enhancedText: string;
-}
+// The response interface is not needed as we'll parse JSON from the response
 
 const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form }) => {
   const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null);
@@ -51,19 +49,15 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form })
         return;
       }
       
-      const response = await apiRequest<AIResponse>('/api/enhance-text', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: currentDescription,
-          type: 'responsibilities'
-        }),
+      const response = await apiRequest("POST", "/api/enhance-text", {
+        text: currentDescription,
+        type: "responsibilities"
       });
       
-      if (response && response.enhancedText) {
-        form.setValue(`extracurricular.${index}.description`, response.enhancedText);
+      const data = await response.json();
+      
+      if (data && data.data && data.data.enhancedText) {
+        form.setValue(`extracurricular.${index}.description`, data.data.enhancedText);
       }
     } catch (error) {
       console.error('Error enhancing text:', error);
@@ -149,7 +143,12 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form })
                   <FormItem>
                     <FormLabel>Start Date*</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -188,7 +187,12 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({ form })
                       <FormItem className="mt-2">
                         <FormLabel>End Date*</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input 
+                            type="date" 
+                            {...field} 
+                            onClick={(e) => e.currentTarget.showPicker?.()}
+                            onFocus={(e) => e.currentTarget.showPicker?.()}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
