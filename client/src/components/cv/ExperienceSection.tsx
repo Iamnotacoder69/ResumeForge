@@ -175,7 +175,12 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                   <FormItem>
                     <FormLabel>Start Date*</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -214,7 +219,12 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                       <FormItem className="mt-2">
                         <FormLabel>End Date*</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input 
+                            type="date" 
+                            {...field} 
+                            onClick={(e) => e.currentTarget.showPicker?.()}
+                            onFocus={(e) => e.currentTarget.showPicker?.()}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -133,7 +133,12 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                   <FormItem>
                     <FormLabel>Date Acquired*</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,7 +152,12 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                   <FormItem>
                     <FormLabel>Expiration Date (Optional)</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

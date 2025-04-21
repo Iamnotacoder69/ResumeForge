@@ -127,7 +127,12 @@ const EducationSection = ({ form }: EducationSectionProps) => {
                   <FormItem>
                     <FormLabel>Start Date*</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -141,7 +146,12 @@ const EducationSection = ({ form }: EducationSectionProps) => {
                   <FormItem>
                     <FormLabel>End Date*</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field} 
+                        onClick={(e) => e.currentTarget.showPicker?.()}
+                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
