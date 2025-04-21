@@ -178,16 +178,8 @@ const CVBuilder = () => {
   };
 
   const handlePreview = () => {
-    if (form.formState.isValid) {
-      setShowPreview(true);
-    } else {
-      form.trigger();
-      toast({
-        title: "Validation Error",
-        description: "Please fill all required fields correctly",
-        variant: "destructive",
-      });
-    }
+    // Always show preview regardless of validation state
+    setShowPreview(true);
   };
 
   return (
@@ -211,9 +203,12 @@ const CVBuilder = () => {
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm relative group"
                   >
                     <Eye className="mr-1 h-4 w-4" /> Preview
+                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
+                      Preview available with incomplete fields
+                    </span>
                   </Button>
                   <Button 
                     variant="outline" 
@@ -451,19 +446,26 @@ const CVBuilder = () => {
                           Back
                         </Button>
                         <div>
-                          <Button 
-                            type="button" 
-                            variant="outline"
-                            className="mr-3"
-                            onClick={handlePreview}
-                          >
-                            <Eye className="mr-2 h-4 w-4" /> Preview CV
-                          </Button>
-                          <Button 
-                            type="submit"
-                          >
-                            <FileText className="mr-2 h-4 w-4" /> Generate PDF
-                          </Button>
+                          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                            <div className="flex flex-col mb-5 sm:mb-0">
+                              <Button 
+                                type="button" 
+                                variant="outline"
+                                className="relative"
+                                onClick={handlePreview}
+                              >
+                                <Eye className="mr-2 h-4 w-4" /> Preview CV
+                                <span className="absolute bottom-0 left-0 right-0 -mb-5 text-xs text-gray-500">
+                                  Preview available with incomplete fields
+                                </span>
+                              </Button>
+                            </div>
+                            <Button 
+                              type="submit"
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> Generate PDF
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </TabsContent>
