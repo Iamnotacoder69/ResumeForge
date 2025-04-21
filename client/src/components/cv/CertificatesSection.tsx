@@ -136,8 +136,7 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                       <Input 
                         type="date" 
                         {...field} 
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                        className="cursor-pointer"
                       />
                     </FormControl>
                     <FormMessage />
@@ -155,8 +154,7 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                       <Input 
                         type="date" 
                         {...field} 
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                        className="cursor-pointer"
                       />
                     </FormControl>
                     <FormMessage />

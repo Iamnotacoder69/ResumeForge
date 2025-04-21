@@ -178,8 +178,7 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                       <Input 
                         type="date" 
                         {...field} 
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        onFocus={(e) => e.currentTarget.showPicker?.()}
+                        className="cursor-pointer"
                       />
                     </FormControl>
                     <FormMessage />
@@ -222,8 +221,7 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                           <Input 
                             type="date" 
                             {...field} 
-                            onClick={(e) => e.currentTarget.showPicker?.()}
-                            onFocus={(e) => e.currentTarget.showPicker?.()}
+                            className="cursor-pointer"
                           />
                         </FormControl>
                         <FormMessage />
