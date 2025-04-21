@@ -5,35 +5,63 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle } from "lucide-react";
+import { FileText, Eye, HelpCircle, Palette } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import ExperienceSection from "@/components/cv/ExperienceSection";
 import EducationSection from "@/components/cv/EducationSection";
 import CertificatesSection from "@/components/cv/CertificatesSection";
 import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
+import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
+import ExtracurricularSection from "@/components/cv/ExtracurricularSection";
+import SectionOrdering from "@/components/cv/SectionOrdering";
+import TemplateSelector from "@/components/cv/TemplateSelector";
 import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
+import { TemplateType } from '@shared/types';
 
 enum CVTabs {
+  TEMPLATE = "template",
   PERSONAL = "personal",
   EXPERIENCE = "experience",
   EDUCATION = "education",
+  COMPETENCIES = "competencies",
+  EXTRACURRICULAR = "extracurricular",
   ADDITIONAL = "additional",
+  LAYOUT = "layout",
 }
 
 const CVBuilder = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.PERSONAL);
+  const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
   const form = useCVForm();
   
   const progressMap = {
+    [CVTabs.TEMPLATE]: 10,
     [CVTabs.PERSONAL]: 25,
-    [CVTabs.EXPERIENCE]: 50,
-    [CVTabs.EDUCATION]: 75,
-    [CVTabs.ADDITIONAL]: 100,
+    [CVTabs.EXPERIENCE]: 40,
+    [CVTabs.EDUCATION]: 55,
+    [CVTabs.COMPETENCIES]: 70,
+    [CVTabs.EXTRACURRICULAR]: 85,
+    [CVTabs.ADDITIONAL]: 92,
+    [CVTabs.LAYOUT]: 100,
+  };
+
+  // Handle template changes
+  const handleTemplateChange = (template: TemplateType) => {
+    form.setValue('preferences.templateType', template);
+  };
+
+  // Handle photo inclusion
+  const handlePhotoChange = (includePhoto: boolean) => {
+    form.setValue('preferences.includePhoto', includePhoto);
+  };
+
+  // Handle section ordering changes
+  const handleSectionOrderChange = (newOrder: string[]) => {
+    form.setValue('preferences.sectionOrder.sectionIds', newOrder);
   };
 
   const submitMutation = useMutation({
@@ -48,7 +76,7 @@ const CVBuilder = () => {
       // Create a download link and trigger download
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${form.getValues().personal.firstName}_${form.getValues().personal.lastName}_CV.pdf`;
+      a.download = `${form.getValues().personal.firstName || 'CV'}_${form.getValues().personal.lastName || 'Document'}.pdf`;
       document.body.appendChild(a);
       a.click();
       
@@ -96,16 +124,7 @@ const CVBuilder = () => {
   });
 
   const saveAsDraft = () => {
-    if (form.formState.isValid) {
-      saveMutation.mutate(form.getValues());
-    } else {
-      form.trigger();
-      toast({
-        title: "Validation Error",
-        description: "Please fill all required fields correctly",
-        variant: "destructive",
-      });
-    }
+    saveMutation.mutate(form.getValues());
   };
 
   const handlePreview = () => {
@@ -120,6 +139,25 @@ const CVBuilder = () => {
       });
     }
   };
+  
+  // Initialize default values for new fields if they don't exist
+  if (!form.getValues('preferences.templateType')) {
+    form.setValue('preferences.templateType', 'professional');
+  }
+  
+  if (typeof form.getValues('preferences.includePhoto') !== 'boolean') {
+    form.setValue('preferences.includePhoto', false);
+  }
+  
+  if (!form.getValues('preferences.sectionOrder.sectionIds')) {
+    form.setValue('preferences.sectionOrder.sectionIds', [
+      'experience', 'education', 'competencies', 'certificates', 'extracurricular'
+    ]);
+  }
+  
+  if (!form.getValues('competencies.technicalSkills')) {
+    form.setValue('competencies.technicalSkills', []);
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -164,11 +202,15 @@ const CVBuilder = () => {
           <div className="bg-white border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
               <Progress value={progressMap[activeTab]} className="h-2.5" />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="hidden sm:flex justify-between text-xs text-gray-500 mt-1">
+                <span>Template</span>
                 <span>Personal Info</span>
                 <span>Experience</span>
                 <span>Education</span>
-                <span>Additional Info</span>
+                <span>Competencies</span>
+                <span>Activities</span>
+                <span>Add. Info</span>
+                <span>Layout</span>
               </div>
             </div>
           </div>
@@ -182,17 +224,46 @@ const CVBuilder = () => {
                     className="space-y-4 sm:space-y-8"
                   >
                     <TabsList className="hidden">
+                      <TabsTrigger value={CVTabs.TEMPLATE}>Template</TabsTrigger>
                       <TabsTrigger value={CVTabs.PERSONAL}>Personal</TabsTrigger>
                       <TabsTrigger value={CVTabs.EXPERIENCE}>Experience</TabsTrigger>
                       <TabsTrigger value={CVTabs.EDUCATION}>Education</TabsTrigger>
+                      <TabsTrigger value={CVTabs.COMPETENCIES}>Competencies</TabsTrigger>
+                      <TabsTrigger value={CVTabs.EXTRACURRICULAR}>Extracurricular</TabsTrigger>
                       <TabsTrigger value={CVTabs.ADDITIONAL}>Additional</TabsTrigger>
+                      <TabsTrigger value={CVTabs.LAYOUT}>Layout</TabsTrigger>
                     </TabsList>
+                    
+                    <TabsContent value={CVTabs.TEMPLATE} className="space-y-8">
+                      <TemplateSelector 
+                        selectedTemplate={form.getValues('preferences.templateType') || 'professional'} 
+                        includePhoto={form.getValues('preferences.includePhoto') || false}
+                        onTemplateChange={handleTemplateChange}
+                        onPhotoChange={handlePhotoChange}
+                      />
+                      
+                      <div className="flex justify-end">
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                        >
+                          Next: Personal Information
+                        </Button>
+                      </div>
+                    </TabsContent>
                     
                     <TabsContent value={CVTabs.PERSONAL} className="space-y-8">
                       <PersonalInfoSection form={form} />
                       <SummarySection form={form} />
                       
-                      <div className="flex justify-end">
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.TEMPLATE)}
+                        >
+                          Back
+                        </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
@@ -236,6 +307,46 @@ const CVBuilder = () => {
                         </Button>
                         <Button 
                           type="button" 
+                          onClick={() => setActiveTab(CVTabs.COMPETENCIES)}
+                        >
+                          Next: Key Competencies
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value={CVTabs.COMPETENCIES} className="space-y-8">
+                      <KeyCompetenciesSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                        >
+                          Next: Extracurricular Activities
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value={CVTabs.EXTRACURRICULAR} className="space-y-8">
+                      <ExtracurricularSection form={form} />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.COMPETENCIES)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
                         >
                           Next: Additional Info
@@ -250,7 +361,32 @@ const CVBuilder = () => {
                         <Button 
                           type="button" 
                           variant="outline"
-                          onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={() => setActiveTab(CVTabs.LAYOUT)}
+                        >
+                          Next: Layout & Ordering
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value={CVTabs.LAYOUT} className="space-y-8">
+                      <SectionOrdering 
+                        sectionOrder={form.getValues('preferences.sectionOrder.sectionIds') || [
+                          'experience', 'education', 'competencies', 'certificates', 'extracurricular'
+                        ]} 
+                        onChange={handleSectionOrderChange}
+                      />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
                         >
                           Back
                         </Button>
