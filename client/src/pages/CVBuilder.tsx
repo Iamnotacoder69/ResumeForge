@@ -151,14 +151,16 @@ const CVBuilder = () => {
   };
 
   const handlePreview = () => {
-    if (form.formState.isValid) {
-      setShowPreview(true);
-    } else {
+    // Always show preview, regardless of validation state
+    setShowPreview(true);
+    
+    // Still trigger validation to show errors but don't block preview
+    if (!form.formState.isValid) {
       form.trigger();
       toast({
-        title: "Validation Error",
-        description: "Please fill all required fields correctly",
-        variant: "destructive",
+        title: "Validation Warning",
+        description: "Some fields may be incomplete but you can still preview your CV",
+        variant: "default",
       });
     }
   };

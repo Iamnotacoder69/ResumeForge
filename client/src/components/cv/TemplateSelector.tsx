@@ -69,6 +69,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const currentTemplate = templates.find(t => t.value === selectedTemplate) || templates[0];
   
   const handleTemplateClick = (template: TemplateType) => {
+    console.log("Template selected:", template);
     onTemplateChange(template);
   };
   
@@ -86,7 +87,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 selectedTemplate === template.value 
                   ? 'ring-2 ring-primary ring-offset-2 shadow-md' 
                   : 'border border-gray-200 hover:border-primary hover:shadow-md'
-              } rounded-lg overflow-hidden`}
+              } rounded-lg overflow-hidden bg-white hover:bg-gray-50 active:bg-gray-100`}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -127,13 +128,21 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             <Switch 
               id="include-photo" 
               checked={includePhoto} 
-              onCheckedChange={(checked) => onPhotoChange(checked)}
+              onCheckedChange={(checked) => {
+                console.log("Photo inclusion toggled:", checked);
+                onPhotoChange(checked);
+              }}
               disabled={!currentTemplate.photoSupported}
               aria-label="Include photo in CV"
             />
             <Label 
               htmlFor="include-photo" 
               className={`flex items-center ${currentTemplate.photoSupported ? 'cursor-pointer' : 'text-gray-400'}`}
+              onClick={() => {
+                if (currentTemplate.photoSupported) {
+                  onPhotoChange(!includePhoto);
+                }
+              }}
             >
               <FileImage className="mr-2 h-4 w-4" />
               Include Photo 

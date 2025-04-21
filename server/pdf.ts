@@ -18,7 +18,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   try {
     // Get template path based on template type
     const templateType = data.preferences.templateType || 'professional';
-    const templatePath = path.resolve(__dirname, 'templates', `${templateType}.hbs`);
+    // Use path relative to the current working directory instead of __dirname
+    const templatePath = path.resolve('./server/templates', `${templateType}.hbs`);
+    console.log("Template path:", templatePath);
     
     // Read the template file
     const templateSource = fs.readFileSync(templatePath, 'utf-8');
