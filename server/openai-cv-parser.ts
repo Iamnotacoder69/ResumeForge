@@ -85,8 +85,25 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         
         // If we got a reasonable amount of text, use it
         if (pdfText.length > 200) {
-          cvText = pdfText;
-          console.log("Successfully extracted text from PDF, length:", pdfText.length);
+          // Truncate the text to prevent token limit issues
+          // The OpenAI API has a token limit of ~30,000 tokens
+          // A safe text length is around 30,000 characters (approximately 7,500 tokens)
+          const maxTextLength = 30000;
+          if (pdfText.length > maxTextLength) {
+            console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
+            // Keep first 10,000 chars (usually contains the most important info)
+            const firstPart = pdfText.substring(0, 10000);
+            // Keep last 5,000 chars (might contain conclusion or important ending sections)
+            const lastPart = pdfText.substring(pdfText.length - 5000);
+            // Take 15,000 chars from the middle (to capture work experience, etc.)
+            const middleStart = Math.floor((pdfText.length - 15000) / 2);
+            const middlePart = pdfText.substring(middleStart, middleStart + 15000);
+            
+            cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
+          } else {
+            cvText = pdfText;
+          }
+          console.log("Successfully extracted text from PDF, processed length:", cvText.length);
         } else {
           // Otherwise, provide an error message
           console.log("PDF extraction failed or returned minimal text");

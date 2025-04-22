@@ -18,9 +18,27 @@ export interface PDFData {
  */
 export async function extractPDFText(buffer: Buffer): Promise<PDFData> {
   try {
-    // Convert buffer to string to attempt basic text extraction
-    // This won't be perfect but might work for some basic PDFs
-    const text = buffer.toString('utf-8', 0, buffer.length);
+    // For very large buffers, we should take a more cautious approach
+    // to avoid memory issues and performance problems
+    const isTooLarge = buffer.length > 10 * 1024 * 1024; // 10MB
+    
+    let text = '';
+    
+    if (isTooLarge) {
+      // For large files, just sample parts of the PDF
+      // Get the first 1MB
+      const startSample = buffer.slice(0, 1024 * 1024).toString('utf-8');
+      // Get a middle 1MB sample
+      const middleOffset = Math.floor(buffer.length / 2);
+      const middleSample = buffer.slice(middleOffset, middleOffset + 1024 * 1024).toString('utf-8');
+      // Get the last 1MB
+      const endSample = buffer.slice(-1024 * 1024).toString('utf-8');
+      
+      text = `${startSample}\n\n[...]\n\n${middleSample}\n\n[...]\n\n${endSample}`;
+    } else {
+      // For smaller files, process the entire buffer
+      text = buffer.toString('utf-8', 0, buffer.length);
+    }
     
     // Clean up the text - remove non-printable characters
     const cleanedText = text.replace(/[^\x20-\x7E\r\n\t]/g, ' ')
@@ -29,12 +47,13 @@ export async function extractPDFText(buffer: Buffer): Promise<PDFData> {
     
     return {
       text: cleanedText,
-      numpages: 1, // We can't determine pages without proper parsing
+      numpages: isTooLarge ? 999 : 1, // Assume large files have many pages
       info: {},
       metadata: {},
       version: '1.0'
     };
   } catch (error) {
+    console.error('Error in PDF text extraction:', error);
     // Return empty result on error
     return {
       text: '',
