@@ -33,15 +33,10 @@ enum CVTabs {
   REORDER = "reorder",
 }
 
-interface CVBuilderProps {
-  cvId?: number;
-}
-
-const CVBuilder = ({ cvId }: CVBuilderProps) => {
+const CVBuilder = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<CVTabs>(cvId ? CVTabs.PERSONAL : CVTabs.TEMPLATE);
+  const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
-  const [isLoading, setIsLoading] = useState(cvId ? true : false);
   const form = useCVForm();
   
   // Default section order (matching the one in use-cv-form.ts)
@@ -72,51 +67,6 @@ const CVBuilder = ({ cvId }: CVBuilderProps) => {
   useEffect(() => {
     form.setValue('templateSettings.sectionOrder', sectionOrder);
   }, [sectionOrder, form]);
-  
-  // Load existing CV data if cvId is provided
-  useEffect(() => {
-    if (cvId) {
-      setIsLoading(true);
-      
-      const fetchCV = async () => {
-        try {
-          const response = await fetch(`/api/cv/${cvId}`);
-          if (!response.ok) {
-            throw new Error('Failed to load CV data');
-          }
-          
-          const cvData = await response.json();
-          
-          // Reset form with the fetched data
-          form.reset(cvData);
-          
-          // Update local state
-          if (cvData.templateSettings) {
-            setSelectedTemplate(cvData.templateSettings.template || 'professional');
-            setIncludePhoto(cvData.templateSettings.includePhoto || false);
-            setSectionOrder(cvData.templateSettings.sectionOrder || defaultSectionOrder);
-          }
-          
-          toast({
-            title: "CV Loaded",
-            description: "Your CV has been loaded successfully",
-            variant: "default",
-          });
-        } catch (error) {
-          console.error('Error loading CV:', error);
-          toast({
-            title: "Error",
-            description: error instanceof Error ? error.message : "Failed to load CV data",
-            variant: "destructive",
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      fetchCV();
-    }
-  }, [cvId, form, toast, defaultSectionOrder]);
   
   // Progress map for progress bar
   const progressMap = {
@@ -234,12 +184,7 @@ const CVBuilder = ({ cvId }: CVBuilderProps) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="mt-4 text-lg">Loading your CV...</p>
-        </div>
-      ) : showPreview ? (
+      {showPreview ? (
         <PDFPreview 
           data={form.getValues()} 
           onClose={() => setShowPreview(false)}
