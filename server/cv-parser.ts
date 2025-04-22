@@ -86,12 +86,59 @@ async function parseDocxCV(buffer: Buffer): Promise<Partial<CompleteCV>> {
  * @returns Extracted CV data
  */
 export async function parseCV(buffer: Buffer, mimeType: string): Promise<Partial<CompleteCV>> {
-  if (mimeType === "application/pdf") {
-    return parsePdfCV(buffer);
-  } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-    return parseDocxCV(buffer);
-  } else {
-    throw new Error("Unsupported file format. Please upload a PDF or DOCX file.");
+  try {
+    if (mimeType === "application/pdf") {
+      return await parsePdfCV(buffer);
+    } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      return await parseDocxCV(buffer);
+    } else {
+      throw new Error("Unsupported file format. Please upload a PDF or DOCX file.");
+    }
+  } catch (err) {
+    console.error("Error during CV parsing:", err);
+    
+    // Create a minimal CV structure with whatever data we could extract
+    // This allows the application to continue even if parsing fails
+    const fallbackCV: Partial<CompleteCV> = {
+      personal: {
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        linkedin: ""
+      },
+      professional: {
+        summary: ""
+      },
+      keyCompetencies: {
+        technicalSkills: [],
+        softSkills: []
+      },
+      experience: [],
+      education: [],
+      certificates: [],
+      extracurricular: [],
+      additional: {
+        skills: []
+      },
+      languages: [],
+      templateSettings: {
+        template: 'professional',
+        includePhoto: false,
+        sectionOrder: [
+          { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
+          { id: 'summary', name: 'Professional Summary', visible: true, order: 1 },
+          { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 2 },
+          { id: 'experience', name: 'Experience', visible: true, order: 3 },
+          { id: 'education', name: 'Education', visible: true, order: 4 },
+          { id: 'certificates', name: 'Certificates', visible: true, order: 5 },
+          { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 6 },
+          { id: 'additional', name: 'Additional Information', visible: true, order: 7 },
+        ]
+      }
+    };
+    
+    return fallbackCV;
   }
 }
 
@@ -268,17 +315,17 @@ function extractKeyCompetencies(text: string): KeyCompetencies {
     'programming', 'software', 'java', 'python', 'javascript', 'typescript', 'html', 'css', 
     'react', 'angular', 'vue', 'node', 'express', 'mongodb', 'sql', 'mysql', 'postgresql',
     'database', 'frontend', 'backend', 'fullstack', 'agile', 'git', 'aws', 'azure', 'cloud',
-    'docker', 'kubernetes', 'ci/cd', 'jenkins', 'devops', 'linux', 'unix', 'shell', 'bash',
+    'docker', 'kubernetes', 'jenkins', 'devops', 'linux', 'unix', 'shell', 'bash',
     'rest', 'api', 'microservices', 'testing', 'machine learning', 'ai', 'data science',
     'algorithms', 'data structures', 'network', 'security', 'mobile', 'ios', 'android',
-    'swift', 'kotlin', 'cplusplus', 'csharp', '.net', 'php', 'ruby', 'scala', 'go', 'rust', 'blockchain',
+    'swift', 'kotlin', 'dotnet', 'php', 'ruby', 'scala', 'golang', 'rust', 'blockchain',
     'solidity', 'excel', 'tableau', 'powerbi', 'data visualization', 'sap', 'salesforce',
     'jira', 'confluence', 'scrum', 'kanban', 'ux', 'ui', 'figma', 'sketch', 'photoshop',
     'illustrator', 'indesign', 'adobe', 'wordpress', 'shopify', 'magento', 'seo', 'sem',
-    'analytics', 'statistics', 'r', 'hadoop', 'spark', 'tensorflow', 'pytorch', 'keras',
+    'analytics', 'statistics', 'hadoop', 'spark', 'tensorflow', 'pytorch', 'keras',
     'nlp', 'computer vision', 'qa', 'selenium', 'cypress', 'jest', 'mocha', 'chai',
     'webpack', 'babel', 'npm', 'yarn', 'gatsby', 'nextjs', 'graphql', 'redux', 'mobx',
-    'sass', 'less', 'tailwind', 'bootstrap', 'material-ui', 'chakra-ui'
+    'sass', 'less', 'tailwind', 'bootstrap', 'material'
   ];
   
   // List of common soft skills keywords for classification
