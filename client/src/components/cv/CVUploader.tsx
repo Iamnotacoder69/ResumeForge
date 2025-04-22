@@ -26,10 +26,13 @@ export default function CVUploader() {
   // Handle CV parsing via API
   const parseCVMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiRequest("/api/parse-cv", {
+      // Using the standard fetch API
+      const url = "/api/parse-cv";
+      const options = {
         method: "POST",
-        body: formData,
-      });
+        body: formData
+      };
+      const response = await fetch(url, options);
       
       if (!response.ok) {
         const errorData = await response.json();
