@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check, Upload } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -20,6 +20,7 @@ import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
+import { useLocation } from "wouter";
 
 enum CVTabs {
   TEMPLATE = "template",
@@ -38,6 +39,25 @@ const CVBuilder = () => {
   const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
   const form = useCVForm();
+  const [location] = useLocation();
+  
+  // Check if CV was imported
+  useEffect(() => {
+    // Look for the imported=true parameter in the URL
+    const searchParams = new URLSearchParams(location.split('?')[1]);
+    if (searchParams.get('imported') === 'true') {
+      toast({
+        title: "CV Imported Successfully",
+        description: "Your CV data has been imported. You can now review and edit the information.",
+        duration: 5000,
+        variant: "default",
+        icon: <Upload className="h-5 w-5 text-primary" />,
+      });
+      
+      // Set active tab to personal info to start editing
+      setActiveTab(CVTabs.PERSONAL);
+    }
+  }, [location, toast]);
   
   // Default section order (matching the one in use-cv-form.ts)
   const defaultSectionOrder: SectionOrder[] = [
