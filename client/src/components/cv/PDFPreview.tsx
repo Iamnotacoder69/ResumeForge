@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { X, Download, ArrowLeft, RefreshCw } from "lucide-react";
+import { X, Download, ArrowLeft, RefreshCw, FileText, ExternalLink } from "lucide-react";
 import { CompleteCV, TemplateType } from "@shared/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper function to get template-specific styles
 const getTemplateStyles = (template: TemplateType): string => {
@@ -30,6 +31,7 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   
   // Extract template settings from data or use defaults
   const templateType = data.templateSettings?.template || 'professional';
@@ -109,18 +111,21 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
             </p>
           </div>
           
-          <div className="flex space-x-2 self-end sm:self-auto">
+          <div className={`flex ${isMobile ? 'flex-col gap-2' : 'space-x-2'} self-end sm:self-auto`}>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={generatePreview}
               disabled={isLoading}
+              className={isMobile ? 'w-full' : ''}
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
             </Button>
-            <Button onClick={onDownload} disabled={isLoading || !pdfUrl}>
-              <Download className="mr-2 h-4 w-4" /> Download PDF
-            </Button>
+            {!isMobile && (
+              <Button onClick={onDownload} disabled={isLoading || !pdfUrl}>
+                <Download className="mr-2 h-4 w-4" /> Download PDF
+              </Button>
+            )}
             <Button variant="ghost" size="sm" onClick={onClose} className="hidden sm:flex">
               <X className="h-4 w-4" />
             </Button>
@@ -146,11 +151,42 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
               </Button>
             </div>
           ) : pdfUrl ? (
-            <iframe 
-              src={pdfUrl} 
-              className="w-full h-full rounded border"
-              title="CV Preview"
-            />
+            <div className="w-full h-full flex flex-col">
+              {!isMobile ? (
+                // Desktop PDF viewer
+                <iframe 
+                  src={pdfUrl} 
+                  className="w-full h-full rounded border"
+                  title="CV Preview"
+                />
+              ) : (
+                // Mobile-friendly PDF viewer alternative
+                <div className="flex flex-col items-center justify-center h-full">
+                  <FileText className="w-20 h-20 mb-4 text-primary opacity-80" />
+                  <h3 className="text-lg font-semibold mb-1">PDF Preview Ready</h3>
+                  <p className="text-sm text-gray-600 mb-4 text-center px-4">
+                    Your CV has been generated and is ready to view or download
+                  </p>
+                  <div className="flex flex-col gap-3 w-full max-w-xs">
+                    <a 
+                      href={pdfUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center justify-center gap-2 bg-primary text-white py-3 px-6 rounded-md font-medium hover:bg-opacity-90 text-center"
+                    >
+                      <ExternalLink className="h-4 w-4" /> Open PDF
+                    </a>
+                    <Button 
+                      variant="outline" 
+                      onClick={onDownload}
+                      className="w-full py-3"
+                    >
+                      <Download className="mr-2 h-4 w-4" /> Download PDF
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="h-full flex items-center justify-center">
               <p className="text-red-500">Failed to generate PDF preview</p>
