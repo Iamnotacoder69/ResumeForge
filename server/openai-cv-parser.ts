@@ -3,30 +3,54 @@ import { CompleteCV } from "@shared/types";
 import * as fs from "fs";
 import * as mammoth from "mammoth";
 import { extractPDFText } from "./mock-pdf-parse";
+import { convertPdfToDocx, extractTextFromDocx } from "./pdf-to-word";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Helper function for extracting text from PDF files
+// Helper function for extracting text from PDF files with multiple strategies
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
-    const dataBuffer = fs.readFileSync(pdfPath);
-    
-    // Use our custom PDF text extraction
-    const pdfData = await extractPDFText(dataBuffer);
-    console.log(`Extracted PDF text length: ${pdfData.text.length}`);
-    
-    // If we got a reasonable amount of text, use it
-    if (pdfData.text.length > 300) {
-      // Successful extraction
-      return pdfData.text;
+    // Strategy 1: Convert PDF to Word and extract text from Word
+    try {
+      console.log('Attempting PDF to Word conversion strategy...');
+      const docxPath = await convertPdfToDocx(pdfPath);
+      const wordText = await extractTextFromDocx(docxPath);
+      
+      if (wordText && wordText.length > 300) {
+        console.log('Successfully extracted text via PDF to Word conversion, length:', wordText.length);
+        return wordText;
+      } else {
+        console.log('PDF to Word conversion produced minimal text, length:', wordText?.length || 0);
+      }
+    } catch (conversionError) {
+      console.warn('PDF to Word conversion failed:', conversionError.message);
     }
     
-    // For PDFs with minimal extractable text, let's use a fallback approach
+    // Strategy 2: Use our direct PDF text extraction
+    try {
+      console.log('Attempting direct PDF extraction...');
+      const dataBuffer = fs.readFileSync(pdfPath);
+      const pdfData = await extractPDFText(dataBuffer);
+      console.log(`Extracted PDF text length: ${pdfData.text.length}`);
+      
+      // If we got a reasonable amount of text, use it
+      if (pdfData.text.length > 300) {
+        // Successful extraction
+        return pdfData.text;
+      }
+    } catch (extractError) {
+      console.warn('Direct PDF extraction failed:', extractError.message);
+    }
+    
+    // Strategy 3: For PDFs with minimal extractable text, use a fallback approach
     // Get the filename to use as context
     const fileName = pdfPath.split('/').pop() || 'document.pdf';
-    
     console.log("PDF text extraction yielded minimal results, using filename as context");
+    
+    // Try to extract whatever text we can
+    const dataBuffer = fs.readFileSync(pdfPath);
+    const pdfData = await extractPDFText(dataBuffer);
     
     // Instead of extracting nothing, we'll generate a request for OpenAI to infer
     // the type of document from the file name and what little text we extracted
