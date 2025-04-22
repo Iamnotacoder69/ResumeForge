@@ -80,6 +80,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   // Get template style based on user selection or default to professional
   const templateType = data.templateSettings?.template || 'professional';
   const style = templateStyles[templateType];
+  const includePhoto = data.templateSettings?.includePhoto || false;
   
   // Create a new PDF document
   const doc = new jsPDF({
@@ -104,23 +105,93 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   
   // Apply template styling
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-
-  // Add header with name
-  doc.setFont(titleFont, "bold");
-  doc.setFontSize(titleFontSize);
-  doc.text(`${data.personal.firstName} ${data.personal.lastName}`, margin, yPos);
-  yPos += lineHeight + 2;
   
-  // Add contact information
-  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-  doc.setFont(bodyFont, "normal");
-  doc.setFontSize(bodyFontSize);
-  doc.text(`Email: ${data.personal.email} | Phone: ${data.personal.phone}`, margin, yPos);
-  yPos += lineHeight;
+  // Set up the layout with photo if included
+  const photoUrl = data.personal.photoUrl;
+  const hasPhoto = includePhoto && photoUrl;
   
-  if (data.personal.linkedin) {
-    doc.text(`LinkedIn: linkedin.com/in/${data.personal.linkedin}`, margin, yPos);
+  if (hasPhoto) {
+    // Define photo position and dimensions
+    const photoSize = 40; // Size in mm (about 1.5 inches)
+    const photoX = pageWidth - margin - photoSize;
+    const photoY = margin;
+    
+    try {
+      // Add the photo to the document
+      doc.addImage(
+        photoUrl, 
+        'JPEG', 
+        photoX, 
+        photoY, 
+        photoSize, 
+        photoSize, 
+        '', 
+        'MEDIUM'
+      );
+      
+      // Adjust content width to account for photo
+      const textWidth = photoX - margin - 5; // 5mm buffer between text and photo
+      
+      // Add header with name
+      doc.setFont(titleFont, "bold");
+      doc.setFontSize(titleFontSize);
+      
+      // Split name to multiple lines if needed
+      const nameText = `${data.personal.firstName} ${data.personal.lastName}`;
+      const nameLines = doc.splitTextToSize(nameText, textWidth);
+      doc.text(nameLines, margin, yPos);
+      yPos += (nameLines.length * lineHeight);
+      
+      // Add contact information
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.setFont(bodyFont, "normal");
+      doc.setFontSize(bodyFontSize);
+      
+      // Email and phone
+      const contactText = `Email: ${data.personal.email} | Phone: ${data.personal.phone}`;
+      const contactLines = doc.splitTextToSize(contactText, textWidth);
+      doc.text(contactLines, margin, yPos);
+      yPos += (contactLines.length * lineHeight);
+      
+      // LinkedIn if available
+      if (data.personal.linkedin) {
+        const linkedinText = `LinkedIn: linkedin.com/in/${data.personal.linkedin}`;
+        const linkedinLines = doc.splitTextToSize(linkedinText, textWidth);
+        doc.text(linkedinLines, margin, yPos);
+        yPos += (linkedinLines.length * lineHeight);
+      }
+      
+      // Ensure we've moved past the photo
+      const photoBottom = photoY + photoSize + 5;
+      if (yPos < photoBottom) {
+        yPos = photoBottom;
+      }
+    } catch (error) {
+      console.error("Error adding photo to PDF:", error);
+      // If photo fails, revert to standard layout
+      hasPhoto = false;
+    }
+  }
+  
+  // Standard layout (no photo)
+  if (!hasPhoto) {
+    // Add header with name
+    doc.setFont(titleFont, "bold");
+    doc.setFontSize(titleFontSize);
+    doc.text(`${data.personal.firstName} ${data.personal.lastName}`, margin, yPos);
+    yPos += lineHeight + 2;
+    
+    // Add contact information
+    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+    doc.setFont(bodyFont, "normal");
+    doc.setFontSize(bodyFontSize);
+    doc.text(`Email: ${data.personal.email} | Phone: ${data.personal.phone}`, margin, yPos);
     yPos += lineHeight;
+    
+    if (data.personal.linkedin) {
+      doc.text(`LinkedIn: linkedin.com/in/${data.personal.linkedin}`, margin, yPos);
+      yPos += lineHeight;
+    }
   }
   
   // Add horizontal line
