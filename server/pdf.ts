@@ -108,7 +108,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   
   // Set up the layout with photo if included
   const photoUrl = data.personal.photoUrl;
-  const hasPhoto = includePhoto && photoUrl;
+  let hasPhoto = includePhoto && photoUrl;
   
   if (hasPhoto) {
     // Define photo position and dimensions
