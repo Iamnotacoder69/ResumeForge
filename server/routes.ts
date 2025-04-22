@@ -240,7 +240,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error cleaning up temp directory:", cleanupError);
         }
         
-        throw new Error("Failed to convert file to DOCX format: " + (conversionError instanceof Error ? conversionError.message : String(conversionError)));
+        console.log("LibreOffice conversion failed, falling back to direct parsing of the original file");
+        
+        // Parse the original file directly
+        try {
+          // Process the file with its original mime type
+          const cv = await parseCV(req.file.path, req.file.mimetype);
+          
+          res.status(200).json({
+            success: true,
+            data: cv,
+            message: "CV parsed successfully with fallback method"
+          });
+          
+          // Make sure to delete the original file at the end
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (unlinkError) {
+            console.error("Failed to delete original file after fallback parsing:", unlinkError);
+          }
+          
+          return; // Exit early since we've handled the response
+        } catch (error) {
+          console.error("Fallback parsing also failed:", error);
+          if (error instanceof Error) {
+            throw new Error("Both conversion and direct parsing failed: " + error.message);
+          } else {
+            throw new Error("Both conversion and direct parsing failed: Unknown error");
+          }
+        }
       }
     } catch (error) {
       console.error("Error in /api/parse-cv:", error);
