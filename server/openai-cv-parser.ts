@@ -38,13 +38,12 @@ ${pdfData.text}
 
 Please analyze this as a CV and extract all available information about the candidate,
 making reasonable assumptions when specific details aren't clear.`;
+    
   } catch (error) {
     console.error("Error extracting text from PDF:", error);
-    return "Error extracting text from PDF. Please try uploading a different file format.";
+    return "Error extracting text from PDF. This may be a scanned document or image-based PDF.";
   }
 }
-
-
 
 /**
  * Parse CV content using OpenAI API to extract structured information
@@ -77,38 +76,31 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     
     console.log("Analyzing CV content with OpenAI...");
     
-    // For PDFs, let's extract the text using our PDF parser
+    // For PDFs, extract the text using our PDF parser
     if (fileType === "application/pdf") {
       try {
         // Extract text from PDF
         const pdfText = await extractTextFromPDF(filePath);
         
-        // If we got a reasonable amount of text, use it
-        if (pdfText.length > 200) {
-          // Truncate the text to prevent token limit issues
-          // The OpenAI API has a token limit of ~30,000 tokens
-          // A safe text length is around 30,000 characters (approximately 7,500 tokens)
-          const maxTextLength = 30000;
-          if (pdfText.length > maxTextLength) {
-            console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
-            // Keep first 10,000 chars (usually contains the most important info)
-            const firstPart = pdfText.substring(0, 10000);
-            // Keep last 5,000 chars (might contain conclusion or important ending sections)
-            const lastPart = pdfText.substring(pdfText.length - 5000);
-            // Take 15,000 chars from the middle (to capture work experience, etc.)
-            const middleStart = Math.floor((pdfText.length - 15000) / 2);
-            const middlePart = pdfText.substring(middleStart, middleStart + 15000);
-            
-            cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
-          } else {
-            cvText = pdfText;
-          }
-          console.log("Successfully extracted text from PDF, processed length:", cvText.length);
+        // Truncate the text to prevent token limit issues
+        // The OpenAI API has a token limit of ~30,000 tokens
+        // A safe text length is around 30,000 characters (approximately 7,500 tokens)
+        const maxTextLength = 30000;
+        if (pdfText.length > maxTextLength) {
+          console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
+          // Keep first 10,000 chars (usually contains the most important info)
+          const firstPart = pdfText.substring(0, 10000);
+          // Keep last 5,000 chars (might contain conclusion or important ending sections)
+          const lastPart = pdfText.substring(pdfText.length - 5000);
+          // Take 15,000 chars from the middle (to capture work experience, etc.)
+          const middleStart = Math.floor((pdfText.length - 15000) / 2);
+          const middlePart = pdfText.substring(middleStart, middleStart + 15000);
+          
+          cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
         } else {
-          // Otherwise, provide an error message
-          console.log("PDF extraction failed or returned minimal text");
-          cvText = "PDF text extraction failed or returned minimal text. This may be a scanned PDF or image-based document. Please upload a text-based PDF or a Word document for better results.";
+          cvText = pdfText;
         }
+        console.log("Successfully extracted text from PDF, processed length:", cvText.length);
       } catch (error) {
         console.error("Error parsing PDF:", error);
         cvText = "Error parsing PDF. Please try uploading a different file format.";
@@ -198,6 +190,8 @@ Format your response as a JSON object with the following structure:
 
 IMPORTANT: For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences based on other parts of the CV. For example, if a job title is mentioned but not the company, try to determine the company from context.
 
+IMPORTANT: For PDF files, focus on extracting AS MUCH INFORMATION AS POSSIBLE from the available text, even if the document appears incomplete or truncated. Make reasonable inferences based on context. Do NOT leave sections empty if the information might be present in the document.
+
 CV content:
 ${cvText}`;
 
@@ -207,7 +201,7 @@ ${cvText}`;
       messages: [
         {
           role: "system",
-          content: "You are a professional CV parser that extracts structured information from resumes and CVs."
+          content: "You are a professional CV parser that extracts structured information from resumes and CVs. You focus on identifying ALL relevant information and making reasonable inferences where data might be incomplete or missing."
         },
         {
           role: "user",
