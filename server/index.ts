@@ -2,6 +2,15 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
+import multer from "multer";
+
+// Configure multer for file uploads
+export const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB file size limit
+  }
+});
 
 const app = express();
 // Increase JSON body size limit to 10MB to accommodate base64 encoded images

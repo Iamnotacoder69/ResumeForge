@@ -46,7 +46,6 @@ export default function CVUploader() {
       const response = await apiRequest('/api/upload-cv', {
         method: 'POST',
         body: formData,
-        // Don't set Content-Type header as browser will set it with boundary for FormData
       });
       
       if (!response.ok) {

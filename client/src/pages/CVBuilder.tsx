@@ -107,7 +107,10 @@ const CVBuilder = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/generate-pdf", data);
+      const response = await apiRequest("/api/generate-pdf", {
+        method: "POST",
+        body: data
+      });
       return response.blob();
     },
     onSuccess: (blob) => {
@@ -142,7 +145,10 @@ const CVBuilder = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", "/api/cv", data);
+      return await apiRequest("/api/cv", {
+        method: "POST",
+        body: data
+      });
     },
     onSuccess: () => {
       toast({
