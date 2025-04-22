@@ -1,12 +1,50 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import * as path from "path";
+import * as fs from "fs";
+import * as crypto from "crypto";
+import * as os from "os";
+import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
+import { parseCV } from "./openai-cv-parser";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, os.tmpdir()); // Use system temp directory
+    },
+    filename: (req, file, cb) => {
+      // Generate a secure random filename
+      const uniquePrefix = crypto.randomBytes(16).toString("hex");
+      const fileExt = path.extname(file.originalname);
+      cb(null, `${uniquePrefix}${fileExt}`);
+    }
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // Limit to 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only PDF and Word documents
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CV Routes
@@ -106,6 +144,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "Failed to enhance text with AI", 
         error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+  
+  // Parse CV file and extract information
+  app.post("/api/parse-cv", upload.single('cv'), async (req: Request, res: Response) => {
+    try {
+      // Check if file was uploaded
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded"
+        });
+      }
+      
+      // Parse CV file
+      try {
+        // Get file info
+        const filePath = req.file.path;
+        const fileType = req.file.mimetype;
+        
+        // Parse using OpenAI
+        const parsedCV = await parseCV(filePath, fileType);
+        
+        // Return structured data
+        res.status(200).json({
+          success: true,
+          data: parsedCV
+        });
+      } catch (error) {
+        // Make sure to clean up the temp file if an error occurs
+        if (req.file && req.file.path) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (unlinkError) {
+            console.error("Failed to delete temporary file:", unlinkError);
+          }
+        }
+        
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error in /api/parse-cv:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to parse CV",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
