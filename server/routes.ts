@@ -4,8 +4,6 @@ import * as path from "path";
 import * as fs from "fs";
 import * as crypto from "crypto";
 import * as os from "os";
-import * as util from "util";
-import { exec } from "child_process";
 import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
@@ -161,127 +159,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create a temporary directory for file conversion
-      const tempDir = path.join(os.tmpdir(), 'cv-converter-' + Date.now());
-      fs.mkdirSync(tempDir, { recursive: true });
-
-      // Copy the uploaded file to the temp directory with a unique name
-      const originalFilePath = req.file.path;
-      const fileExtension = path.extname(req.file.originalname);
-      const originalFileName = path.basename(req.file.originalname, fileExtension);
-      const tempFilePath = path.join(tempDir, originalFileName + fileExtension);
-      
-      fs.copyFileSync(originalFilePath, tempFilePath);
-
-      let docxFilePath = "";
-      
-      // If the file is already a docx, we still run conversion to ensure consistency
-      const docxMimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      // Convert the file to docx using LibreOffice
-      const outputDir = tempDir;
-      const outputFileName = originalFileName + ".docx";
-      docxFilePath = path.join(outputDir, outputFileName);
-      
-      console.log(`Converting file ${tempFilePath} to DOCX using LibreOffice...`);
-      
+      // Parse CV file
       try {
-        // Execute LibreOffice to convert the file to docx
-        // The --headless option runs LibreOffice without a UI
-        // The --convert-to docx option specifies the output format
-        // The --outdir option specifies where to save the converted file
-        const { stdout, stderr } = await util.promisify(exec)(
-          `libreoffice --headless --convert-to docx --outdir "${outputDir}" "${tempFilePath}"`
-        );
+        // Get file info
+        const filePath = req.file.path;
+        const fileType = req.file.mimetype;
         
-        console.log("Conversion output:", stdout);
+        // Parse using OpenAI
+        const parsedCV = await parseCV(filePath, fileType);
         
-        if (stderr) {
-          console.error("Conversion errors:", stderr);
-        }
-        
-        // Check if the docx file was created
-        if (!fs.existsSync(docxFilePath)) {
-          throw new Error("Conversion failed - output file not found");
-        }
-        
-        console.log(`File successfully converted to DOCX: ${docxFilePath}`);
-        
-        // Parse CV file using the DOCX version
-        try {
-          // Parse using OpenAI - always use DOCX mime type since we've converted it
-          const parsedCV = await parseCV(docxFilePath, docxMimeType);
-          
-          // Clean up temporary files after successful parsing
-          try {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-            fs.unlinkSync(originalFilePath); // Delete the original uploaded file
-          } catch (cleanupError) {
-            console.error("Error cleaning up temporary files:", cleanupError);
-          }
-          
-          // Return structured data
-          res.status(200).json({
-            success: true,
-            data: parsedCV
-          });
-        } catch (parseError) {
-          console.error("Error parsing CV:", parseError);
-          throw parseError;
-        }
+        // Return structured data
+        res.status(200).json({
+          success: true,
+          data: parsedCV
+        });
       } catch (error) {
-        const conversionError = error as Error;
-        console.error("Error during file conversion:", conversionError);
-        
-        // If conversion fails, fall back to the original file
-        // But we'll clean up the temp directory
-        try {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        } catch (cleanupError) {
-          console.error("Error cleaning up temp directory:", cleanupError);
-        }
-        
-        console.log("LibreOffice conversion failed, falling back to direct parsing of the original file");
-        
-        // Parse the original file directly
-        try {
-          // Process the file with its original mime type
-          const cv = await parseCV(req.file.path, req.file.mimetype);
-          
-          res.status(200).json({
-            success: true,
-            data: cv,
-            message: "CV parsed successfully with fallback method"
-          });
-          
-          // Make sure to delete the original file at the end
+        // Make sure to clean up the temp file if an error occurs
+        if (req.file && req.file.path) {
           try {
             fs.unlinkSync(req.file.path);
           } catch (unlinkError) {
-            console.error("Failed to delete original file after fallback parsing:", unlinkError);
-          }
-          
-          return; // Exit early since we've handled the response
-        } catch (error) {
-          console.error("Fallback parsing also failed:", error);
-          if (error instanceof Error) {
-            throw new Error("Both conversion and direct parsing failed: " + error.message);
-          } else {
-            throw new Error("Both conversion and direct parsing failed: Unknown error");
+            console.error("Failed to delete temporary file:", unlinkError);
           }
         }
+        
+        throw error;
       }
     } catch (error) {
       console.error("Error in /api/parse-cv:", error);
-      
-      // Make sure to clean up any remaining files
-      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (unlinkError) {
-          console.error("Failed to delete temporary file:", unlinkError);
-        }
-      }
-      
       res.status(500).json({
         success: false,
         message: "Failed to parse CV",

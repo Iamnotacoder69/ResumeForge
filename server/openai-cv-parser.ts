@@ -18,23 +18,6 @@ async function extractTextFromPDF(pdfPath: string): Promise<string> {
     
     // If we got a reasonable amount of text, use it
     if (pdfData.text.length > 300) {
-      // Truncate the text to prevent token limit issues
-      // The OpenAI API has a token limit of ~30,000 tokens
-      // A safe text length is around 30,000 characters (approximately 7,500 tokens)
-      const maxTextLength = 30000;
-      if (pdfData.text.length > maxTextLength) {
-        console.log(`PDF text too long (${pdfData.text.length} chars), truncating to ${maxTextLength} chars`);
-        // Keep first 10,000 chars (usually contains the most important info)
-        const firstPart = pdfData.text.substring(0, 10000);
-        // Keep last 5,000 chars (might contain conclusion or important ending sections)
-        const lastPart = pdfData.text.substring(pdfData.text.length - 5000);
-        // Take 15,000 chars from the middle (to capture work experience, etc.)
-        const middleStart = Math.floor((pdfData.text.length - 15000) / 2);
-        const middlePart = pdfData.text.substring(middleStart, middleStart + 15000);
-        
-        return `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
-      }
-      
       // Successful extraction
       return pdfData.text;
     }
@@ -61,11 +44,12 @@ making reasonable assumptions when specific details aren't clear.`;
   }
 }
 
+
+
 /**
  * Parse CV content using OpenAI API to extract structured information
- * This function can handle both PDF and DOCX files for text extraction
  * @param filePath Path to the uploaded file
- * @param fileType MIME type of the file (e.g., 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+ * @param fileType MIME type of the file
  * @returns Structured CV data
  */
 export async function parseCV(filePath: string, fileType: string): Promise<CompleteCV> {
@@ -73,14 +57,8 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // Default message for unsupported formats
     let cvText = "Please analyze this CV document and extract all relevant information.";
     
-    // Check file type and extract text accordingly
-    if (fileType.includes('pdf')) {
-      console.log("Processing file as PDF");
-      cvText = await extractTextFromPDF(filePath);
-      console.log("PDF text extraction completed");
-    } else {
-      // Default to DOCX processing for all other types
-      console.log("Processing file as DOCX");
+    // For Word documents, extract the text
+    if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
         const dataBuffer = fs.readFileSync(filePath);
         const result = await mammoth.extractRawText({buffer: dataBuffer});
@@ -93,14 +71,55 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         }
       } catch (error) {
         console.error("Error extracting text from Word document:", error);
-        throw new Error("Error extracting text from DOCX document. The file may be corrupted or protected.");
+        cvText = "Error extracting text from Word document. Please try uploading a different file.";
       }
     }
     
     console.log("Analyzing CV content with OpenAI...");
     
+    // For PDFs, let's extract the text using our PDF parser
+    if (fileType === "application/pdf") {
+      try {
+        // Extract text from PDF
+        const pdfText = await extractTextFromPDF(filePath);
+        
+        // If we got a reasonable amount of text, use it
+        if (pdfText.length > 200) {
+          // Truncate the text to prevent token limit issues
+          // The OpenAI API has a token limit of ~30,000 tokens
+          // A safe text length is around 30,000 characters (approximately 7,500 tokens)
+          const maxTextLength = 30000;
+          if (pdfText.length > maxTextLength) {
+            console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
+            // Keep first 10,000 chars (usually contains the most important info)
+            const firstPart = pdfText.substring(0, 10000);
+            // Keep last 5,000 chars (might contain conclusion or important ending sections)
+            const lastPart = pdfText.substring(pdfText.length - 5000);
+            // Take 15,000 chars from the middle (to capture work experience, etc.)
+            const middleStart = Math.floor((pdfText.length - 15000) / 2);
+            const middlePart = pdfText.substring(middleStart, middleStart + 15000);
+            
+            cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
+          } else {
+            cvText = pdfText;
+          }
+          console.log("Successfully extracted text from PDF, processed length:", cvText.length);
+        } else {
+          // Otherwise, provide an error message
+          console.log("PDF extraction failed or returned minimal text");
+          cvText = "PDF text extraction failed or returned minimal text. This may be a scanned PDF or image-based document. Please upload a text-based PDF or a Word document for better results.";
+        }
+      } catch (error) {
+        console.error("Error parsing PDF:", error);
+        cvText = "Error parsing PDF. Please try uploading a different file format.";
+      }
+    }
+    
+    // Check if it's a PDF and note that in the prompt
+    const isPDF = fileType === "application/pdf";
+    
     const jsonStructurePrompt = `
-You are a professional CV parser specializing in extracting structured information from CVs and resumes.
+You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, so you may need to infer some details from partial information." : ""}
 
 Please analyze the CV content carefully and extract ALL of the following information, making reasonable inferences even when information is incomplete:
 
@@ -114,7 +133,7 @@ Please analyze the CV content carefully and extract ALL of the following informa
 8. Extracurricular activities - identify any activities outside of work
 9. Any additional skills not covered above
 
-NOTE: Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears incomplete, try to infer what might be contained in that section.
+NOTE: For PDF files, the text may be truncated. Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears cut off, try to infer what might be contained in that section.
 
 Format your response as a JSON object with the following structure:
 {
