@@ -3,12 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
-import { parseCV } from "./cv-parser";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { upload } from "./index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CV Routes
@@ -83,105 +81,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { text, type } = req.body as AIRewriteRequest;
       
-      // Input validation
-      if (!text) {
-        console.log("Empty text submitted for enhancement");
-        return res.status(200).json({ 
-          success: true, 
-          data: { enhancedText: text || "" } 
+      if (!text || !type) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Text and type are required" 
         });
       }
       
-      // Validate type
-      const validType = (type === "summary" || type === "responsibilities") ? type : "summary";
-      
-      console.log(`Enhancing text (${text.length} chars) with type: ${validType}`);
-      
-      try {
-        // Use the AI enhancement with better error handling
-        const enhancedText = await enhanceTextWithAI(text, validType);
-        
-        res.status(200).json({ 
-          success: true, 
-          data: { enhancedText } 
-        });
-      } catch (aiError) {
-        // Even if AI enhancement fails, we return the original text
-        console.error("AI enhancement failed, returning original text:", aiError);
-        res.status(200).json({ 
-          success: true, 
-          data: { enhancedText: text } 
+      if (type !== "summary" && type !== "responsibilities") {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Type must be either 'summary' or 'responsibilities'" 
         });
       }
-    } catch (error) {
-      console.error("Error processing enhancement request:", error);
-      // Always return a valid response to avoid breaking the client
+      
+      const enhancedText = await enhanceTextWithAI(text, type);
+      
       res.status(200).json({ 
         success: true, 
-        message: "Processing error, using original text", 
-        data: { enhancedText: req.body?.text || "" } 
+        data: { enhancedText } 
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to enhance text with AI", 
+        error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
   });
   
-  // CV Upload and Parse
-  app.post("/api/upload-cv", upload.single('file'), async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "No file uploaded" 
-        });
-      }
-      
-      console.log(`Processing uploaded file: ${req.file.originalname}, type: ${req.file.mimetype}, size: ${req.file.size} bytes`);
-      
-      // Process file based on type
-      const parsedCV = await parseCV(req.file.buffer, req.file.mimetype);
-      
-      // Return the parsed CV data - we will always return success now as the parseCV
-      // function will not throw errors but instead return a fallback structure
-      res.status(200).json({ 
-        success: true, 
-        message: "CV parsed successfully", 
-        data: parsedCV 
-      });
-    } catch (error) {
-      console.error("Error parsing CV:", error);
-      
-      // This shouldn't happen now since parseCV has its own error handling, but just in case
-      res.status(200).json({
-        success: true,
-        message: "Could not fully parse CV, but created blank template for you",
-        data: {
-          personal: { firstName: "", lastName: "", email: "", phone: "", linkedin: "" },
-          professional: { summary: "" },
-          keyCompetencies: { technicalSkills: [], softSkills: [] },
-          experience: [],
-          education: [],
-          certificates: [],
-          extracurricular: [],
-          additional: { skills: [] },
-          languages: [],
-          templateSettings: {
-            template: 'professional',
-            includePhoto: false,
-            sectionOrder: [
-              { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
-              { id: 'summary', name: 'Professional Summary', visible: true, order: 1 },
-              { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 2 },
-              { id: 'experience', name: 'Experience', visible: true, order: 3 },
-              { id: 'education', name: 'Education', visible: true, order: 4 },
-              { id: 'certificates', name: 'Certificates', visible: true, order: 5 },
-              { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 6 },
-              { id: 'additional', name: 'Additional Information', visible: true, order: 7 },
-            ]
-          }
-        }
-      });
-    }
-  });
-
   // Generate PDF
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {

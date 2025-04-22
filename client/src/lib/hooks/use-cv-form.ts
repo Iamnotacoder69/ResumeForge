@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { completeCvSchema } from "@shared/schema";
 import { CompleteCV, SectionOrder } from "@shared/types";
-import { useEffect } from "react";
 
 export function useCVForm() {
   // Default section order
@@ -16,7 +15,6 @@ export function useCVForm() {
     { id: 'additional' as const, name: 'Additional Information', visible: true, order: 6 },
   ];
 
-  // Initialize with default values
   const defaultValues: CompleteCV = {
     personal: {
       firstName: "",
@@ -79,76 +77,11 @@ export function useCVForm() {
     },
   };
 
-  // Check for imported CV data from sessionStorage
-  let initialValues = defaultValues;
-  try {
-    const importedDataString = sessionStorage.getItem('importedCVData');
-    if (importedDataString) {
-      const importedData = JSON.parse(importedDataString);
-      if (importedData?.success && importedData?.data) {
-        // Merge imported data with defaults to ensure all fields exist
-        initialValues = {
-          ...defaultValues,
-          ...importedData.data,
-          // Ensure nested objects are properly merged
-          personal: {
-            ...defaultValues.personal,
-            ...importedData.data.personal,
-          },
-          professional: {
-            ...defaultValues.professional,
-            ...importedData.data.professional,
-          },
-          keyCompetencies: {
-            ...defaultValues.keyCompetencies,
-            ...importedData.data.keyCompetencies,
-          },
-          additional: {
-            ...defaultValues.additional,
-            ...importedData.data.additional,
-          },
-          templateSettings: {
-            ...defaultValues.templateSettings,
-            ...importedData.data.templateSettings,
-          },
-        };
-        
-        // Handle arrays (preserve imported data if it exists)
-        if (importedData.data.experience && importedData.data.experience.length > 0) {
-          initialValues.experience = importedData.data.experience;
-        }
-        if (importedData.data.education && importedData.data.education.length > 0) {
-          initialValues.education = importedData.data.education;
-        }
-        if (importedData.data.certificates && importedData.data.certificates.length > 0) {
-          initialValues.certificates = importedData.data.certificates;
-        }
-        if (importedData.data.extracurricular && importedData.data.extracurricular.length > 0) {
-          initialValues.extracurricular = importedData.data.extracurricular;
-        }
-        if (importedData.data.languages && importedData.data.languages.length > 0) {
-          initialValues.languages = importedData.data.languages;
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error loading imported CV data:', error);
-    // If there's an error, use default values
-    initialValues = defaultValues;
-  }
-
   const form = useForm<CompleteCV>({
     resolver: zodResolver(completeCvSchema),
-    defaultValues: initialValues,
+    defaultValues,
     mode: "onChange",
   });
-
-  // Clear imported data after form is initialized
-  useEffect(() => {
-    // Remove imported data from session storage after form is initialized
-    // to prevent it from being loaded again on refresh
-    sessionStorage.removeItem('importedCVData');
-  }, []);
 
   return form;
 }
