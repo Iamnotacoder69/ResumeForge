@@ -3,10 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
+import { parseCV } from "./cv-parser";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { upload } from "./index";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CV Routes
@@ -110,6 +112,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // CV Upload and Parse
+  app.post("/api/upload-cv", upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "No file uploaded" 
+        });
+      }
+      
+      console.log(`Processing uploaded file: ${req.file.originalname}, type: ${req.file.mimetype}, size: ${req.file.size} bytes`);
+      
+      // Process file based on type
+      const parsedCV = await parseCV(req.file.buffer, req.file.mimetype);
+      
+      // Return the parsed CV data
+      res.status(200).json({ 
+        success: true, 
+        message: "CV parsed successfully", 
+        data: parsedCV 
+      });
+    } catch (error) {
+      console.error("Error parsing CV:", error);
+      
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to parse CV", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // Generate PDF
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {
