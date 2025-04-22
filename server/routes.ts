@@ -8,7 +8,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
-import { processCV } from "./cv-processor";
+import { parseCV } from "./openai-cv-parser";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
@@ -165,8 +165,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const filePath = req.file.path;
         const fileType = req.file.mimetype;
         
-        // Process CV file using our unified processor
-        const parsedCV = await processCV(filePath, fileType);
+        // Parse using OpenAI
+        const parsedCV = await parseCV(filePath, fileType);
         
         // Return structured data
         res.status(200).json({

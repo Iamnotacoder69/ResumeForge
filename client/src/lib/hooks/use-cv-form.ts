@@ -92,16 +92,13 @@ export function useCVForm() {
         const parsedCV = JSON.parse(parsedCVString);
         
         // Populate the form with parsed data
-        console.log("Populating form with parsed CV data:", parsedCV);
-        console.log("Form values before population:", form.getValues());
+        console.log("Populating form with parsed CV data");
         
         // Set personal info
         if (parsedCV.personal) {
-          console.log("Setting personal info:", parsedCV.personal);
           Object.keys(parsedCV.personal).forEach(field => {
             if (parsedCV.personal[field]) {
               form.setValue(`personal.${field}` as any, parsedCV.personal[field]);
-              console.log(`Set personal.${field} to`, parsedCV.personal[field]);
             }
           });
         }
