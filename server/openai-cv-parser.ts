@@ -115,18 +115,25 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
       }
     }
     
+    // Check if it's a PDF and note that in the prompt
+    const isPDF = fileType === "application/pdf";
+    
     const jsonStructurePrompt = `
-You are a professional CV parser. Extract the following structured information from this CV, keeping dates in YYYY-MM format when possible:
+You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, so you may need to infer some details from partial information." : ""}
+
+Please analyze the CV content carefully and extract ALL of the following information, making reasonable inferences even when information is incomplete:
 
 1. Personal information (name, email, phone, LinkedIn profile)
-2. Professional summary
-3. Technical and soft skills
-4. Work experience (including company, job title, dates, current status, and responsibilities)
-5. Education (institution, degree, dates, and achievements)
-6. Certifications (name, issuer, date, expiration date if any)
-7. Languages (with proficiency levels)
-8. Extracurricular activities (organization, role, dates, description)
+2. Professional summary - provide a concise summary of the person's background and experience
+3. Technical and soft skills - identify both technical skills (programming languages, tools, etc.) and soft skills (leadership, communication, etc.)
+4. Work experience - extract ALL work experiences including company, job title, dates, and detailed responsibilities
+5. Education - extract ALL education entries including institution, degree, dates, and achievements
+6. Certifications - extract ALL certifications including name, issuer, and dates
+7. Languages - identify ALL languages with proficiency levels
+8. Extracurricular activities - identify any activities outside of work
 9. Any additional skills not covered above
+
+NOTE: For PDF files, the text may be truncated. Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears cut off, try to infer what might be contained in that section.
 
 Format your response as a JSON object with the following structure:
 {
@@ -189,7 +196,9 @@ Format your response as a JSON object with the following structure:
   "additionalSkills": []
 }
 
-Here is the CV content:
+IMPORTANT: For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences based on other parts of the CV. For example, if a job title is mentioned but not the company, try to determine the company from context.
+
+CV content:
 ${cvText}`;
 
     // Use OpenAI to parse the CV
@@ -252,60 +261,60 @@ function mapResponseToCV(response: any): CompleteCV {
   // Create default CV structure
   const cv: CompleteCV = {
     personal: {
-      firstName: response.personal?.firstName || "",
-      lastName: response.personal?.lastName || "",
-      email: response.personal?.email || "",
-      phone: response.personal?.phone || "",
-      linkedin: response.personal?.linkedin || "",
+      firstName: response.personal?.firstName || response.personal?.first_name || response.personal?.givenName || "",
+      lastName: response.personal?.lastName || response.personal?.last_name || response.personal?.surname || "",
+      email: response.personal?.email || response.personal?.emailAddress || response.contact?.email || "",
+      phone: response.personal?.phone || response.personal?.phoneNumber || response.personal?.mobile || response.contact?.phone || "",
+      linkedin: response.personal?.linkedin || response.personal?.linkedIn || response.personal?.linkedInUrl || response.contact?.linkedin || "",
     },
     professional: {
-      summary: response.summary || "",
+      summary: response.summary || response.professionalSummary || response.profile || response.bio || "",
     },
     keyCompetencies: {
-      technicalSkills: response.skills?.technical || [],
-      softSkills: response.skills?.soft || [],
+      technicalSkills: response.skills?.technical || response.technicalSkills || response.hardSkills || response.keyCompetencies?.technical || [],
+      softSkills: response.skills?.soft || response.softSkills || response.personalSkills || response.keyCompetencies?.soft || [],
     },
     experience: (response.experience || []).map((exp: any) => ({
       id: Math.random(), // Generate a temporary id
-      companyName: exp.company || "",
-      jobTitle: exp.jobTitle || "",
-      startDate: exp.startDate || "",
-      endDate: exp.endDate || "",
-      isCurrent: exp.isCurrent || false,
-      responsibilities: exp.responsibilities || "",
+      companyName: exp.company || exp.companyName || "",
+      jobTitle: exp.jobTitle || exp.title || exp.position || "",
+      startDate: exp.startDate || exp.start || "",
+      endDate: exp.endDate || exp.end || "",
+      isCurrent: exp.isCurrent || exp.current || false,
+      responsibilities: exp.responsibilities || exp.description || "",
     })),
     education: (response.education || []).map((edu: any) => ({
       id: Math.random(), // Generate a temporary id
-      schoolName: edu.institution || "",
-      major: edu.degree || "",
-      startDate: edu.startDate || "",
-      endDate: edu.endDate || "",
-      achievements: edu.achievements || "",
+      schoolName: edu.institution || edu.school || edu.university || edu.schoolName || "",
+      major: edu.degree || edu.major || edu.fieldOfStudy || edu.field || "",
+      startDate: edu.startDate || edu.start || "",
+      endDate: edu.endDate || edu.end || "",
+      achievements: edu.achievements || edu.description || "",
     })),
     certificates: (response.certifications || []).map((cert: any) => ({
       id: Math.random(), // Generate a temporary id
-      institution: cert.issuer || "",
-      name: cert.name || "",
-      dateAcquired: cert.date || "",
-      expirationDate: cert.expirationDate || "",
-      achievements: cert.description || "",
+      institution: cert.issuer || cert.institution || cert.organization || cert.provider || "",
+      name: cert.name || cert.title || cert.certification || "",
+      dateAcquired: cert.date || cert.dateAcquired || cert.issuedDate || cert.issued || "",
+      expirationDate: cert.expirationDate || cert.expiry || cert.validUntil || "",
+      achievements: cert.description || cert.achievements || "",
     })),
     languages: (response.languages || []).map((lang: any) => ({
       id: Math.random(), // Generate a temporary id
-      name: lang.language || "",
-      proficiency: mapLanguageProficiency(lang.proficiency || ""),
+      name: lang.language || lang.name || "",
+      proficiency: mapLanguageProficiency(lang.proficiency || lang.level || ""),
     })),
     extracurricular: (response.extracurricular || []).map((activity: any) => ({
       id: Math.random(), // Generate a temporary id
-      organization: activity.organization || "",
-      role: activity.role || "",
-      startDate: activity.startDate || "",
-      endDate: activity.endDate || "",
-      isCurrent: activity.isCurrent || false,
-      description: activity.description || "",
+      organization: activity.organization || activity.club || activity.group || "",
+      role: activity.role || activity.position || activity.title || "",
+      startDate: activity.startDate || activity.start || "",
+      endDate: activity.endDate || activity.end || "",
+      isCurrent: activity.isCurrent || activity.current || false,
+      description: activity.description || activity.details || activity.responsibilities || "",
     })),
     additional: {
-      skills: response.additionalSkills || [],
+      skills: response.additionalSkills || response.additional?.skills || response.otherSkills || response.additional || [],
     },
     templateSettings: {
       template: "professional",
