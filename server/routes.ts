@@ -8,7 +8,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
-import { parseCV } from "./openai-cv-parser";
+import { processCV } from "./cv-processor";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
