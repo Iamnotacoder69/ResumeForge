@@ -108,7 +108,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   
   // Set up the layout with photo if included
   const photoUrl = data.personal.photoUrl;
-  let hasPhoto = includePhoto && photoUrl;
+  let hasPhoto = includePhoto && photoUrl && typeof photoUrl === 'string';
   
   if (hasPhoto) {
     // Define photo position and dimensions
@@ -117,16 +117,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     const photoY = margin;
     
     try {
-      // Add the photo to the document
+      // Add the photo to the document with non-null assertion for TypeScript
       doc.addImage(
-        photoUrl, 
+        photoUrl!, // Non-null assertion as we've already checked
         'JPEG', 
         photoX, 
         photoY, 
         photoSize, 
-        photoSize, 
-        '', 
-        'MEDIUM'
+        photoSize
       );
       
       // Adjust content width to account for photo
