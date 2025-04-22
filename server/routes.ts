@@ -165,8 +165,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const filePath = req.file.path;
         const fileType = req.file.mimetype;
         
-        // Parse using OpenAI
-        const parsedCV = await parseCV(filePath, fileType);
+        // Process CV file using our unified processor
+        const parsedCV = await processCV(filePath, fileType);
         
         // Return structured data
         res.status(200).json({
