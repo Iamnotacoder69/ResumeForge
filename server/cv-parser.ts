@@ -1,6 +1,5 @@
 import * as mammoth from "mammoth";
 import { CompleteCV, PersonalInfo, Experience, Education, Certificate, KeyCompetencies } from "../shared/types";
-import { parseWithAI } from "./ai-cv-parser";
 
 /**
  * Parse a PDF CV document and extract structured information
@@ -184,37 +183,12 @@ async function parseDocxCV(buffer: Buffer): Promise<Partial<CompleteCV>> {
  */
 export async function parseCV(buffer: Buffer, mimeType: string): Promise<Partial<CompleteCV>> {
   try {
-    // Extract text content based on file type
-    let textContent = '';
-    
     if (mimeType === "application/pdf") {
-      // Extract text from PDF
-      textContent = extractTextFromPDF(buffer);
-      console.log(`Extracted ${textContent.length} characters from PDF`);
+      return await parsePdfCV(buffer);
     } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-      // Extract text from DOCX
-      const result = await mammoth.extractRawText({ buffer });
-      textContent = result.value;
-      console.log(`Extracted ${textContent.length} characters from DOCX`);
+      return await parseDocxCV(buffer);
     } else {
       throw new Error("Unsupported file format. Please upload a PDF or DOCX file.");
-    }
-    
-    // Try to parse the CV using AI (OpenAI)
-    try {
-      if (process.env.OPENAI_API_KEY) {
-        console.log("Using AI to parse CV");
-        const aiResult = await parseWithAI(textContent);
-        return aiResult;
-      } else {
-        console.log("No OpenAI API key available, falling back to basic parsing");
-        // Fallback to basic parsing if AI is not available
-        return extractCVDataFromText(textContent);
-      }
-    } catch (aiError) {
-      console.error("AI parsing failed, falling back to basic parsing:", aiError);
-      // If AI parsing fails, fall back to the basic extraction
-      return extractCVDataFromText(textContent);
     }
   } catch (err) {
     console.error("Error during CV parsing:", err);
