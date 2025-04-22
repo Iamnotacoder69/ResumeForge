@@ -271,7 +271,7 @@ function extractKeyCompetencies(text: string): KeyCompetencies {
     'docker', 'kubernetes', 'ci/cd', 'jenkins', 'devops', 'linux', 'unix', 'shell', 'bash',
     'rest', 'api', 'microservices', 'testing', 'machine learning', 'ai', 'data science',
     'algorithms', 'data structures', 'network', 'security', 'mobile', 'ios', 'android',
-    'swift', 'kotlin', 'c++', 'c#', '.net', 'php', 'ruby', 'scala', 'go', 'rust', 'blockchain',
+    'swift', 'kotlin', 'cplusplus', 'csharp', '.net', 'php', 'ruby', 'scala', 'go', 'rust', 'blockchain',
     'solidity', 'excel', 'tableau', 'powerbi', 'data visualization', 'sap', 'salesforce',
     'jira', 'confluence', 'scrum', 'kanban', 'ux', 'ui', 'figma', 'sketch', 'photoshop',
     'illustrator', 'indesign', 'adobe', 'wordpress', 'shopify', 'magento', 'seo', 'sem',
@@ -379,19 +379,33 @@ function extractKeyCompetencies(text: string): KeyCompetencies {
     // Look for common skill patterns in the entire text
     const technicalMatches: string[] = [];
     technicalKeywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      const matches = text.match(regex);
-      if (matches) {
-        technicalMatches.push(...matches);
+      try {
+        // Escape special regex characters in keywords
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
+        const matches = text.match(regex);
+        if (matches) {
+          technicalMatches.push(...matches);
+        }
+      } catch (err) {
+        const error = err as Error;
+        console.warn(`Error creating regex for keyword "${keyword}": ${error.message}`);
       }
     });
     
     const softMatches: string[] = [];
     softKeywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      const matches = text.match(regex);
-      if (matches) {
-        softMatches.push(...matches);
+      try {
+        // Escape special regex characters in keywords
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
+        const matches = text.match(regex);
+        if (matches) {
+          softMatches.push(...matches);
+        }
+      } catch (err) {
+        const error = err as Error;
+        console.warn(`Error creating regex for keyword "${keyword}": ${error.message}`);
       }
     });
     

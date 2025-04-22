@@ -56,6 +56,26 @@ export default function CVUploader() {
       // Get parsed CV data
       const parsedData = await response.json();
       
+      // Make sure we have valid data before proceeding
+      if (!parsedData.success || !parsedData.data) {
+        throw new Error(parsedData.message || 'Invalid data format returned from server');
+      }
+      
+      // Log some information about the extracted data for debugging
+      console.log('CV data extracted successfully:');
+      if (parsedData.data.personal) {
+        console.log(`Name: ${parsedData.data.personal.firstName} ${parsedData.data.personal.lastName}`);
+        console.log(`Email: ${parsedData.data.personal.email}`);
+      }
+      
+      if (parsedData.data.keyCompetencies) {
+        console.log(`Skills: ${parsedData.data.keyCompetencies.technicalSkills?.length || 0} technical, ${parsedData.data.keyCompetencies.softSkills?.length || 0} soft`);
+      }
+      
+      if (parsedData.data.experience) {
+        console.log(`Experience entries: ${parsedData.data.experience.length}`);
+      }
+      
       // Store parsed data in sessionStorage to pass to CV builder
       sessionStorage.setItem('importedCVData', JSON.stringify(parsedData));
       
