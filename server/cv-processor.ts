@@ -28,16 +28,66 @@ export async function processCV(filePath: string, fileType: string): Promise<Com
         throw new Error("Failed to extract text from Word document");
       }
     } 
-    // Handle PDF documents 
+    // Handle PDF documents by converting to Word first 
     else if (fileType === "application/pdf") {
       try {
+        console.log("Converting PDF to Word document before extraction...");
+        
+        // Strategy: Convert PDF to Word using docx library
+        // 1. Extract text from PDF
         const dataBuffer = fs.readFileSync(filePath);
         const pdfData = await extractPDFText(dataBuffer);
-        docText = pdfData.text;
-        console.log("Extracted PDF text length:", docText.length);
+        const pdfText = pdfData.text;
+        console.log("Raw PDF text extraction length:", pdfText.length);
+        
+        // 2. Create a Word document from the extracted text
+        console.log("Creating Word document from PDF text...");
+        
+        // Import Document, Paragraph, TextRun, and Packer from docx 
+        const { Document, Paragraph, TextRun, Packer } = require("docx");
+        
+        // Create paragraphs from text by splitting on newlines
+        const paragraphs = pdfText.split('\n').map(line => 
+          new Paragraph({
+            children: [new TextRun(line.trim() || ' ')] // Ensure empty lines still create paragraphs
+          })
+        );
+        
+        // Create Word document
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: paragraphs
+          }]
+        });
+        
+        // Save to temporary file
+        const os = require('os');
+        const path = require('path');
+        const docxFileName = path.basename(filePath, '.pdf') + '.docx';
+        const docxPath = path.join(os.tmpdir(), docxFileName);
+        
+        // Generate document buffer
+        const buffer = await Packer.toBuffer(doc);
+        
+        // Write Word file to disk
+        fs.writeFileSync(docxPath, buffer);
+        console.log(`Created Word document at ${docxPath} from PDF`);
+        
+        // 3. Now extract text from the Word document
+        const result = await mammoth.extractRawText({path: docxPath});
+        docText = result.value;
+        console.log("Extracted text from converted Word document, length:", docText.length);
+        
+        // Clean up the temp Word file
+        try {
+          fs.unlinkSync(docxPath);
+        } catch (unlinkError) {
+          console.warn("Failed to delete temporary Word file:", unlinkError);
+        }
       } catch (error) {
-        console.error("Error extracting text from PDF:", error);
-        throw new Error("Failed to extract text from PDF");
+        console.error("Error processing PDF:", error);
+        throw new Error(`Failed to process PDF: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     // Unsupported file type
