@@ -228,7 +228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error parsing CV:", parseError);
           throw parseError;
         }
-      } catch (conversionError) {
+      } catch (error) {
+        const conversionError = error as Error;
         console.error("Error during file conversion:", conversionError);
         
         // If conversion fails, fall back to the original file
@@ -239,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error cleaning up temp directory:", cleanupError);
         }
         
-        throw new Error("Failed to convert file to DOCX format: " + conversionError.message);
+        throw new Error("Failed to convert file to DOCX format: " + (conversionError instanceof Error ? conversionError.message : String(conversionError)));
       }
     } catch (error) {
       console.error("Error in /api/parse-cv:", error);
