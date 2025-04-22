@@ -42,7 +42,9 @@ export default function CVUploader() {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("CV data extracted successfully:");
+      console.log("CV data extracted successfully:", data);
+      console.log("File type:", selectedFile?.type);
+      console.log("File name:", selectedFile?.name);
       console.log("Name: ", data.data.personal.firstName + " " + data.data.personal.lastName);
       console.log("Email:", data.data.personal.email);
       console.log("Skills:", 
@@ -51,8 +53,13 @@ export default function CVUploader() {
       );
       console.log("Experience entries:", data.data.experience?.length || 0);
       
+      // Check for any issues with the received data
+      console.log("CV data keys:", Object.keys(data.data));
+      console.log("Personal data keys:", Object.keys(data.data.personal));
+      
       // Save to session storage for retrieval on CVBuilder page
       sessionStorage.setItem("parsedCV", JSON.stringify(data.data));
+      console.log("Data saved to sessionStorage");
       
       // Navigate to the CV builder with the parsed data
       navigate("/cv-builder");
