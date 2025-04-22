@@ -2,9 +2,31 @@ import OpenAI from "openai";
 import { CompleteCV } from "@shared/types";
 import * as fs from "fs";
 import * as mammoth from "mammoth";
+import { parsePDF } from "./pdf-wrapper";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Helper function for extracting text from PDF files
+async function extractTextFromPDF(pdfPath: string): Promise<string> {
+  try {
+    const dataBuffer = fs.readFileSync(pdfPath);
+    const pdfData = await parsePDF(dataBuffer);
+    console.log(`Extracted PDF text length: ${pdfData.text.length}`);
+    
+    // If the extracted text is very short, it might be a scanned PDF
+    if (pdfData.text.length < 100) {
+      console.log("PDF text extraction yielded very little text. Might be a scanned PDF.");
+      return "This appears to be a scanned PDF with limited extractable text. Please provide a searchable PDF for better results.";
+    }
+    
+    // Return the extracted text
+    return pdfData.text;
+  } catch (error) {
+    console.error("Error extracting text from PDF:", error);
+    return "Error extracting text from PDF. The document may be corrupted or password-protected.";
+  }
+}
 
 
 
@@ -16,32 +38,48 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
  */
 export async function parseCV(filePath: string, fileType: string): Promise<CompleteCV> {
   try {
+    // Default message for unsupported formats
+    let cvText = "Please analyze this CV document and extract all relevant information.";
+    
     // For Word documents, extract the text
-    let cvText = "";
     if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
-      const dataBuffer = fs.readFileSync(filePath);
-      const result = await mammoth.extractRawText({buffer: dataBuffer});
-      cvText = result.value;
-      console.log("Extracted Word text length:", cvText.length);
-    } else {
-      // For PDFs or other document types, use a simpler approach
-      // Send a message to indicate we'll extract text in the prompt
-      cvText = "Please analyze this CV document and extract all relevant information.";
+      try {
+        const dataBuffer = fs.readFileSync(filePath);
+        const result = await mammoth.extractRawText({buffer: dataBuffer});
+        cvText = result.value;
+        console.log("Extracted Word text length:", cvText.length);
+        
+        if (cvText.length < 100) {
+          console.log("Warning: Very little text extracted from Word document");
+          cvText += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
+        }
+      } catch (error) {
+        console.error("Error extracting text from Word document:", error);
+        cvText = "Error extracting text from Word document. Please try uploading a different file.";
+      }
     }
     
     console.log("Analyzing CV content with OpenAI...");
     
-    // For PDFs, let's extract some realistic sample data instead of parsing the file directly
-    // This is a workaround until we can get proper PDF parsing working
+    // For PDFs, let's extract the text using our PDF parser
     if (fileType === "application/pdf") {
-      // Get the filename to use as a hint
-      const fileName = filePath.split('/').pop() || '';
-      console.log("PDF filename:", fileName);
-      
-      // Add the filename to provide context that this is a resume or CV
-      cvText = `This is a CV/resume uploaded as a PDF file named "${fileName}". 
-It likely contains personal information, work experience, education history, skills, and other professional details.
-Please analyze this document as a CV and extract structured information about the candidate.`;
+      try {
+        // Extract text from PDF
+        const pdfText = await extractTextFromPDF(filePath);
+        
+        // If we got a reasonable amount of text, use it
+        if (pdfText.length > 200) {
+          cvText = pdfText;
+          console.log("Successfully extracted text from PDF, length:", pdfText.length);
+        } else {
+          // Otherwise, provide an error message
+          console.log("PDF extraction failed or returned minimal text");
+          cvText = "PDF text extraction failed or returned minimal text. This may be a scanned PDF or image-based document. Please upload a text-based PDF or a Word document for better results.";
+        }
+      } catch (error) {
+        console.error("Error parsing PDF:", error);
+        cvText = "Error parsing PDF. Please try uploading a different file format.";
+      }
     }
     
     const jsonStructurePrompt = `
