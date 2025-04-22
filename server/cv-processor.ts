@@ -1,8 +1,11 @@
 import * as fs from 'fs';
 import * as mammoth from 'mammoth';
+import * as os from 'os';
+import * as path from 'path';
 import { extractPDFText } from './mock-pdf-parse';
 import OpenAI from 'openai';
 import { CompleteCV } from '@shared/types';
+import { Document, Paragraph, TextRun, Packer } from 'docx';
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -43,9 +46,6 @@ export async function processCV(filePath: string, fileType: string): Promise<Com
         // 2. Create a Word document from the extracted text
         console.log("Creating Word document from PDF text...");
         
-        // Import Document, Paragraph, TextRun, and Packer from docx 
-        const { Document, Paragraph, TextRun, Packer } = require("docx");
-        
         // Create paragraphs from text by splitting on newlines
         const paragraphs = pdfText.split('\n').map(line => 
           new Paragraph({
@@ -60,10 +60,6 @@ export async function processCV(filePath: string, fileType: string): Promise<Com
             children: paragraphs
           }]
         });
-        
-        // Save to temporary file
-        const os = require('os');
-        const path = require('path');
         const docxFileName = path.basename(filePath, '.pdf') + '.docx';
         const docxPath = path.join(os.tmpdir(), docxFileName);
         
