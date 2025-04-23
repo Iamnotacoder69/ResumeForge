@@ -1,12 +1,23 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
+import { processUploadedCV } from "./upload";
+import { extractDataFromCV } from "./cv-extractor";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+
+// Configure multer for memory storage (files stored in buffer)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB limit
+  },
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CV Routes
@@ -191,6 +202,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "Failed to generate PDF", 
         error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Upload CV Document
+  app.post("/api/upload-cv", upload.single('cvFile'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded"
+        });
+      }
+
+      // Check file type
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(req.file.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: "Only PDF and DOCX files are supported"
+        });
+      }
+
+      // Process the uploaded CV file
+      const { textContent } = await processUploadedCV(req.file);
+
+      // Return the text content
+      res.status(200).json({
+        success: true,
+        message: "File processed successfully",
+        textContent
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to process uploaded CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Extract CV Data
+  app.post("/api/extract-cv-data", async (req: Request, res: Response) => {
+    try {
+      const { textContent } = req.body;
+
+      if (!textContent) {
+        return res.status(400).json({
+          success: false,
+          message: "Text content is required"
+        });
+      }
+
+      // Extract structured data from CV text
+      const extractedData = await extractDataFromCV(textContent);
+
+      res.status(200).json({
+        success: true,
+        message: "Data extracted successfully",
+        ...extractedData
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to extract data from CV",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
