@@ -263,7 +263,11 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
       if (!extractionSuccessful) {
         try {
           console.log("Trying to extract text from converted DOCX file...");
-          const docxText = await extractDetailedTextFromWord(filePath);
+          
+          // Use mammoth directly to avoid potential infinite recursion
+          const standardResult = await mammoth.extractRawText({path: filePath});
+          const docxText = standardResult.value;
+          
           console.log("Extracted Word text length:", docxText.length);
           
           if (docxText.length > 500) {
