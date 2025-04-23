@@ -9,6 +9,7 @@ import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
 import { parseCV } from "./openai-cv-parser";
+import { convertPdfToDocx } from "./pdf-to-docx";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
@@ -148,7 +149,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Parse CV file and extract information
+  // Analyze document from a given path (after upload/conversion)
+  app.post("/api/analyze-cv", async (req: Request, res: Response) => {
+    try {
+      const { filePath, fileType } = req.body;
+      
+      if (!filePath || !fileType) {
+        return res.status(400).json({
+          success: false,
+          message: "File path and type are required"
+        });
+      }
+      
+      // Verify the file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          message: "File not found"
+        });
+      }
+      
+      // Only analyze DOCX files (PDF files should be converted first)
+      if (fileType !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && 
+          fileType !== 'application/msword') {
+        return res.status(400).json({
+          success: false,
+          message: "Only Word documents can be analyzed directly. PDF files should be converted first."
+        });
+      }
+      
+      // Parse the CV
+      try {
+        // Parse using OpenAI
+        const parsedCV = await parseCV(filePath, fileType);
+        
+        // Return structured data
+        return res.status(200).json({
+          success: true,
+          data: parsedCV
+        });
+      } catch (error) {
+        console.error("Error analyzing CV:", error);
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error in /api/analyze-cv:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to analyze CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Legacy Parse CV endpoint (keeping for backward compatibility)
   app.post("/api/parse-cv", upload.single('cv'), async (req: Request, res: Response) => {
     try {
       // Check if file was uploaded
@@ -190,6 +244,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to parse CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Upload and convert PDF to DOCX
+  app.post("/api/upload-cv", upload.single('cv'), async (req: Request, res: Response) => {
+    try {
+      // Check if file was uploaded
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded"
+        });
+      }
+      
+      // Get file info
+      const filePath = req.file.path;
+      const fileType = req.file.mimetype;
+      let docxPath = filePath;
+      
+      // If it's a PDF, convert it to DOCX first
+      if (fileType === 'application/pdf') {
+        try {
+          console.log("Converting PDF to DOCX...");
+          docxPath = await convertPdfToDocx(filePath);
+          console.log("Conversion successful, DOCX path:", docxPath);
+          
+          // Return the path to the converted file 
+          return res.status(200).json({
+            success: true,
+            data: {
+              filePath: docxPath,
+              fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              originalFileName: req.file.originalname,
+            }
+          });
+        } catch (error) {
+          console.error("PDF to DOCX conversion failed:", error);
+          // Clean up the uploaded file
+          try {
+            fs.unlinkSync(filePath);
+          } catch (unlinkError) {
+            console.error("Failed to delete temporary file:", unlinkError);
+          }
+          
+          throw new Error("PDF to DOCX conversion failed: " + (error instanceof Error ? error.message : "Unknown error"));
+        }
+      } else {
+        // If it's already a DOCX, just return the path
+        return res.status(200).json({
+          success: true,
+          data: {
+            filePath: docxPath,
+            fileType: fileType,
+            originalFileName: req.file.originalname,
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error in /api/upload-cv:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to upload and process CV",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
