@@ -7,32 +7,68 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const MODEL = "gpt-4o";
 
+/**
+ * Extracts structured CV data from text content using OpenAI
+ * @param textContent Raw text content from the CV
+ * @returns Structured CompleteCV object with extracted data
+ */
 export async function extractDataFromCV(textContent: string): Promise<CompleteCV> {
   try {
-    // Prepare a system prompt that instructs the model on how to extract CV data
+    console.log("Extracting data from CV text, length:", textContent.length);
+    
+    // Prepare a detailed system prompt that instructs the model on how to extract CV data
     const systemPrompt = `
-      You are an expert CV analyzer. Extract structured information from the provided CV text.
-      Follow these guidelines:
+      You are an expert CV analyzer with deep experience in human resources and talent acquisition.
+      You're tasked with extracting structured information from the provided CV text to populate a CV builder application.
       
-      1. Extract personal information (name, email, phone, LinkedIn)
-      2. Identify the professional summary or objective
-      3. Extract technical and soft skills, classifying them appropriately
-      4. Identify work experience entries with company names, job titles, dates, and responsibilities
-      5. Extract education details including institutions, degrees, dates
-      6. Identify certifications if present
-      7. Look for extracurricular activities or volunteer work
-      8. Extract any languages and proficiency levels mentioned
+      Review the CV text carefully and extract all relevant information according to these guidelines:
       
-      Be flexible with section titles - "Career Objective," "Summary," "About Me" should all map to the summary section.
+      1. Personal Information:
+         - Extract full name and split into first and last name
+         - Get email address, phone number, and LinkedIn URL if present
       
-      Format the output as a valid JSON object that follows this structure:
+      2. Professional Summary:
+         - Identify professional summary, objective, or profile section
+         - Look for sections titled "Profile", "Summary", "About Me", "Career Objective", etc.
+      
+      3. Skills:
+         - Separate technical skills from soft skills
+         - Technical skills include programming languages, tools, frameworks, methodologies, etc.
+         - Soft skills include communication, leadership, teamwork, problem-solving, etc.
+      
+      4. Work Experience:
+         - For each position, extract company name, job title, start date, end date, and responsibilities
+         - Mark current positions with isCurrent=true and endDate=null
+         - Consolidate responsibilities into a single coherent paragraph
+      
+      5. Education:
+         - Extract institution name, degree/major, start date, end date, and achievements/honors
+         - Include all education listings, with the most recent first
+      
+      6. Certifications:
+         - Extract certification name, issuing institution, date acquired, and expiration date if available
+      
+      7. Extracurricular Activities:
+         - Include volunteer work, community involvement, and other activities
+         - Extract organization, role, dates, and description
+      
+      8. Languages:
+         - Extract languages and their proficiency levels
+         - Match proficiency to: "native", "fluent", "advanced", "intermediate", or "basic"
+      
+      9. Additional Skills:
+         - Capture any remaining skills not classified as technical or soft skills
+      
+      Be flexible with section titles and infer content categories based on context.
+      
+      Format the output as a valid JSON object with this EXACT structure:
       {
         "personal": {
           "firstName": string,
           "lastName": string,
           "email": string,
           "phone": string,
-          "linkedin": string (optional)
+          "linkedin": string (optional, can be empty string)
         },
         "professional": {
           "summary": string
@@ -65,7 +101,7 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
             "institution": string,
             "name": string,
             "dateAcquired": string (YYYY-MM-DD),
-            "expirationDate": string (YYYY-MM-DD) (optional)
+            "expirationDate": string (YYYY-MM-DD) (optional, can be null or empty string)
           }
         ],
         "extracurricular": [
@@ -89,9 +125,14 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
         }
       }
       
-      Make educated guesses for date formats if exact dates aren't specified.
-      If a section is missing, include the section key with empty arrays or null values.
-      Ensure all required fields are populated with at least placeholder values if information can't be found.
+      Guidelines for handling missing information:
+      - For dates, use YYYY-MM-DD format, and make educated guesses if only month/year are specified (use 01 for missing day)
+      - If start date completely unknown, use a reasonable guess based on education timeline or work history
+      - If a section is completely missing, provide the key with an empty array []
+      - Never omit any of the required fields in the structure above
+      - Don't make up information that isn't in the CV, but use reasonable defaults when partial information is available
+      - If you can't determine first/last name separation, make a reasonable guess
+      - Always provide at least one item for experience, education if any related information is present in the CV
     `;
 
     // Make the API call to OpenAI
@@ -108,31 +149,40 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
     // Parse the response
     const content = response.choices[0].message.content;
     if (!content) {
+      console.error("No content returned from OpenAI");
       throw new Error("No content returned from OpenAI");
     }
 
-    const extractedData = JSON.parse(content);
-    
-    // Fill in template settings with defaults
-    const completeData: CompleteCV = {
-      ...extractedData,
-      templateSettings: {
-        template: 'professional',
-        includePhoto: false,
-        sectionOrder: [
-          { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
-          { id: 'summary', name: 'Professional Summary', visible: true, order: 1 },
-          { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 2 },
-          { id: 'experience', name: 'Work Experience', visible: true, order: 3 },
-          { id: 'education', name: 'Education', visible: true, order: 4 },
-          { id: 'certificates', name: 'Certificates', visible: true, order: 5 },
-          { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 6 },
-          { id: 'additional', name: 'Additional Information', visible: true, order: 7 }
-        ]
-      }
-    };
-
-    return completeData;
+    try {
+      const extractedData = JSON.parse(content);
+      console.log("Successfully parsed OpenAI response to JSON");
+      
+      // Fill in template settings with defaults
+      const completeData: CompleteCV = {
+        ...extractedData,
+        templateSettings: {
+          template: 'professional',
+          includePhoto: false,
+          sectionOrder: [
+            { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
+            { id: 'summary', name: 'Professional Summary', visible: true, order: 1 },
+            { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 2 },
+            { id: 'experience', name: 'Work Experience', visible: true, order: 3 },
+            { id: 'education', name: 'Education', visible: true, order: 4 },
+            { id: 'certificates', name: 'Certificates', visible: true, order: 5 },
+            { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 6 },
+            { id: 'additional', name: 'Additional Information', visible: true, order: 7 }
+          ]
+        }
+      };
+      
+      console.log("Successfully created complete CV data");
+      return completeData;
+    } catch (parseError) {
+      console.error("Error parsing JSON from OpenAI response:", parseError);
+      console.error("OpenAI raw response:", content);
+      throw new Error("Failed to parse JSON from OpenAI response");
+    }
   } catch (error) {
     console.error("Error extracting data from CV:", error);
     throw new Error(`Failed to extract data from CV: ${error instanceof Error ? error.message : 'Unknown error'}`);
