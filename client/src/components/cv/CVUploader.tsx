@@ -325,6 +325,98 @@ export default function CVUploader() {
     navigate("/cv-builder");
   };
   
+  // Direct PDF to DOCX conversion and download test
+  const handleDirectConversion = async () => {
+    if (!selectedFile) {
+      toast({
+        variant: "destructive",
+        title: "No file selected",
+        description: "Please select a PDF file first.",
+      });
+      return;
+    }
+    
+    // Validate it's a PDF
+    if (selectedFile.type !== "application/pdf") {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload a PDF file.",
+      });
+      return;
+    }
+    
+    try {
+      // First upload the PDF
+      const formData = new FormData();
+      formData.append("cv", selectedFile);
+      
+      const uploadResponse = await fetch("/api/upload-cv", {
+        method: "POST",
+        body: formData
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload PDF");
+      }
+      
+      const uploadData = await uploadResponse.json();
+      console.log("PDF uploaded:", uploadData);
+      
+      // Then convert it to DOCX
+      const convertResponse = await fetch("/api/convert-pdf", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filePath: uploadData.data.filePath })
+      });
+      
+      if (!convertResponse.ok) {
+        throw new Error("Failed to convert PDF to DOCX");
+      }
+      
+      const convertData = await convertResponse.json();
+      console.log("PDF converted:", convertData);
+      
+      // Request the DOCX for download
+      const downloadResponse = await fetch("/api/download-file", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filePath: convertData.data.filePath })
+      });
+      
+      if (!downloadResponse.ok) {
+        throw new Error("Failed to download DOCX");
+      }
+      
+      // Create a blob from the response
+      const blob = await downloadResponse.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = convertData.data.originalFileName || "converted.docx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Conversion successful",
+        description: "The PDF has been converted to DOCX and downloaded.",
+      });
+    } catch (error) {
+      console.error("Conversion test error:", error);
+      toast({
+        variant: "destructive",
+        title: "Conversion failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+      });
+    }
+  };
+  
   // Render the appropriate action button based on current step
   const renderActionButton = () => {
     if (uploadStep === 'initial') {
@@ -627,6 +719,31 @@ export default function CVUploader() {
             </Button>
           </CardFooter>
         </Card>
+      </div>
+      
+      {/* Test PDF to DOCX conversion section */}
+      <div className="mt-12 p-6 border border-dashed border-primary/30 rounded-lg bg-primary/5 max-w-md mx-auto">
+        <h3 className="text-lg font-semibold mb-2 flex items-center">
+          <FileOutput className="h-5 w-5 mr-2 text-primary" />
+          PDF Conversion Test
+        </h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Test the PDF to DOCX conversion separately. This will convert your PDF file and download it immediately.
+        </p>
+        
+        <Button 
+          variant="secondary" 
+          onClick={handleDirectConversion}
+          disabled={!selectedFile || selectedFile.type !== "application/pdf"}
+          className="w-full"
+        >
+          <FileOutput className="mr-2 h-4 w-4" />
+          Convert PDF to DOCX and Download
+        </Button>
+        
+        <div className="text-xs text-muted-foreground mt-2">
+          Note: You need to select a PDF file first using the uploader above.
+        </div>
       </div>
     </div>
   );

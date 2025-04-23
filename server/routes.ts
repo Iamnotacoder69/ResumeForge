@@ -401,7 +401,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Generate PDF
+  // Download a file (like a converted DOCX)
+  app.post("/api/download-file", async (req: Request, res: Response) => {
+    try {
+      const { filePath } = req.body;
+      
+      if (!filePath) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing file path"
+        });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          message: "File not found"
+        });
+      }
+      
+      // Get the filename from the path
+      const fileName = path.basename(filePath);
+      
+      // Set response headers
+      res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+      
+      // Set content type based on file extension
+      if (filePath.endsWith('.docx')) {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      } else if (filePath.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+      } else {
+        res.setHeader('Content-Type', 'application/octet-stream');
+      }
+      
+      // Read the file and send it
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+      // Handle any stream errors
+      fileStream.on('error', (error) => {
+        console.error("Error streaming file:", error);
+        // If headers haven't been sent yet
+        if (!res.headersSent) {
+          return res.status(500).json({
+            success: false,
+            message: "Error reading file"
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error in /api/download-file:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to download file",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {
       // Add debugging logs
