@@ -305,7 +305,10 @@ const CVBuilder = () => {
                       <div className="flex justify-end">
                         <Button 
                           type="button" 
-                          onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                          onClick={() => {
+                            console.log("Navigating to Personal Information tab");
+                            setActiveTab(CVTabs.PERSONAL);
+                          }}
                         >
                           Next: Personal Information <Check className="ml-2 h-4 w-4" />
                         </Button>

@@ -73,13 +73,21 @@ export default function WelcomePage() {
         variant: "default"
       });
       
-      // Add a small delay to show the success message before navigating
-      setTimeout(() => {
-        // Navigate to the builder with the extracted data
+      // Store the data and navigate immediately
+      try {
         // We're passing the data via sessionStorage since it could be large
-        sessionStorage.setItem('extractedCVData', JSON.stringify(data));
+        sessionStorage.setItem('extractedCVData', JSON.stringify(data.data));
+        console.log('Successfully stored CV data, navigating to builder...');
+        
+        // Navigate after a very short delay to ensure storage completes
+        setTimeout(() => {
+          navigate('/builder');
+        }, 100);
+      } catch (err) {
+        console.error('Error storing CV data:', err);
+        // Try to navigate anyway
         navigate('/builder');
-      }, 1000);
+      }
     },
     onError: (error: Error) => {
       setUploadError(error.message);
