@@ -1,9 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import { PDFDocument } from 'pdf-lib';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
-import { extractPDFText } from './mock-pdf-parse';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, BorderStyle } from 'docx';
+import { extractPDFText, PDFData } from './mock-pdf-parse';
 
 const mkdir = promisify(fs.mkdir);
 const exists = promisify(fs.exists);
@@ -11,55 +10,47 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 /**
- * Extract text from PDF buffer using our mock-pdf-parse
+ * Advanced PDF text extraction that specializes in CV/resume content
+ * This extracts text AND sections from PDFs intelligently
  * @param pdfBuffer PDF file as buffer
- * @returns Extracted text from PDF
+ * @returns Extracted data with both full text and identified sections
  */
-async function extractTextFromPDF(pdfBuffer: Buffer): Promise<string> {
+async function extractCVDataFromPDF(pdfBuffer: Buffer): Promise<PDFData> {
   try {
-    // Use our custom PDF text extraction that works better than pdf-lib for text
+    // Use our advanced CV-optimized PDF text extraction
     const pdfData = await extractPDFText(pdfBuffer);
-    const pageCount = pdfData.numpages || 1;
-    
-    console.log(`PDF has ${pageCount} pages, extracted ${pdfData.text.length} characters`);
+    console.log(`PDF has ${pdfData.numpages} pages, extracted ${pdfData.text.length} characters`);
     
     if (pdfData.text.length > 100) {
-      // If we got a reasonable amount of text, use it
-      return pdfData.text;
+      // Successful extraction
+      console.log(`CV sections identified: ${Object.keys(pdfData.sections || {}).join(', ')}`);
+      return pdfData;
+    } else {
+      console.warn("Limited text extracted from PDF - likely a scanned document");
+      return pdfData;
     }
-    
-    // If we didn't get much text, we'll add a note about it being a scanned PDF potentially
-    const pdfDoc = await PDFDocument.load(pdfBuffer);
-    const pages = pdfDoc.getPages();
-    
-    // Get the filename from the metadata if available
-    const title = pdfDoc.getTitle() || "Unknown PDF";
-    
-    return `This is a PDF document titled "${title}" with ${pages.length} pages. 
-    
-It appears to have limited machine-readable text, which may indicate it's a scanned document.
-
-The following text was extracted:
-
-${pdfData.text}
-
-This document has been converted to DOCX format for analysis.`;
   } catch (error: unknown) {
-    console.error('Error extracting text from PDF:', error);
-    // Return at least something instead of failing completely
-    return "Error extracting text from PDF. The document may be password-protected, corrupted, or contain no extractable text.";
+    console.error('Error extracting CV data from PDF:', error);
+    
+    // Return minimal data on error
+    return {
+      text: "Error extracting text from PDF. The document may be password-protected, corrupted, or contain no extractable text.",
+      numpages: 0,
+      sections: {}
+    };
   }
 }
 
 /**
- * Create a DOCX document with PDF content
- * This approach creates a DOCX with the extracted text from the PDF
- * with careful handling of text size to avoid OpenAI token limits
+ * Create a structured DOCX document from PDF sections
+ * Optimized for CV/resume content with section-based organization
  * @param pdfPath Path to the PDF file
- * @returns Path to the created DOCX file
+ * @returns Path to the created structured DOCX file
  */
 export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
   try {
+    console.log(`Converting PDF to DOCX: ${path.basename(pdfPath)}`);
+    
     // Ensure temp directory exists
     const tempDir = path.join(process.cwd(), 'temp');
     if (!(await exists(tempDir))) {
@@ -69,66 +60,155 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
     // Read the PDF file
     const pdfBuffer = await readFile(pdfPath);
     
-    // Extract text from PDF
-    let pdfText = await extractTextFromPDF(pdfBuffer);
+    // Extract text and sections from PDF
+    const cvData = await extractCVDataFromPDF(pdfBuffer);
     
-    // Truncate text if it's too long to prevent token limit issues with OpenAI
-    // A reasonable limit is around 12,000 characters for a DOCX
-    const MAX_TEXT_LENGTH = 12000;
+    // Create a unique hash for the filename to avoid collisions
+    const fileHash = Math.random().toString(36).substring(2, 15);
+    const docxPath = path.join(tempDir, `${fileHash}.docx`);
+
+    // Array to collect document paragraphs
+    const docElements = [];
     
-    if (pdfText.length > MAX_TEXT_LENGTH) {
-      console.log(`PDF text is very long (${pdfText.length} chars), truncating to ${MAX_TEXT_LENGTH} chars`);
+    // Add document title
+    docElements.push(
+      new Paragraph({
+        text: "CV / Resume",
+        heading: HeadingLevel.TITLE,
+        thematicBreak: true,
+      })
+    );
+    
+    // Has sections been identified?
+    const hasSections = cvData.sections && Object.keys(cvData.sections).length > 0;
+    
+    if (hasSections) {
+      // Structure document by CV sections
+      const sectionOrder = [
+        "PERSONAL", "SUMMARY", "SKILLS", "EXPERIENCE", 
+        "EDUCATION", "CERTIFICATIONS", "LANGUAGES", "ADDITIONAL"
+      ];
       
-      // Take the first part (usually contains personal info, summary, etc.)
-      const firstPart = pdfText.substring(0, 6000);
+      const sectionTitles = {
+        "PERSONAL": "Personal Information",
+        "SUMMARY": "Professional Summary",
+        "SKILLS": "Skills & Competencies",
+        "EXPERIENCE": "Work Experience",
+        "EDUCATION": "Education",
+        "CERTIFICATIONS": "Certifications",
+        "LANGUAGES": "Languages",
+        "ADDITIONAL": "Additional Information"
+      };
       
-      // Take the last part (often contains education, skills, etc.)
-      const lastPart = pdfText.substring(pdfText.length - 3000);
+      // Add each section in order
+      for (const sectionKey of sectionOrder) {
+        const sectionContent = cvData.sections[sectionKey];
+        if (sectionContent) {
+          // Add section heading
+          docElements.push(
+            new Paragraph({
+              text: sectionTitles[sectionKey],
+              heading: HeadingLevel.HEADING_1,
+              spacing: {
+                before: 400,
+                after: 200
+              }
+            })
+          );
+          
+          // Add section content (split by lines for better formatting)
+          const contentLines = sectionContent.split('\n');
+          for (const line of contentLines) {
+            if (line.trim().length > 0) {
+              docElements.push(
+                new Paragraph({
+                  text: line,
+                  spacing: {
+                    before: 80,
+                    after: 80
+                  }
+                })
+              );
+            }
+          }
+        }
+      }
+    } else {
+      // No sections identified, just use the full text with some basic structure
+      console.log("No CV sections identified, using simple text approach");
       
-      // Take a middle section
-      const middleStart = Math.floor((pdfText.length - 3000) / 2);
-      const middlePart = pdfText.substring(middleStart, middleStart + 3000);
+      // Show a note about this
+      docElements.push(
+        new Paragraph({
+          text: "CV Text Content",
+          heading: HeadingLevel.HEADING_1,
+        })
+      );
       
-      // Combine with markers
-      pdfText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
+      // If the text is too long for OpenAI, truncate it intelligently
+      let processedText = cvData.text;
+      const MAX_TEXT_LENGTH = 15000;
+      
+      if (processedText.length > MAX_TEXT_LENGTH) {
+        console.log(`CV text is very long (${processedText.length} chars), truncating to ~${MAX_TEXT_LENGTH} chars`);
+        
+        // Keep first 8,000 chars (usually the most relevant)
+        const firstPart = processedText.substring(0, 8000);
+        
+        // Keep middle 4,000 chars (usually work experience)
+        const middleStart = Math.floor(processedText.length / 3);
+        const middlePart = processedText.substring(middleStart, middleStart + 4000);
+        
+        // Keep last 3,000 chars (education, etc.)
+        const lastPart = processedText.substring(processedText.length - 3000);
+        
+        processedText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
+        console.log(`Truncated to ${processedText.length} chars`);
+      }
+      
+      // Split by lines for better formatting
+      const textLines = processedText.split('\n');
+      
+      // Handle text in chunks for better document structure
+      let currentParagraph = [];
+      
+      for (const line of textLines) {
+        if (line.trim().length === 0 && currentParagraph.length > 0) {
+          // Empty line means end of paragraph
+          docElements.push(
+            new Paragraph({
+              text: currentParagraph.join(' '),
+              spacing: {
+                before: 120,
+                after: 120
+              }
+            })
+          );
+          currentParagraph = [];
+        } else if (line.trim().length > 0) {
+          currentParagraph.push(line.trim());
+        }
+      }
+      
+      // Add any remaining paragraph
+      if (currentParagraph.length > 0) {
+        docElements.push(
+          new Paragraph({
+            text: currentParagraph.join(' '),
+            spacing: {
+              before: 120,
+              after: 120
+            }
+          })
+        );
+      }
     }
     
-    // Create output path for DOCX
-    const filename = path.basename(pdfPath, '.pdf');
-    const docxPath = path.join(tempDir, `${filename}.docx`);
-
-    // Create a new Document
+    // Create the document with all elements
     const doc = new Document({
       sections: [{
         properties: {},
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "Original PDF Document",
-                bold: true,
-                size: 28,
-              }),
-            ],
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "This document was converted from a PDF.",
-                size: 24,
-              }),
-            ],
-          }),
-          // Include some text from the PDF to provide context
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: pdfText,
-                size: 24,
-              }),
-            ],
-          }),
-        ],
+        children: docElements
       }],
     });
 

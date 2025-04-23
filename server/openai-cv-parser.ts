@@ -8,16 +8,21 @@ import { extractPDFText } from "./mock-pdf-parse";
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Check if a file is a converted PDF document
+/**
+ * Check if a file is a converted PDF in DOCX format
+ * @param filePath Path to the file
+ * @returns True if the file is a converted PDF
+ */
 async function isConvertedPDF(filePath: string): Promise<boolean> {
   try {
     // Read the text from the file
     const result = await mammoth.extractRawText({ path: filePath });
     const text = result.value;
     
-    // Check if this is a converted PDF (contains our marker text)
-    return text.includes("Original PDF Document") && 
-           text.includes("This document was converted from a PDF");
+    // Check if this is a converted PDF (contains any of our marker texts)
+    return text.includes("Original PDF Document") || 
+           text.includes("This document was converted from a PDF") ||
+           text.includes("CV / Resume");
   } catch (error) {
     console.error("Error checking if file is a converted PDF:", error);
     return false;
