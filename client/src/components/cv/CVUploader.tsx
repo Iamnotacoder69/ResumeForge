@@ -70,10 +70,32 @@ export default function CVUploader() {
     onError: (error) => {
       console.error("Error uploading CV:", error);
       setUploadState('initial');
+      
+      let title = "Failed to upload CV";
+      let description = error instanceof Error ? error.message : "Please check the file format and try again.";
+      
+      // Provide more user-friendly error messages
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+        if (errorMsg.includes("file size") || errorMsg.includes("too large")) {
+          title = "File too large";
+          description = "The file you uploaded is too large. Please try with a smaller file.";
+        } else if (errorMsg.includes("format") || errorMsg.includes("type")) {
+          title = "Unsupported format";
+          description = "The file format is not supported. Please use PDF or Word documents only.";
+        } else if (errorMsg.includes("server") || errorMsg.includes("connection")) {
+          title = "Server error";
+          description = "There was a problem connecting to the server. Please try again.";
+        } else if (errorMsg.includes("convert") || errorMsg.includes("conversion")) {
+          title = "PDF conversion failed";
+          description = "We couldn't convert your PDF. It may be password-protected or corrupted.";
+        }
+      }
+      
       toast({
         variant: "destructive",
-        title: "Failed to upload CV",
-        description: error instanceof Error ? error.message : "Please check the file format and try again.",
+        title: title,
+        description: description,
       });
     },
   });
@@ -125,10 +147,32 @@ export default function CVUploader() {
     onError: (error) => {
       console.error("Error parsing CV:", error);
       setUploadState('ready'); // Go back to ready state to allow retry
+      
+      let title = "Failed to parse CV";
+      let description = error instanceof Error ? error.message : "Please check the file format and try again.";
+      
+      // Provide more specific user guidance based on error type
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+        if (errorMsg.includes("too large") || errorMsg.includes("token limit") || errorMsg.includes("too many tokens")) {
+          title = "Document too complex";
+          description = "Your CV contains too much text for our AI to process. Please try a simpler document or create from scratch.";
+        } else if (errorMsg.includes("rate limit") || errorMsg.includes("openai")) {
+          title = "AI service temporarily unavailable";
+          description = "Our AI service is currently busy. Please try again in a few moments or create from scratch.";
+        } else if (errorMsg.includes("invalid file") || errorMsg.includes("not supported")) {
+          title = "Unsupported file format";
+          description = "We couldn't process this file format. Please upload a standard PDF or Word document.";
+        } else if (errorMsg.includes("text extraction") || errorMsg.includes("minimal text")) {
+          title = "Text extraction failed";
+          description = "We couldn't extract text from your document. It may be an image-based or scanned PDF.";
+        }
+      }
+      
       toast({
         variant: "destructive",
-        title: "Failed to parse CV",
-        description: error instanceof Error ? error.message : "Please check the file format and try again.",
+        title: title,
+        description: description,
       });
     },
   });

@@ -204,20 +204,25 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // Check if it's a PDF and note that in the prompt
     const isPDF = fileType === "application/pdf";
     
-    // Check if the text is too large
+    // Truncate text if it's too large to prevent token limit issues
     if (cvText.length > 15000) {
-      console.log(`CV text is very large (${cvText.length} chars), drastically reducing before sending to OpenAI`);
+      console.log(`CV text is very large (${cvText.length} chars), reducing to prevent token limits`);
       
-      // For extremely large texts, just keep the most essential parts
-      const firstPart = cvText.substring(0, 5000); // First 5000 chars
-      const lastPart = cvText.substring(cvText.length - 3000); // Last 3000 chars
+      // Take important parts from beginning, middle, and end
+      const beginLength = 5000; // First part, usually has contact info and summary
+      const endLength = 3000;   // Last part, often has education and certifications
+      const middleLength = 4000; // Middle section for work experience
       
-      // Middle part from about 1/3 of the way through
+      const beginning = cvText.substring(0, beginLength);
+      const end = cvText.substring(cvText.length - endLength);
+      
+      // Take a section from 1/3 of the way in (likely to have work experience)
       const middleStart = Math.floor(cvText.length / 3);
-      const middlePart = cvText.substring(middleStart, middleStart + 3000);
+      const middle = cvText.substring(middleStart, middleStart + middleLength);
       
-      cvText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
-      console.log(`Truncated CV text to ${cvText.length} chars`);
+      // Combine with clear markers
+      cvText = `${beginning}\n\n[...content truncated due to length...]\n\n${middle}\n\n[...content truncated due to length...]\n\n${end}`;
+      console.log(`Truncated CV text to ${cvText.length} chars for OpenAI processing`);
     }
     
     const jsonStructurePrompt = `
@@ -305,22 +310,6 @@ IMPORTANT:
 
 CV content:
 ${cvText}`;
-
-    // Check if the text is too large
-    if (cvText.length > 15000) {
-      console.log(`CV text is very large (${cvText.length} chars), drastically reducing before sending to OpenAI`);
-      
-      // For extremely large texts, just keep the most essential parts
-      const firstPart = cvText.substring(0, 5000); // First 5000 chars
-      const lastPart = cvText.substring(cvText.length - 3000); // Last 3000 chars
-      
-      // Middle part from about 1/3 of the way through
-      const middleStart = Math.floor(cvText.length / 3);
-      const middlePart = cvText.substring(middleStart, middleStart + 3000);
-      
-      cvText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
-      console.log(`Truncated CV text to ${cvText.length} chars`);
-    }
     
     // Use OpenAI to parse the CV
     const response = await openai.chat.completions.create({
