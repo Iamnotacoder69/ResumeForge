@@ -299,7 +299,11 @@ The user will update this template with their actual information.`;
     else if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
         console.log("Processing standard Word document...");
-        cvText = await extractDetailedTextFromWord(filePath);
+        
+        // Use our detailed DOCX extraction function (now that we know there's no recursion)
+        const extractedText = await extractDetailedTextFromWord(filePath);
+        cvText = extractedText;
+        
         console.log("Extracted Word text length:", cvText.length);
         
         if (cvText.length < 500) {
