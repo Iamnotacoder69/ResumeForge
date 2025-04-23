@@ -75,8 +75,13 @@ export default function WelcomePage() {
       
       // Store the data and navigate immediately
       try {
+        // Add debug logs to see the structure of the data
+        console.log('Data received from server:', data);
+        
         // We're passing the data via sessionStorage since it could be large
-        sessionStorage.setItem('extractedCVData', JSON.stringify(data.data));
+        // Extract the actual data from the response
+        const cvData = data.data || data;
+        sessionStorage.setItem('extractedCVData', JSON.stringify(cvData));
         console.log('Successfully stored CV data, navigating to builder...');
         
         // Navigate after a very short delay to ensure storage completes

@@ -44,7 +44,15 @@ const CVBuilder = () => {
     try {
       const dataString = sessionStorage.getItem('extractedCVData');
       if (dataString) {
-        return JSON.parse(dataString);
+        const parsedData = JSON.parse(dataString);
+        console.log('Loaded CV data from storage:', parsedData);
+        
+        // Check if the data is wrapped in a 'data' property
+        if (parsedData && typeof parsedData === 'object') {
+          // Return either the inner data object or the parsedData itself
+          return parsedData.data || parsedData;
+        }
+        return parsedData;
       }
       return null;
     } catch (error) {

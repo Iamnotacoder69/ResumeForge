@@ -257,11 +257,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract structured data from CV text
       const extractedData = await extractDataFromCV(textContent);
-
+      
+      console.log("Successfully created complete CV data");
+      
+      // Return data in a standard format
       res.status(200).json({
         success: true,
         message: "Data extracted successfully",
-        ...extractedData
+        data: extractedData
       });
     } catch (error) {
       res.status(500).json({
