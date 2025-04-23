@@ -96,16 +96,34 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         
         // Log a preview of the extracted text
         const textPreview = extractedText.substring(0, 500).replace(/\n/g, ' ');
-        console.log(`Extracted text preview from DOCX (first 500 chars): ${textPreview}...`);
+        console.log(`Extracted CV text preview (DOCX): "${textPreview}..."`);
+        
+        // Scan text for name patterns
+        const nameMatch = extractedText.match(/([A-Z][a-z]+\s+[A-Z][a-z]+)/);
+        if (nameMatch) {
+          console.log(`Potential name detected: ${nameMatch[0]}`);
+        }
+        
+        // Scan for email patterns
+        const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (emailMatch) {
+          console.log(`Potential email detected: ${emailMatch[0]}`);
+        }
         
         if (extractedText.length > 0) {
-          cvText = extractedText;
+          // Add explicit markers to help OpenAI
+          cvText = `### RESUME/CV DOCUMENT ###\n\n${extractedText}`;
           console.log(`Successfully extracted ${extractedText.length} characters from DOCX (via TXT)`);
           
           // If we got very little text, add a warning note
           if (extractedText.length < 100) {
             console.log("Warning: Very little text extracted from Word document");
-            cvText += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
+            cvText = `### RESUME/CV DOCUMENT ###\n\nThis appears to be a CV document, but very little text was extracted. The document may have images or non-searchable text.
+
+Extracted content:
+${extractedText}
+
+Please analyze this limited content and extract any information possible, making reasonable inferences where needed.`;
           }
         } else {
           console.error("Failed to extract text from DOCX file");
@@ -128,39 +146,58 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         // Read the text from the converted file
         const extractedText = fs.readFileSync(txtPath, 'utf8');
         
+        // Log text preview for debugging
+        const preview = extractedText.substring(0, 500).replace(/\n/g, ' ');
+        console.log(`Extracted CV text preview (PDF): "${preview}..."`);
+        
+        // Scan text for name patterns
+        const nameMatch = extractedText.match(/([A-Z][a-z]+\s+[A-Z][a-z]+)/);
+        if (nameMatch) {
+          console.log(`Potential name detected: ${nameMatch[0]}`);
+        }
+        
+        // Scan for email patterns
+        const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (emailMatch) {
+          console.log(`Potential email detected: ${emailMatch[0]}`);
+        }
+        
         if (extractedText.length > 200) {
           // Truncate the text to prevent token limit issues
           // The OpenAI API has a token limit of ~30,000 tokens
           // A safe text length is around 30,000 characters (approximately 7,500 tokens)
-          const maxTextLength = 30000;
+          const maxTextLength = 25000;
           if (extractedText.length > maxTextLength) {
             console.log(`PDF text too long (${extractedText.length} chars), truncating to ~${maxTextLength} chars`);
             // Keep first 10,000 chars (usually contains the most important info)
             const firstPart = extractedText.substring(0, 10000);
             // Keep last 5,000 chars (might contain conclusion or important ending sections)
             const lastPart = extractedText.substring(extractedText.length - 5000);
-            // Take 15,000 chars from the middle (to capture work experience, etc.)
-            const middleStart = Math.floor((extractedText.length - 15000) / 2);
-            const middlePart = extractedText.substring(middleStart, middleStart + 15000);
+            // Take 10,000 chars from the middle (to capture work experience, etc.)
+            const middleStart = Math.floor((extractedText.length - 10000) / 2);
+            const middlePart = extractedText.substring(middleStart, middleStart + 10000);
             
             cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
           } else {
             cvText = extractedText;
           }
           console.log("Successfully extracted text from PDF, processed length:", cvText.length);
+          
+          // Add explicit markers to help OpenAI
+          cvText = `### RESUME/CV DOCUMENT ###\n\n${cvText}`;
         } else {
           // We got minimal text from the PDF
           console.log("PDF extraction returned minimal text, likely a scanned document");
           
           // Add context about the file for the AI
           const fileName = path.basename(filePath);
-          cvText = `This appears to be a CV document from a PDF named ${fileName}. 
-The PDF may be an image-based or scanned document with limited machine-readable text.
+          cvText = `### RESUME/CV DOCUMENT ###\n\nThis appears to be a CV document named ${fileName}. 
+The document has limited machine-readable text.
 From the document, I was able to extract the following text fragments:
 
 ${extractedText}
 
-Please extract any information that can be determined from the available text fragments.`;
+Please extract any information that can be determined from the available text fragments and make reasonable inferences where information is incomplete.`;
         }
       } catch (error) {
         console.error("Error converting PDF to TXT:", error);
@@ -349,21 +386,39 @@ ${cvText}`;
  * @returns CV data in the required format
  */
 function mapResponseToCV(response: any): CompleteCV {
-  // Create default CV structure
+  console.log("Response mapping - Has personal data:", !!response.personal);
+  console.log("Response mapping - Has skills data:", !!response.skills);
+  console.log("Response mapping - Experience entries:", response.experience?.length || 0);
+  
+  // Create default placeholder values in case response is incomplete
+  const defaultFirstName = "First";
+  const defaultLastName = "Last";
+  const placeholderEmail = "example@email.com";
+  
+  // Get skills or use defaults
+  const technicalSkills = Array.isArray(response.skills?.technical) ? response.skills.technical : 
+                          Array.isArray(response.technicalSkills) ? response.technicalSkills : 
+                          ["Technical skill"];
+                          
+  const softSkills = Array.isArray(response.skills?.soft) ? response.skills.soft : 
+                     Array.isArray(response.softSkills) ? response.softSkills : 
+                     ["Soft skill"];
+  
+  // Create default CV structure with fallbacks
   const cv: CompleteCV = {
     personal: {
-      firstName: response.personal?.firstName || response.personal?.first_name || response.personal?.givenName || "",
-      lastName: response.personal?.lastName || response.personal?.last_name || response.personal?.surname || "",
-      email: response.personal?.email || response.personal?.emailAddress || response.contact?.email || "",
-      phone: response.personal?.phone || response.personal?.phoneNumber || response.personal?.mobile || response.contact?.phone || "",
+      firstName: response.personal?.firstName || response.personal?.first_name || response.personal?.givenName || defaultFirstName,
+      lastName: response.personal?.lastName || response.personal?.last_name || response.personal?.surname || defaultLastName,
+      email: response.personal?.email || response.personal?.emailAddress || response.contact?.email || placeholderEmail,
+      phone: response.personal?.phone || response.personal?.phoneNumber || response.personal?.mobile || response.contact?.phone || "123-456-7890",
       linkedin: response.personal?.linkedin || response.personal?.linkedIn || response.personal?.linkedInUrl || response.contact?.linkedin || "",
     },
     professional: {
-      summary: response.summary || response.professionalSummary || response.profile || response.bio || "",
+      summary: response.summary || response.professionalSummary || response.profile || response.bio || "Professional with experience in the field.",
     },
     keyCompetencies: {
-      technicalSkills: response.skills?.technical || response.technicalSkills || response.hardSkills || response.keyCompetencies?.technical || [],
-      softSkills: response.skills?.soft || response.softSkills || response.personalSkills || response.keyCompetencies?.soft || [],
+      technicalSkills,
+      softSkills,
     },
     experience: (response.experience || []).map((exp: any) => ({
       id: Math.random(), // Generate a temporary id

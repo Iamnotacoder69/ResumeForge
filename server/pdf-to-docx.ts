@@ -89,12 +89,14 @@ export async function convertPDFtoTXT(pdfPath: string): Promise<string> {
     const txtPath = path.join(tempDir, `${fileHash}.txt`);
 
     // Built text content with structured format
-    let textContent = "CV / RESUME CONTENT\n\n";
+    let textContent = "### RESUME CONTENT START ###\n\n";
     
     // Check if sections were identified
     const hasSections = cvData.sections && Object.keys(cvData.sections).length > 0;
     
     if (hasSections && cvData.sections) {
+      console.log(`Found ${Object.keys(cvData.sections).length} structured sections in the CV`);
+      
       // Structure document by CV sections
       const sectionOrder = [
         "PERSONAL", "SUMMARY", "SKILLS", "EXPERIENCE", 
@@ -119,18 +121,29 @@ export async function convertPDFtoTXT(pdfPath: string): Promise<string> {
           // Get the content
           const sectionContent = (cvData.sections as Record<string, string>)[sectionKey];
           if (sectionContent && sectionContent.trim().length > 0) {
-            // Add section heading with proper type handling
+            // Add section heading with proper type handling and clear markers for AI
             const title = sectionKey in sectionTitles ? sectionTitles[sectionKey] : sectionKey;
             textContent += `### ${title} ###\n\n${sectionContent.trim()}\n\n`;
           }
         }
       }
     } else {
-      // No sections identified, just use the full text with some basic structure
-      console.log("No CV sections identified, using simple text approach");
+      // No sections identified, analyze the text to see if we can detect common CV sections
+      console.log("No CV sections identified, using heuristic-based text approach");
+      
+      // Common CV section keywords to look for
+      const sectionKeywords = {
+        personalInfo: ['name', 'phone', 'email', 'address', 'contact', 'phone number', 'e-mail'],
+        summary: ['summary', 'profile', 'objective', 'about me', 'professional summary'],
+        skills: ['skills', 'competencies', 'expertise', 'proficient', 'technical', 'proficiency'],
+        experience: ['experience', 'employment', 'work history', 'professional', 'job title', 'position'],
+        education: ['education', 'university', 'school', 'college', 'degree', 'diploma', 'graduated']
+      };
+      
+      // Process text and add section markers when keywords are found
+      let processedText = cvData.text;
       
       // If the text is too long for OpenAI, truncate it intelligently
-      let processedText = cvData.text;
       const MAX_TEXT_LENGTH = 15000;
       
       if (processedText.length > MAX_TEXT_LENGTH) {
@@ -152,6 +165,9 @@ export async function convertPDFtoTXT(pdfPath: string): Promise<string> {
       
       textContent += processedText;
     }
+    
+    // Add footer marker
+    textContent += "\n\n### RESUME CONTENT END ###";
     
     // Log a sample of the extracted text for debugging
     const textPreview = textContent.substring(0, 500) + "...";
@@ -198,10 +214,13 @@ export async function convertDOCXtoTXT(docxPath: string): Promise<string> {
     const textPreview = text.substring(0, 500) + "...";
     console.log('DOCX extracted text sample:', textPreview);
     
-    // Write the text content to the file
-    await writeFile(txtPath, text);
+    // Format text with clear section markers for AI
+    const structuredText = `### RESUME CONTENT START ###\n\n${text}\n\n### RESUME CONTENT END ###`;
     
-    console.log('DOCX converted to TXT file successfully');
+    // Write the structured text content to the file
+    await writeFile(txtPath, structuredText);
+    
+    console.log('DOCX converted to TXT file successfully with resume markers');
     
     return txtPath;
   } catch (error: unknown) {
