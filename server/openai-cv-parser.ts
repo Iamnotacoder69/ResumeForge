@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { CompleteCV } from "@shared/types";
 import * as fs from "fs";
+import * as path from "path";
 import * as mammoth from "mammoth";
 import { extractPDFText } from "./mock-pdf-parse";
 
@@ -29,18 +30,43 @@ async function extractFromConvertedPDF(filePath: string): Promise<string> {
     // Read the text from the file
     const result = await mammoth.extractRawText({ path: filePath });
     const text = result.value;
+    console.log(`Extracted ${text.length} characters from converted PDF DOCX`);
     
     // Since we know this is a converted PDF, we want to skip our header text and get to the actual content
     // Find where our actual PDF content begins (after the header)
     const contentStart = text.indexOf("This document was converted from a PDF.");
     
+    let extractedText = text;
     if (contentStart > -1) {
       // Extract everything after our header
-      return text.substring(contentStart + "This document was converted from a PDF.".length).trim();
+      extractedText = text.substring(contentStart + "This document was converted from a PDF.".length).trim();
     }
     
-    // If we can't find the marker, just return the whole text
-    return text;
+    // Check if the extracted text is too large (OpenAI has a token limit)
+    // A safe text length for GPT-4 is around 15,000 characters (~4,000 tokens)
+    const MAX_TEXT_LENGTH = 15000;
+    
+    if (extractedText.length > MAX_TEXT_LENGTH) {
+      console.log(`Text from PDF is too large (${extractedText.length} chars), truncating to ${MAX_TEXT_LENGTH} chars`);
+      
+      // Extract the most important parts: beginning, middle, and end
+      const beginLength = 5000; // First 5000 chars (usually contains name, contact, summary)
+      const endLength = 3000;   // Last 3000 chars (might contain education, skills, etc.)
+      const middleLength = MAX_TEXT_LENGTH - beginLength - endLength;
+      
+      const beginning = extractedText.substring(0, beginLength);
+      const end = extractedText.substring(extractedText.length - endLength);
+      
+      // For the middle, take a section from the middle of the document
+      const middleStart = Math.floor((extractedText.length - middleLength) / 2);
+      const middle = extractedText.substring(middleStart, middleStart + middleLength);
+      
+      // Combine with markers
+      return `${beginning}\n\n[...text truncated due to length...]\n\n${middle}\n\n[...text truncated due to length...]\n\n${end}`;
+    }
+    
+    // If not too large, return the whole text
+    return extractedText;
   } catch (error) {
     console.error("Error extracting text from converted PDF:", error);
     return "Error extracting text from the document.";
@@ -178,6 +204,22 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // Check if it's a PDF and note that in the prompt
     const isPDF = fileType === "application/pdf";
     
+    // Check if the text is too large
+    if (cvText.length > 15000) {
+      console.log(`CV text is very large (${cvText.length} chars), drastically reducing before sending to OpenAI`);
+      
+      // For extremely large texts, just keep the most essential parts
+      const firstPart = cvText.substring(0, 5000); // First 5000 chars
+      const lastPart = cvText.substring(cvText.length - 3000); // Last 3000 chars
+      
+      // Middle part from about 1/3 of the way through
+      const middleStart = Math.floor(cvText.length / 3);
+      const middlePart = cvText.substring(middleStart, middleStart + 3000);
+      
+      cvText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
+      console.log(`Truncated CV text to ${cvText.length} chars`);
+    }
+    
     const jsonStructurePrompt = `
 You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, so you may need to infer some details from partial information." : ""}
 
@@ -193,7 +235,7 @@ Please analyze the CV content carefully and extract ALL of the following informa
 8. Extracurricular activities - identify any activities outside of work
 9. Any additional skills not covered above
 
-NOTE: For PDF files, the text may be truncated. Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears cut off, try to infer what might be contained in that section.
+NOTE: The CV text has been truncated to fit token limits. Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears cut off, try to infer what might be contained in that section.
 
 Format your response as a JSON object with the following structure:
 {
@@ -256,11 +298,30 @@ Format your response as a JSON object with the following structure:
   "additionalSkills": []
 }
 
-IMPORTANT: For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences based on other parts of the CV. For example, if a job title is mentioned but not the company, try to determine the company from context.
+IMPORTANT: 
+1. Work with the truncated text - parts of the CV are marked with "[...content truncated due to length...]".
+2. For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences.
+3. Focus on extracting key information from the available text segments.
 
 CV content:
 ${cvText}`;
 
+    // Check if the text is too large
+    if (cvText.length > 15000) {
+      console.log(`CV text is very large (${cvText.length} chars), drastically reducing before sending to OpenAI`);
+      
+      // For extremely large texts, just keep the most essential parts
+      const firstPart = cvText.substring(0, 5000); // First 5000 chars
+      const lastPart = cvText.substring(cvText.length - 3000); // Last 3000 chars
+      
+      // Middle part from about 1/3 of the way through
+      const middleStart = Math.floor(cvText.length / 3);
+      const middlePart = cvText.substring(middleStart, middleStart + 3000);
+      
+      cvText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
+      console.log(`Truncated CV text to ${cvText.length} chars`);
+    }
+    
     // Use OpenAI to parse the CV
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // Using the newest model
@@ -276,7 +337,7 @@ ${cvText}`;
       ],
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 2500,
+      max_tokens: 1500, // Reduced from 2500 to prevent token limit issues
     });
 
     const extractedData = response.choices[0].message.content;

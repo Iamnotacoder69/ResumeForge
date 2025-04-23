@@ -53,7 +53,8 @@ This document has been converted to DOCX format for analysis.`;
 
 /**
  * Create a DOCX document with PDF content
- * This is a simplified approach that creates a DOCX with a reference to the original PDF
+ * This approach creates a DOCX with the extracted text from the PDF
+ * with careful handling of text size to avoid OpenAI token limits
  * @param pdfPath Path to the PDF file
  * @returns Path to the created DOCX file
  */
@@ -68,8 +69,29 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
     // Read the PDF file
     const pdfBuffer = await readFile(pdfPath);
     
-    // Extract text from PDF (simplified approach)
-    const pdfText = await extractTextFromPDF(pdfBuffer);
+    // Extract text from PDF
+    let pdfText = await extractTextFromPDF(pdfBuffer);
+    
+    // Truncate text if it's too long to prevent token limit issues with OpenAI
+    // A reasonable limit is around 12,000 characters for a DOCX
+    const MAX_TEXT_LENGTH = 12000;
+    
+    if (pdfText.length > MAX_TEXT_LENGTH) {
+      console.log(`PDF text is very long (${pdfText.length} chars), truncating to ${MAX_TEXT_LENGTH} chars`);
+      
+      // Take the first part (usually contains personal info, summary, etc.)
+      const firstPart = pdfText.substring(0, 6000);
+      
+      // Take the last part (often contains education, skills, etc.)
+      const lastPart = pdfText.substring(pdfText.length - 3000);
+      
+      // Take a middle section
+      const middleStart = Math.floor((pdfText.length - 3000) / 2);
+      const middlePart = pdfText.substring(middleStart, middleStart + 3000);
+      
+      // Combine with markers
+      pdfText = `${firstPart}\n\n[...content truncated due to length...]\n\n${middlePart}\n\n[...content truncated due to length...]\n\n${lastPart}`;
+    }
     
     // Create output path for DOCX
     const filename = path.basename(pdfPath, '.pdf');
