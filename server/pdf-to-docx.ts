@@ -53,16 +53,39 @@ export async function convertPdfToDocx(pdfPath: string): Promise<string> {
     await writeFileAsync(textPath, text);
     console.log(`Raw text content saved to ${textPath}`);
     
-    // Convert HTML to DOCX using html-docx-js
-    const docxBlob = htmlDocx.asBlob(htmlContent, {
-      orientation: 'portrait',
-      margins: { top: 720, right: 720, bottom: 720, left: 720 } // 720 twips = 0.5 inches
-    });
-    const arrayBuffer = await docxBlob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // First, let's create a simple text-only docx as a fallback
+    const simpleDocxContent = `FILENAME: ${pdfBaseName}
     
-    // Write DOCX file
-    await writeFileAsync(docxPath, buffer);
+EXTRACTED TEXT FROM PDF:
+
+${text}`;
+    
+    // Write the raw text directly to the DOCX file
+    await writeFileAsync(docxPath, simpleDocxContent);
+    
+    // Try to convert HTML to DOCX using html-docx-js
+    try {
+      const docxBlob = htmlDocx.asBlob(htmlContent, {
+        orientation: 'portrait',
+        margins: { top: 720, right: 720, bottom: 720, left: 720 } // 720 twips = 0.5 inches
+      });
+      
+      if (docxBlob) {
+        const arrayBuffer = await docxBlob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        // Only write if we got a non-empty buffer
+        if (buffer && buffer.length > 100) {
+          // Write formatted DOCX file
+          await writeFileAsync(docxPath, buffer);
+          console.log("Successfully created formatted DOCX from HTML");
+        } else {
+          console.log("HTML to DOCX conversion yielded empty or too small buffer, using text fallback");
+        }
+      }
+    } catch (docxError) {
+      console.error("Error in HTML to DOCX conversion, using text fallback:", docxError);
+    }
     
     console.log(`DOCX created successfully at ${docxPath}`);
     
