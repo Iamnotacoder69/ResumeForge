@@ -417,6 +417,98 @@ export default function CVUploader() {
     }
   };
   
+  // Extract and download text from PDF directly
+  const handleDownloadTextVersion = async () => {
+    if (!selectedFile) {
+      toast({
+        variant: "destructive",
+        title: "No file selected",
+        description: "Please select a PDF file first.",
+      });
+      return;
+    }
+    
+    // Validate it's a PDF
+    if (selectedFile.type !== "application/pdf") {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload a PDF file.",
+      });
+      return;
+    }
+    
+    try {
+      // First upload the PDF
+      const formData = new FormData();
+      formData.append("cv", selectedFile);
+      
+      const uploadResponse = await fetch("/api/upload-cv", {
+        method: "POST",
+        body: formData
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload PDF");
+      }
+      
+      const uploadData = await uploadResponse.json();
+      
+      // Then convert it to DOCX (which also generates text files)
+      const convertResponse = await fetch("/api/convert-pdf", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filePath: uploadData.data.filePath })
+      });
+      
+      if (!convertResponse.ok) {
+        throw new Error("Failed to process PDF");
+      }
+      
+      const convertData = await convertResponse.json();
+      
+      // Download the text file instead of the DOCX
+      const textFilePath = convertData.data.filePath.replace('.docx', '_extracted.txt');
+      
+      const downloadResponse = await fetch("/api/download-file", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filePath: textFilePath })
+      });
+      
+      if (!downloadResponse.ok) {
+        throw new Error("Failed to download text file");
+      }
+      
+      // Create a blob from the response
+      const blob = await downloadResponse.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "extracted_text.txt";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Text extraction successful",
+        description: "The PDF text has been extracted and downloaded as a text file.",
+      });
+    } catch (error) {
+      console.error("Text extraction error:", error);
+      toast({
+        variant: "destructive",
+        title: "Extraction failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+      });
+    }
+  };
+  
   // Render the appropriate action button based on current step
   const renderActionButton = () => {
     if (uploadStep === 'initial') {
@@ -725,21 +817,33 @@ export default function CVUploader() {
       <div className="mt-12 p-6 border border-dashed border-primary/30 rounded-lg bg-primary/5 max-w-md mx-auto">
         <h3 className="text-lg font-semibold mb-2 flex items-center">
           <FileOutput className="h-5 w-5 mr-2 text-primary" />
-          PDF Conversion Test
+          PDF Conversion Tests
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Test the PDF to DOCX conversion separately. This will convert your PDF file and download it immediately.
+          Test the PDF conversion separately. You can download the converted file in different formats.
         </p>
         
-        <Button 
-          variant="secondary" 
-          onClick={handleDirectConversion}
-          disabled={!selectedFile || selectedFile.type !== "application/pdf"}
-          className="w-full"
-        >
-          <FileOutput className="mr-2 h-4 w-4" />
-          Convert PDF to DOCX and Download
-        </Button>
+        <div className="space-y-3">
+          <Button 
+            variant="secondary" 
+            onClick={handleDirectConversion}
+            disabled={!selectedFile || selectedFile.type !== "application/pdf"}
+            className="w-full"
+          >
+            <FileOutput className="mr-2 h-4 w-4" />
+            Convert PDF to DOCX and Download
+          </Button>
+
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadTextVersion}
+            disabled={!selectedFile || selectedFile.type !== "application/pdf"}
+            className="w-full"
+          >
+            <FileType className="mr-2 h-4 w-4" />
+            Extract PDF Text and Download
+          </Button>
+        </div>
         
         <div className="text-xs text-muted-foreground mt-2">
           Note: You need to select a PDF file first using the uploader above.

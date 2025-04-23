@@ -436,7 +436,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.setHeader('Content-Type', 'application/octet-stream');
       }
       
-      // Read the file and send it
+      // For DOCX files, read the whole file into a buffer and send it
+      // This avoids streaming issues that can result in corrupt/empty downloads
+      if (filePath.endsWith('.docx')) {
+        try {
+          const fileData = fs.readFileSync(filePath);
+          // Log the file size for debugging
+          console.log(`File size of DOCX: ${fileData.length} bytes`);
+          
+          if (fileData.length < 100) {
+            console.error("Warning: DOCX file is very small, might be empty or corrupted");
+          }
+          
+          return res.send(fileData);
+        } catch (readError) {
+          console.error("Error reading DOCX file:", readError);
+          return res.status(500).json({
+            success: false,
+            message: "Error reading DOCX file"
+          });
+        }
+      }
+      
+      // For other files, use streaming
       const fileStream = fs.createReadStream(filePath);
       fileStream.pipe(res);
       

@@ -53,15 +53,18 @@ export async function convertPdfToDocx(pdfPath: string): Promise<string> {
     await writeFileAsync(textPath, text);
     console.log(`Raw text content saved to ${textPath}`);
     
-    // First, let's create a simple text-only docx as a fallback
-    const simpleDocxContent = `FILENAME: ${pdfBaseName}
+    // First, let's create a simple text file as a fallback
+    // We'll need to name it differently since DOCX is a binary format
+    const txtPath = path.join(path.dirname(pdfPath), `${pdfBaseName}_extracted.txt`);
+    const simpleTextContent = `FILENAME: ${pdfBaseName}
     
 EXTRACTED TEXT FROM PDF:
 
 ${text}`;
     
-    // Write the raw text directly to the DOCX file
-    await writeFileAsync(docxPath, simpleDocxContent);
+    // Write the raw text to a separate text file
+    await writeFileAsync(txtPath, simpleTextContent);
+    console.log(`Text backup saved to ${txtPath}`);
     
     // Try to convert HTML to DOCX using html-docx-js
     try {
