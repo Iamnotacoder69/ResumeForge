@@ -7,6 +7,22 @@ import { extractPDFText } from "./mock-pdf-parse";
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Check if a file is a converted PDF document
+async function isConvertedPDF(filePath: string): Promise<boolean> {
+  try {
+    // Read the text from the file
+    const result = await mammoth.extractRawText({ path: filePath });
+    const text = result.value;
+    
+    // Check if this is a converted PDF (contains our marker text)
+    return text.includes("Original PDF Document") && 
+           text.includes("This document was converted from a PDF");
+  } catch (error) {
+    console.error("Error checking if file is a converted PDF:", error);
+    return false;
+  }
+}
+
 // Helper function for extracting text from PDF files
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
@@ -60,14 +76,28 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // For Word documents, extract the text
     if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
-        const dataBuffer = fs.readFileSync(filePath);
-        const result = await mammoth.extractRawText({buffer: dataBuffer});
-        cvText = result.value;
-        console.log("Extracted Word text length:", cvText.length);
+        // Check if this is a converted PDF
+        const isConverted = await isConvertedPDF(filePath);
         
-        if (cvText.length < 100) {
-          console.log("Warning: Very little text extracted from Word document");
-          cvText += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
+        if (isConverted) {
+          console.log("Detected a converted PDF document in DOCX format");
+          // Special handling for converted PDFs
+          const result = await mammoth.extractRawText({path: filePath});
+          cvText = result.value;
+          
+          // Add a note that this is a converted PDF to help the AI model
+          cvText += "\n\nNote: This document was originally a PDF that was converted to DOCX format for processing. Some formatting or content may have been simplified during conversion.";
+        } else {
+          // Normal DOCX file
+          const dataBuffer = fs.readFileSync(filePath);
+          const result = await mammoth.extractRawText({buffer: dataBuffer});
+          cvText = result.value;
+          console.log("Extracted Word text length:", cvText.length);
+          
+          if (cvText.length < 100) {
+            console.log("Warning: Very little text extracted from Word document");
+            cvText += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
+          }
         }
       } catch (error) {
         console.error("Error extracting text from Word document:", error);
