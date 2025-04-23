@@ -39,22 +39,6 @@ const CVBuilder = () => {
   const [showPreview, setShowPreview] = useState(false);
   const form = useCVForm();
   
-  // Check for redirects from CV upload
-  useEffect(() => {
-    // If we have a parsed CV from the uploader, go directly to Personal Info tab
-    const parsedCVString = sessionStorage.getItem("parsedCV");
-    if (parsedCVString) {
-      // Short delay to allow form population
-      setTimeout(() => {
-        setActiveTab(CVTabs.PERSONAL);
-        toast({
-          title: "CV Uploaded",
-          description: "Your CV was analyzed and the data has been pre-filled. You can now review and edit the information.",
-        });
-      }, 500);
-    }
-  }, [toast]);
-  
   // Default section order (matching the one in use-cv-form.ts)
   const defaultSectionOrder: SectionOrder[] = [
     { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },

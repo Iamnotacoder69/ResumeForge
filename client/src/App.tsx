@@ -5,13 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import CVBuilder from "@/pages/CVBuilder";
-import CVUploader from "@/components/cv/CVUploader";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={CVUploader} />
-      <Route path="/cv-builder" component={CVBuilder} />
+      <Route path="/" component={CVBuilder} />
       <Route component={NotFound} />
     </Switch>
   );

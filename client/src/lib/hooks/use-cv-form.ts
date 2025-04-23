@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { completeCvSchema } from "@shared/schema";
 import { CompleteCV, SectionOrder } from "@shared/types";
-import { useEffect } from "react";
 
 export function useCVForm() {
   // Default section order
@@ -83,86 +82,6 @@ export function useCVForm() {
     defaultValues,
     mode: "onChange",
   });
-  
-  // Check for parsed CV data in sessionStorage and populate the form
-  useEffect(() => {
-    try {
-      const parsedCVString = sessionStorage.getItem("parsedCV");
-      if (parsedCVString) {
-        const parsedCV = JSON.parse(parsedCVString);
-        
-        // Populate the form with parsed data
-        console.log("Populating form with parsed CV data");
-        
-        // Set personal info
-        if (parsedCV.personal) {
-          Object.keys(parsedCV.personal).forEach(field => {
-            if (parsedCV.personal[field]) {
-              form.setValue(`personal.${field}` as any, parsedCV.personal[field]);
-            }
-          });
-        }
-        
-        // Set professional summary
-        if (parsedCV.professional?.summary) {
-          form.setValue('professional.summary', parsedCV.professional.summary);
-        }
-        
-        // Set key competencies
-        if (parsedCV.keyCompetencies) {
-          if (parsedCV.keyCompetencies.technicalSkills?.length) {
-            form.setValue('keyCompetencies.technicalSkills', parsedCV.keyCompetencies.technicalSkills);
-          }
-          if (parsedCV.keyCompetencies.softSkills?.length) {
-            form.setValue('keyCompetencies.softSkills', parsedCV.keyCompetencies.softSkills);
-          }
-        }
-        
-        // Set experience entries
-        if (parsedCV.experience?.length) {
-          form.setValue('experience', parsedCV.experience);
-        }
-        
-        // Set education entries
-        if (parsedCV.education?.length) {
-          form.setValue('education', parsedCV.education);
-        }
-        
-        // Set certificate entries
-        if (parsedCV.certificates?.length) {
-          form.setValue('certificates', parsedCV.certificates);
-        }
-        
-        // Set language entries
-        if (parsedCV.languages?.length) {
-          form.setValue('languages', parsedCV.languages);
-        }
-        
-        // Set extracurricular entries
-        if (parsedCV.extracurricular?.length) {
-          form.setValue('extracurricular', parsedCV.extracurricular);
-        }
-        
-        // Set additional skills
-        if (parsedCV.additional?.skills?.length) {
-          form.setValue('additional.skills', parsedCV.additional.skills);
-        }
-        
-        // Set template settings
-        if (parsedCV.templateSettings) {
-          form.setValue('templateSettings', {
-            ...parsedCV.templateSettings,
-            sectionOrder: parsedCV.templateSettings.sectionOrder || defaultSectionOrder
-          });
-        }
-        
-        // Clean up session storage after loading data
-        sessionStorage.removeItem("parsedCV");
-      }
-    } catch (error) {
-      console.error("Error loading parsed CV data:", error);
-    }
-  }, [form]);
 
   return form;
 }
