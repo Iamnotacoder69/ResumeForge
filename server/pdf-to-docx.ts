@@ -53,42 +53,16 @@ export async function convertPdfToDocx(pdfPath: string): Promise<string> {
     await writeFileAsync(textPath, text);
     console.log(`Raw text content saved to ${textPath}`);
     
-    // First, let's create a simple text file as a fallback
-    // We'll need to name it differently since DOCX is a binary format
-    const txtPath = path.join(path.dirname(pdfPath), `${pdfBaseName}_extracted.txt`);
-    const simpleTextContent = `FILENAME: ${pdfBaseName}
+    // Convert HTML to DOCX using html-docx-js
+    const docxBlob = htmlDocx.asBlob(htmlContent, {
+      orientation: 'portrait',
+      margins: { top: 720, right: 720, bottom: 720, left: 720 } // 720 twips = 0.5 inches
+    });
+    const arrayBuffer = await docxBlob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     
-EXTRACTED TEXT FROM PDF:
-
-${text}`;
-    
-    // Write the raw text to a separate text file
-    await writeFileAsync(txtPath, simpleTextContent);
-    console.log(`Text backup saved to ${txtPath}`);
-    
-    // Try to convert HTML to DOCX using html-docx-js
-    try {
-      const docxBlob = htmlDocx.asBlob(htmlContent, {
-        orientation: 'portrait',
-        margins: { top: 720, right: 720, bottom: 720, left: 720 } // 720 twips = 0.5 inches
-      });
-      
-      if (docxBlob) {
-        const arrayBuffer = await docxBlob.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        
-        // Only write if we got a non-empty buffer
-        if (buffer && buffer.length > 100) {
-          // Write formatted DOCX file
-          await writeFileAsync(docxPath, buffer);
-          console.log("Successfully created formatted DOCX from HTML");
-        } else {
-          console.log("HTML to DOCX conversion yielded empty or too small buffer, using text fallback");
-        }
-      }
-    } catch (docxError) {
-      console.error("Error in HTML to DOCX conversion, using text fallback:", docxError);
-    }
+    // Write DOCX file
+    await writeFileAsync(docxPath, buffer);
     
     console.log(`DOCX created successfully at ${docxPath}`);
     

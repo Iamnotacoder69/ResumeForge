@@ -263,11 +263,7 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
       if (!extractionSuccessful) {
         try {
           console.log("Trying to extract text from converted DOCX file...");
-          
-          // Use mammoth directly to avoid potential infinite recursion
-          const standardResult = await mammoth.extractRawText({path: filePath});
-          const docxText = standardResult.value;
-          
+          const docxText = await extractDetailedTextFromWord(filePath);
           console.log("Extracted Word text length:", docxText.length);
           
           if (docxText.length > 500) {
@@ -299,11 +295,7 @@ The user will update this template with their actual information.`;
     else if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
         console.log("Processing standard Word document...");
-        
-        // Use our detailed DOCX extraction function (now that we know there's no recursion)
-        const extractedText = await extractDetailedTextFromWord(filePath);
-        cvText = extractedText;
-        
+        cvText = await extractDetailedTextFromWord(filePath);
         console.log("Extracted Word text length:", cvText.length);
         
         if (cvText.length < 500) {
