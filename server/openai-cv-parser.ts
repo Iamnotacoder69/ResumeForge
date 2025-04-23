@@ -85,21 +85,104 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         
         // If we got a reasonable amount of text, use it
         if (pdfText.length > 200) {
-          // Truncate the text to prevent token limit issues
-          // The OpenAI API has a token limit of ~30,000 tokens
-          // A safe text length is around 30,000 characters (approximately 7,500 tokens)
+          // Implement a smarter PDF extraction strategy specifically for CVs
+          // Focus on key sections that are more likely to contain relevant information
+          
+          // For PDFs, we need to be smarter about what we keep
           const maxTextLength = 30000;
+          
           if (pdfText.length > maxTextLength) {
-            console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
-            // Keep first 10,000 chars (usually contains the most important info)
-            const firstPart = pdfText.substring(0, 10000);
-            // Keep last 5,000 chars (might contain conclusion or important ending sections)
-            const lastPart = pdfText.substring(pdfText.length - 5000);
-            // Take 15,000 chars from the middle (to capture work experience, etc.)
-            const middleStart = Math.floor((pdfText.length - 15000) / 2);
-            const middlePart = pdfText.substring(middleStart, middleStart + 15000);
+            console.log(`PDF text too long (${pdfText.length} chars), implementing smart extraction`);
             
-            cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
+            // Split the text into lines to better understand document structure
+            const lines = pdfText.split('\n');
+            
+            // Define keywords that are likely to be section headers in a CV
+            const importantSectionKeywords = [
+              'summary', 'profile', 'objective', 'personal', 'contact', 
+              'experience', 'work', 'employment', 'job', 'career',
+              'education', 'academic', 'qualification', 'degree', 'university', 'school',
+              'skill', 'competenc', 'proficienc', 'expertise', 'ability',
+              'certificate', 'certification', 'award', 'achievement',
+              'language', 'reference', 'project', 'publication',
+              'volunteer', 'extracurricular'
+            ];
+            
+            // Function to check if a line might be a section header
+            const isSectionHeader = (line: string) => {
+              const normalized = line.toLowerCase().trim();
+              // Skip empty lines and very long lines (unlikely to be headers)
+              if (normalized.length < 2 || normalized.length > 50) return false;
+              
+              return importantSectionKeywords.some(keyword => 
+                normalized.includes(keyword));
+            };
+            
+            // Collect important sections and their content
+            let importantContent: string[] = [];
+            let collectingSection = false;
+            let sectionBuffer: string[] = [];
+            let contextLineCount = 0;
+            
+            // Always include first ~20 lines (likely contact info and summary)
+            importantContent = importantContent.concat(lines.slice(0, 20));
+            
+            // Process remaining lines looking for important sections
+            for (let i = 20; i < lines.length; i++) {
+              const line = lines[i].trim();
+              
+              // Check if this might be a section header
+              if (isSectionHeader(line)) {
+                // Add previous section if we were collecting one
+                if (collectingSection && sectionBuffer.length > 0) {
+                  importantContent = importantContent.concat(sectionBuffer);
+                }
+                
+                // Start new section
+                sectionBuffer = [line];
+                collectingSection = true;
+                contextLineCount = 0;
+                continue;
+              }
+              
+              // If collecting a section, add lines up to a limit
+              if (collectingSection) {
+                if (contextLineCount < 30) { // Collect ~30 lines after each header
+                  sectionBuffer.push(line);
+                  contextLineCount++;
+                } else {
+                  // Stop collecting this section and add what we have
+                  importantContent = importantContent.concat(sectionBuffer);
+                  collectingSection = false;
+                  sectionBuffer = [];
+                }
+              }
+            }
+            
+            // Add any final section we were collecting
+            if (collectingSection && sectionBuffer.length > 0) {
+              importantContent = importantContent.concat(sectionBuffer);
+            }
+            
+            // Join the important content back into text
+            let extractedText = importantContent.join('\n');
+            
+            // If we still have too much text, do a simple truncation
+            if (extractedText.length > maxTextLength) {
+              console.log(`Smart extraction still too long (${extractedText.length} chars), truncating`);
+              
+              // Keep first 15,000 chars (usually contains the most important info)
+              const firstPart = extractedText.substring(0, 15000);
+              // Keep last 5,000 chars (might contain conclusion or important ending sections)
+              const lastPart = extractedText.substring(extractedText.length - 5000);
+              // Take 10,000 chars from the middle (to capture work experience, etc.)
+              const middleStart = Math.floor((extractedText.length - 10000) / 2);
+              const middlePart = extractedText.substring(middleStart, middleStart + 10000);
+              
+              cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
+            } else {
+              cvText = extractedText;
+            }
           } else {
             cvText = pdfText;
           }
@@ -119,7 +202,14 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     const isPDF = fileType === "application/pdf";
     
     const jsonStructurePrompt = `
-You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, so you may need to infer some details from partial information." : ""}
+You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, which may have formatting that affects text extraction. You need to be especially careful about text interpretation and infer details where necessary." : ""}
+
+IMPORTANT INSTRUCTIONS FOR PDF PROCESSING:
+1. The text is likely from a PDF with column layouts and formatting that may cause text to appear in a non-linear order
+2. Text from PDF tables may be misaligned or jumbled
+3. Look for patterns like bullet points (•, -, *, etc.) that indicate list items within experience or skills sections
+4. When you see dates in formats like "MM/YYYY - MM/YYYY" or "YYYY-YYYY", those are likely job or education date ranges
+5. For PDF text, carefully analyze the context around each text segment to determine which section it belongs to
 
 Please analyze the CV content carefully and extract ALL of the following information, making reasonable inferences even when information is incomplete:
 
@@ -133,7 +223,7 @@ Please analyze the CV content carefully and extract ALL of the following informa
 8. Extracurricular activities - identify any activities outside of work
 9. Any additional skills not covered above
 
-NOTE: For PDF files, the text may be truncated. Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears cut off, try to infer what might be contained in that section.
+NOTE: For PDF files, we've used an intelligent section extraction algorithm to help focus on the most important parts of the CV. Where information appears incomplete, try to use clues from surrounding text to reconstruct the complete details.
 
 Format your response as a JSON object with the following structure:
 {
