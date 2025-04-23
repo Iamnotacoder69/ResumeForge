@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as htmlDocx from 'html-docx-js';
 import { promisify } from 'util';
 import { extractPDFText } from './mock-pdf-parse';
-import { extractTextFromPDF } from './pdf-ocr';
 import { exec } from 'child_process';
 
 const writeFileAsync = promisify(fs.writeFile);
@@ -13,33 +12,24 @@ const execAsync = promisify(exec);
 /**
  * Convert PDF to DOCX format with enhanced processing
  * This version includes multiple approaches to ensure maximum text extraction:
- * 1. Try our OCR-enhanced PDF extractor
- * 2. Fall back to standard text extraction if OCR fails
- * 3. Use advanced formatting to create a well-structured DOCX
+ * 1. Try our custom PDF extractor
+ * 2. Use advanced formatting to create a well-structured DOCX 
+ * 3. Apply special processing for different PDF types
  */
 export async function convertPdfToDocx(pdfPath: string): Promise<string> {
   try {
     console.log(`Converting PDF at ${pdfPath} to DOCX...`);
     
-    // Try to extract text using OCR-enhanced method first
-    let text = '';
-    let extractionMethod = '';
+    // Read the PDF file
+    const pdfBuffer = await readFileAsync(pdfPath);
     
-    try {
-      console.log("Attempting OCR-enhanced text extraction...");
-      text = await extractTextFromPDF(pdfPath);
-      extractionMethod = 'ocr-enhanced';
-    } catch (ocrError) {
-      console.error("OCR extraction failed, falling back to standard method:", ocrError);
-      
-      // Fall back to standard extraction if OCR fails
-      const pdfBuffer = await readFileAsync(pdfPath);
-      const pdfData = await extractPDFText(pdfBuffer);
-      text = pdfData.text;
-      extractionMethod = 'standard';
-    }
+    // Use our existing PDF parser to extract text
+    const pdfData = await extractPDFText(pdfBuffer);
+    const text = pdfData.text;
+    console.log(`Extracted ${text.length} characters of text from PDF`);
     
-    console.log(`Extracted ${text.length} characters of text from PDF using ${extractionMethod} method`);
+    // Create HTML content from the extracted text
+    // Process the text to improve the conversion result
     
     // Get PDF file name without extension
     const pdfBaseName = path.basename(pdfPath, '.pdf');

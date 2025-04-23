@@ -1,11 +1,20 @@
 import * as fs from 'fs';
-import { extractPDFText, PDFData } from './mock-pdf-parse';
+
+// Define the PDF output interface to match what we need
+interface PDFData {
+  text: string;
+  numpages: number;
+  info?: Record<string, any>;
+  metadata?: Record<string, any>;
+  version?: string;
+}
 
 // Custom function to safely parse PDFs without requiring test files
 export async function parsePDF(buffer: Buffer): Promise<PDFData> {
   try {
-    // Use our simplified PDF text extraction implementation
-    return await extractPDFText(buffer);
+    // Let's use a dynamic import to avoid the test file issue at startup time
+    const pdfParse = (await import('pdf-parse')).default;
+    return await pdfParse(buffer);
   } catch (error: unknown) {
     console.error('Error parsing PDF:', error);
     // Return a minimal result with just the error message
@@ -13,9 +22,6 @@ export async function parsePDF(buffer: Buffer): Promise<PDFData> {
     return {
       text: `Error parsing PDF: ${errorMessage}`,
       numpages: 0,
-      info: {},
-      metadata: {},
-      version: '1.0'
     };
   }
 }
