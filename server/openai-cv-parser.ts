@@ -94,6 +94,10 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         // Read the text from the converted file
         const extractedText = fs.readFileSync(txtPath, 'utf8');
         
+        // Log a preview of the extracted text
+        const textPreview = extractedText.substring(0, 500).replace(/\n/g, ' ');
+        console.log(`Extracted text preview from DOCX (first 500 chars): ${textPreview}...`);
+        
         if (extractedText.length > 0) {
           cvText = extractedText;
           console.log(`Successfully extracted ${extractedText.length} characters from DOCX (via TXT)`);
@@ -175,89 +179,88 @@ Please extract any information that can be determined from the available text fr
     const jsonStructurePrompt = `
 You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, and the text has been pre-processed to identify key sections." : ""}
 
-Please analyze the CV content carefully and extract ALL of the following information, making reasonable inferences even when information is incomplete:
+TASK: I need you to carefully analyze the CV content provided and extract ALL structured information, making reasonable inferences when information is incomplete or ambiguous.
 
-1. Personal information (name, email, phone, LinkedIn profile)
-2. Professional summary - provide a concise summary of the person's background and experience
-3. Technical and soft skills - identify both technical skills (programming languages, tools, etc.) and soft skills (leadership, communication, etc.)
-4. Work experience - extract ALL work experiences including company, job title, dates, and detailed responsibilities
-5. Education - extract ALL education entries including institution, degree, dates, and achievements
-6. Certifications - extract ALL certifications including name, issuer, and dates
-7. Languages - identify ALL languages with proficiency levels
-8. Extracurricular activities - identify any activities outside of work
-9. Any additional skills not covered above
+PAY SPECIAL ATTENTION TO:
+1. Personal information - Find the person's name, contact details (email, phone), and LinkedIn profile if available
+2. Professional summary - Extract or generate a concise professional summary
+3. Skills - Separate technical skills (like programming languages, tools) from soft skills (leadership, communication)
+4. Work experience - Identify ALL job positions with company names, titles, dates, and responsibilities
+5. Education - Extract ALL education with institution names, degrees, dates
+6. Certifications - Find any professional certifications with issuing organizations and dates
+7. Languages - Note any languages mentioned with their proficiency levels
+8. Other activities - Identify extracurricular or volunteer activities
 
-NOTE: The CV content may be organized into sections with markers like "### SECTION NAME ###" which indicate different parts of the resume.
-Pay special attention to these section markers to help you identify the content type accurately.
+IMPORTANT INSTRUCTIONS:
+- The CV text may contain section markers like "### WORK EXPERIENCE ###" to help you identify content
+- If you see "[...content truncated due to length...]", make reasonable assumptions about the missing content
+- If specific dates or details are unclear, use your best judgment to infer reasonable values
+- NEVER leave important fields empty - provide reasonable values based on context
+- If personal information fields like name or email cannot be found, look throughout the entire text
 
-Format your response as a JSON object with the following structure:
+RESPONSE FORMAT:
+Return ONLY a valid JSON object with this exact structure:
 {
   "personal": {
-    "firstName": "",
-    "lastName": "",
-    "email": "",
-    "phone": "",
-    "linkedin": ""
+    "firstName": "First name here",
+    "lastName": "Last name here",
+    "email": "email@example.com",
+    "phone": "Phone number here",
+    "linkedin": "LinkedIn URL or username"
   },
-  "summary": "",
+  "summary": "Professional summary text",
   "skills": {
-    "technical": [],
-    "soft": []
+    "technical": ["Technical skill 1", "Technical skill 2"],
+    "soft": ["Soft skill 1", "Soft skill 2"]
   },
   "experience": [
     {
-      "company": "",
-      "jobTitle": "",
-      "startDate": "",
-      "endDate": "",
-      "isCurrent": boolean,
-      "responsibilities": ""
+      "company": "Company name",
+      "jobTitle": "Job title",
+      "startDate": "Start date (MM/YYYY or YYYY)",
+      "endDate": "End date or Present",
+      "isCurrent": true/false,
+      "responsibilities": "Job responsibilities and achievements"
     }
   ],
   "education": [
     {
-      "institution": "",
-      "degree": "",
-      "startDate": "",
-      "endDate": "",
-      "achievements": ""
+      "institution": "School/University name",
+      "degree": "Degree and field of study",
+      "startDate": "Start date (YYYY)",
+      "endDate": "End date (YYYY)",
+      "achievements": "Any achievements or activities"
     }
   ],
   "certifications": [
     {
-      "issuer": "",
-      "name": "",
-      "date": "",
-      "expirationDate": "",
-      "description": ""
+      "issuer": "Issuing organization",
+      "name": "Certification name",
+      "date": "Date obtained (YYYY or MM/YYYY)",
+      "expirationDate": "Expiration date if applicable",
+      "description": "Description if available"
     }
   ],
   "languages": [
     {
-      "language": "",
-      "proficiency": ""
+      "language": "Language name",
+      "proficiency": "Proficiency level (native/fluent/advanced/intermediate/basic)"
     }
   ],
   "extracurricular": [
     {
-      "organization": "",
-      "role": "",
-      "startDate": "",
-      "endDate": "",
-      "isCurrent": boolean,
-      "description": ""
+      "organization": "Organization name",
+      "role": "Role or position",
+      "startDate": "Start date",
+      "endDate": "End date or Present",
+      "isCurrent": true/false,
+      "description": "Description of activities"
     }
   ],
-  "additionalSkills": []
+  "additionalSkills": ["Other skill 1", "Other skill 2"]
 }
 
-IMPORTANT: 
-1. The text may have section markers like "### WORK EXPERIENCE ###" - use these to identify different parts of the CV.
-2. Parts of the CV might be marked with "[...content truncated due to length...]" - make reasonable assumptions about truncated content.
-3. For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences.
-4. Focus on extracting key information from the available text segments.
-
-CV content:
+CV CONTENT:
 ${cvText}`;
     
     // Use OpenAI to parse the CV
@@ -274,8 +277,8 @@ ${cvText}`;
         }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.3,
-      max_tokens: 1500, // Reduced from 2500 to prevent token limit issues
+      temperature: 0.2, // Lower temperature for more factual extraction
+      max_tokens: 2000, // Increased to allow more detailed extraction
     });
 
     const extractedData = response.choices[0].message.content;
@@ -288,6 +291,16 @@ ${cvText}`;
     let parsedData;
     try {
       parsedData = JSON.parse(extractedData);
+      console.log("OpenAI CV parsing results:", {
+        name: `${parsedData.personal?.firstName || ""} ${parsedData.personal?.lastName || ""}`,
+        email: parsedData.personal?.email || "",
+        skills: {
+          technical: parsedData.skills?.technical?.length || 0,
+          soft: parsedData.skills?.soft?.length || 0
+        },
+        experience: parsedData.experience?.length || 0,
+        education: parsedData.education?.length || 0
+      });
     } catch (e) {
       console.error("Error parsing OpenAI JSON response:", e);
       console.log("Raw response:", extractedData);

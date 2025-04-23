@@ -153,6 +153,10 @@ export async function convertPDFtoTXT(pdfPath: string): Promise<string> {
       textContent += processedText;
     }
     
+    // Log a sample of the extracted text for debugging
+    const textPreview = textContent.substring(0, 500) + "...";
+    console.log('PDF extracted text sample:', textPreview);
+    
     // Write the text content to the file
     await writeFile(txtPath, textContent);
     
@@ -190,6 +194,10 @@ export async function convertDOCXtoTXT(docxPath: string): Promise<string> {
     const fileHash = Math.random().toString(36).substring(2, 15);
     const txtPath = path.join(tempDir, `${fileHash}.txt`);
 
+    // Log a sample of the extracted text for debugging
+    const textPreview = text.substring(0, 500) + "...";
+    console.log('DOCX extracted text sample:', textPreview);
+    
     // Write the text content to the file
     await writeFile(txtPath, text);
     
