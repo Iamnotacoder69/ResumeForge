@@ -70,15 +70,16 @@ export default function CVUploader() {
       // Store file info for Step 2
       setFileInfo(data.data);
       
-      // Update state based on conversion status
-      if (data.data.needsConversion) {
-        setUploadState('ready');
+      // Set upload state to ready
+      setUploadState('ready');
+      
+      // If there's a warning about PDFs, show it to the user
+      if (data.warning && data.data.originalType === "application/pdf") {
         toast({
-          title: "File converted successfully",
-          description: "Your PDF has been converted to Word format for better analysis.",
+          title: "PDF document detected",
+          description: data.warning,
+          variant: "default"
         });
-      } else {
-        setUploadState('ready');
       }
     },
     onError: (error) => {
@@ -389,7 +390,12 @@ export default function CVUploader() {
                 </div>
                 <h3 className="text-lg font-medium mb-2">CV Ready for Analysis</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Your document has been uploaded{fileInfo?.needsConversion ? ' and converted to Word format' : ''} successfully.
+                  Your document has been uploaded successfully.
+                  {fileInfo?.originalType === "application/pdf" && (
+                    <span className="block text-amber-600 mt-1 font-medium">
+                      Note: PDF files may have limited extraction ability.
+                    </span>
+                  )}
                 </p>
                 <div className="flex items-center justify-center p-2 bg-muted rounded-md w-full">
                   <FileText className="h-4 w-4 mr-2 text-primary" />

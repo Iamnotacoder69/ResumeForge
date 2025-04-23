@@ -173,28 +173,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         needsConversion: false
       };
       
-      // Check if the file is a PDF that needs conversion
+      // For PDF files, just show a warning but don't attempt conversion since it works well for Word files
       if (fileType === "application/pdf") {
-        try {
-          const { convertPdfToDocx } = await import('./file-converter');
-          console.log("Converting PDF to DOCX:", filePath);
-          fileInfo.convertedPath = await convertPdfToDocx(filePath);
-          fileInfo.needsConversion = true;
-          
-          return res.status(200).json({
-            success: true,
-            data: fileInfo
-          });
-        } catch (error) {
-          console.error("Error converting PDF to DOCX:", error);
-          
-          // PDF conversion failed, but we can still return the original file info
-          return res.status(200).json({
-            success: true,
-            data: fileInfo,
-            warning: "PDF conversion failed. Document will be processed as-is."
-          });
-        }
+        console.log("PDF file detected:", filePath);
+        
+        // Just return the original file info with a warning
+        return res.status(200).json({
+          success: true,
+          data: fileInfo,
+          warning: "PDF files may have limited extraction ability. For best results, consider uploading a Word document."
+        });
       }
       
       // File doesn't need conversion (already DOCX or other format)
