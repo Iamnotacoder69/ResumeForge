@@ -3,149 +3,69 @@ import { CompleteCV } from "@shared/types";
 import * as fs from "fs";
 import * as path from "path";
 import * as mammoth from "mammoth";
-import { extractPDFText } from "./mock-pdf-parse";
+import { convertPDFtoTXT, convertDOCXtoTXT } from "./pdf-to-docx";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
- * Check if a file is a converted PDF in DOCX format
- * @param filePath Path to the file
- * @returns True if the file is a converted PDF
+ * Clean up temporary files that may have been created during processing
+ * @param filePaths List of file paths to clean up
  */
-async function isConvertedPDF(filePath: string): Promise<boolean> {
-  try {
-    // Read the text from the file
-    const result = await mammoth.extractRawText({ path: filePath });
-    const text = result.value;
-    
-    // Check if this is a converted PDF (contains any of our marker texts)
-    return text.includes("Original PDF Document") || 
-           text.includes("This document was converted from a PDF") ||
-           text.includes("CV / Resume");
-  } catch (error) {
-    console.error("Error checking if file is a converted PDF:", error);
-    return false;
-  }
-}
-
-// Extract all useful data from a DOCX that was converted from a PDF
-async function extractFromConvertedPDF(filePath: string): Promise<string> {
-  try {
-    // Read the text from the file
-    const result = await mammoth.extractRawText({ path: filePath });
-    const text = result.value;
-    console.log(`Extracted ${text.length} characters from converted PDF DOCX`);
-    
-    // Since we know this is a converted PDF, we want to skip our header text and get to the actual content
-    // Find where our actual PDF content begins (after the header)
-    const contentStart = text.indexOf("This document was converted from a PDF.");
-    
-    let extractedText = text;
-    if (contentStart > -1) {
-      // Extract everything after our header
-      extractedText = text.substring(contentStart + "This document was converted from a PDF.".length).trim();
+async function cleanupTempFiles(filePaths: string[]): Promise<void> {
+  for (const filePath of filePaths) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`Cleaned up temporary file: ${filePath}`);
+      }
+    } catch (error) {
+      console.error(`Error cleaning up temp file ${filePath}:`, error);
     }
-    
-    // Check if the extracted text is too large (OpenAI has a token limit)
-    // A safe text length for GPT-4 is around 15,000 characters (~4,000 tokens)
-    const MAX_TEXT_LENGTH = 15000;
-    
-    if (extractedText.length > MAX_TEXT_LENGTH) {
-      console.log(`Text from PDF is too large (${extractedText.length} chars), truncating to ${MAX_TEXT_LENGTH} chars`);
-      
-      // Extract the most important parts: beginning, middle, and end
-      const beginLength = 5000; // First 5000 chars (usually contains name, contact, summary)
-      const endLength = 3000;   // Last 3000 chars (might contain education, skills, etc.)
-      const middleLength = MAX_TEXT_LENGTH - beginLength - endLength;
-      
-      const beginning = extractedText.substring(0, beginLength);
-      const end = extractedText.substring(extractedText.length - endLength);
-      
-      // For the middle, take a section from the middle of the document
-      const middleStart = Math.floor((extractedText.length - middleLength) / 2);
-      const middle = extractedText.substring(middleStart, middleStart + middleLength);
-      
-      // Combine with markers
-      return `${beginning}\n\n[...text truncated due to length...]\n\n${middle}\n\n[...text truncated due to length...]\n\n${end}`;
-    }
-    
-    // If not too large, return the whole text
-    return extractedText;
-  } catch (error) {
-    console.error("Error extracting text from converted PDF:", error);
-    return "Error extracting text from the document.";
   }
 }
 
 /**
- * Extract text directly from a PDF using our advanced section-based PDF parser
- * @param pdfPath Path to the PDF file
- * @returns Extracted text with section structure preserved
+ * Formats text for OpenAI processing with appropriate length limits
+ * @param text Raw text to format
+ * @param maxLength Maximum length allowed for the text
+ * @returns Formatted text with appropriate length
  */
-async function extractTextFromPDF(pdfPath: string): Promise<string> {
+function formatTextForOpenAI(text: string, maxLength: number = 15000): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  
+  console.log(`Text is too large (${text.length} chars), truncating to ~${maxLength} chars`);
+  
+  // Extract the most important parts: beginning, middle, and end
+  const beginLength = Math.floor(maxLength * 0.4); // 40% for the beginning (contact, summary)
+  const endLength = Math.floor(maxLength * 0.2);   // 20% for the end (education, additional info)
+  const middleLength = maxLength - beginLength - endLength; // 40% for the middle (experience)
+  
+  const beginning = text.substring(0, beginLength);
+  const end = text.substring(text.length - endLength);
+  
+  // Take a section from 1/3 of the way in (likely to have work experience)
+  const middleStart = Math.floor(text.length / 3);
+  const middle = text.substring(middleStart, middleStart + middleLength);
+  
+  // Combine with markers
+  return `${beginning}\n\n[...content truncated due to length...]\n\n${middle}\n\n[...content truncated due to length...]\n\n${end}`;
+}
+
+/**
+ * Simple utility function to read text from a file
+ * @param filePath Path to the text file
+ * @returns Content of the text file
+ */
+async function readTextFile(filePath: string): Promise<string> {
   try {
-    // Read the PDF file
-    const dataBuffer = fs.readFileSync(pdfPath);
-    
-    // Use our advanced CV-optimized text extraction
-    const pdfData = await extractPDFText(dataBuffer);
-    console.log(`Extracted PDF text length: ${pdfData.text.length}`);
-    
-    // Check if sections were identified (this is our new approach)
-    if (pdfData.sections && Object.keys(pdfData.sections).length > 0) {
-      console.log(`Successfully identified ${Object.keys(pdfData.sections).length} CV sections`);
-      
-      // Format with section headings for better OpenAI understanding
-      const sectionTitles: Record<string, string> = {
-        "PERSONAL": "PERSONAL INFORMATION",
-        "SUMMARY": "PROFESSIONAL SUMMARY",
-        "SKILLS": "SKILLS & COMPETENCIES",
-        "EXPERIENCE": "WORK EXPERIENCE",
-        "EDUCATION": "EDUCATION",
-        "CERTIFICATIONS": "CERTIFICATIONS",
-        "LANGUAGES": "LANGUAGES",
-        "ADDITIONAL": "ADDITIONAL INFORMATION"
-      };
-      
-      // Build a structured text representation with clear section markers
-      let structuredText = "CV/RESUME CONTENT\n\n";
-      
-      // Add each section with clear headings that OpenAI can recognize
-      for (const [sectionKey, content] of Object.entries(pdfData.sections)) {
-        if (content && content.trim().length > 0) {
-          const title = sectionKey in sectionTitles ? sectionTitles[sectionKey] : sectionKey;
-          structuredText += `### ${title} ###\n${content}\n\n`;
-        }
-      }
-      
-      console.log("Successfully extracted structured CV content with sections");
-      return structuredText.trim();
-    }
-    
-    // If we got a reasonable amount of text but no sections, use the plain text
-    if (pdfData.text.length > 300) {
-      console.log("No sections identified, using full text content");
-      return pdfData.text;
-    }
-    
-    // For PDFs with minimal extractable text, use a fallback approach with filename context
-    const fileName = pdfPath.split('/').pop() || 'document.pdf';
-    
-    console.log("PDF text extraction yielded minimal results, using filename as context");
-    
-    // Generate a request for OpenAI to infer document content from minimal text
-    return `This is a CV/resume PDF document named "${fileName}". 
-The PDF appears to contain limited machine-readable text, but is likely a professional resume/CV.
-From the document, I was able to extract the following text fragments:
-
-${pdfData.text}
-
-Please analyze this as a CV and extract all available information about the candidate,
-making reasonable assumptions when specific details aren't clear.`;
+    const text = fs.readFileSync(filePath, 'utf8');
+    return text;
   } catch (error) {
-    console.error("Error extracting text from PDF:", error);
-    return "Error extracting text from PDF. Please try uploading a different file format.";
+    console.error(`Error reading text file ${filePath}:`, error);
+    return "";
   }
 }
 
@@ -162,80 +82,84 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // Default message for unsupported formats
     let cvText = "Please analyze this CV document and extract all relevant information.";
     
-    // For Word documents, extract the text
+    console.log(`Processing CV file: ${path.basename(filePath)}, type: ${fileType}`);
+    
+    // For Word documents, convert to TXT and extract the text
     if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
-        // Check if this is a converted PDF
-        const isConverted = await isConvertedPDF(filePath);
+        // Convert DOCX to TXT for consistent processing
+        console.log("Converting DOCX to TXT format for text extraction");
+        const txtPath = await convertDOCXtoTXT(filePath);
         
-        if (isConverted) {
-          console.log("Detected a converted PDF document in DOCX format");
-          // Special handling for converted PDFs
-          const extractedText = await extractFromConvertedPDF(filePath);
+        // Read the text from the converted file
+        const extractedText = fs.readFileSync(txtPath, 'utf8');
+        
+        if (extractedText.length > 0) {
           cvText = extractedText;
+          console.log(`Successfully extracted ${extractedText.length} characters from DOCX (via TXT)`);
           
-          // If we got almost nothing from the extraction, add some context
-          if (cvText.length < 100) {
-            const filename = path.basename(filePath);
-            cvText = `This appears to be a CV document extracted from a PDF named ${filename}. The PDF may be an image-based or scanned document with limited machine-readable text. Please extract any information that can be determined from the available text fragments.`;
-          }
-          
-          // Add a note that this is a converted PDF to help the AI model
-          cvText += "\n\nNote: This document was originally a PDF that was converted to DOCX format for processing. Some formatting or content may have been simplified during conversion.";
-        } else {
-          // Normal DOCX file
-          const dataBuffer = fs.readFileSync(filePath);
-          const result = await mammoth.extractRawText({buffer: dataBuffer});
-          cvText = result.value;
-          console.log("Extracted Word text length:", cvText.length);
-          
-          if (cvText.length < 100) {
+          // If we got very little text, add a warning note
+          if (extractedText.length < 100) {
             console.log("Warning: Very little text extracted from Word document");
             cvText += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
           }
+        } else {
+          console.error("Failed to extract text from DOCX file");
+          cvText = "Error extracting text from Word document. Please try uploading a different file.";
         }
       } catch (error) {
-        console.error("Error extracting text from Word document:", error);
+        console.error("Error processing DOCX file:", error);
         cvText = "Error extracting text from Word document. Please try uploading a different file.";
       }
     }
     
     console.log("Analyzing CV content with OpenAI...");
     
-    // For PDFs, let's extract the text using our PDF parser
+    // For PDFs, convert to TXT and extract the text
     if (fileType === "application/pdf") {
       try {
-        // Extract text from PDF
-        const pdfText = await extractTextFromPDF(filePath);
+        console.log("Converting PDF to TXT format for text extraction");
+        const txtPath = await convertPDFtoTXT(filePath);
         
-        // If we got a reasonable amount of text, use it
-        if (pdfText.length > 200) {
+        // Read the text from the converted file
+        const extractedText = fs.readFileSync(txtPath, 'utf8');
+        
+        if (extractedText.length > 200) {
           // Truncate the text to prevent token limit issues
           // The OpenAI API has a token limit of ~30,000 tokens
           // A safe text length is around 30,000 characters (approximately 7,500 tokens)
           const maxTextLength = 30000;
-          if (pdfText.length > maxTextLength) {
-            console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
+          if (extractedText.length > maxTextLength) {
+            console.log(`PDF text too long (${extractedText.length} chars), truncating to ~${maxTextLength} chars`);
             // Keep first 10,000 chars (usually contains the most important info)
-            const firstPart = pdfText.substring(0, 10000);
+            const firstPart = extractedText.substring(0, 10000);
             // Keep last 5,000 chars (might contain conclusion or important ending sections)
-            const lastPart = pdfText.substring(pdfText.length - 5000);
+            const lastPart = extractedText.substring(extractedText.length - 5000);
             // Take 15,000 chars from the middle (to capture work experience, etc.)
-            const middleStart = Math.floor((pdfText.length - 15000) / 2);
-            const middlePart = pdfText.substring(middleStart, middleStart + 15000);
+            const middleStart = Math.floor((extractedText.length - 15000) / 2);
+            const middlePart = extractedText.substring(middleStart, middleStart + 15000);
             
             cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
           } else {
-            cvText = pdfText;
+            cvText = extractedText;
           }
           console.log("Successfully extracted text from PDF, processed length:", cvText.length);
         } else {
-          // Otherwise, provide an error message
-          console.log("PDF extraction failed or returned minimal text");
-          cvText = "PDF text extraction failed or returned minimal text. This may be a scanned PDF or image-based document. Please upload a text-based PDF or a Word document for better results.";
+          // We got minimal text from the PDF
+          console.log("PDF extraction returned minimal text, likely a scanned document");
+          
+          // Add context about the file for the AI
+          const fileName = path.basename(filePath);
+          cvText = `This appears to be a CV document from a PDF named ${fileName}. 
+The PDF may be an image-based or scanned document with limited machine-readable text.
+From the document, I was able to extract the following text fragments:
+
+${extractedText}
+
+Please extract any information that can be determined from the available text fragments.`;
         }
       } catch (error) {
-        console.error("Error parsing PDF:", error);
+        console.error("Error converting PDF to TXT:", error);
         cvText = "Error parsing PDF. Please try uploading a different file format.";
       }
     }
@@ -243,25 +167,9 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // Check if it's a PDF and note that in the prompt
     const isPDF = fileType === "application/pdf";
     
-    // Truncate text if it's too large to prevent token limit issues
+    // Use our utility function to format text for OpenAI with appropriate length limits
     if (cvText.length > 15000) {
-      console.log(`CV text is very large (${cvText.length} chars), reducing to prevent token limits`);
-      
-      // Take important parts from beginning, middle, and end
-      const beginLength = 5000; // First part, usually has contact info and summary
-      const endLength = 3000;   // Last part, often has education and certifications
-      const middleLength = 4000; // Middle section for work experience
-      
-      const beginning = cvText.substring(0, beginLength);
-      const end = cvText.substring(cvText.length - endLength);
-      
-      // Take a section from 1/3 of the way in (likely to have work experience)
-      const middleStart = Math.floor(cvText.length / 3);
-      const middle = cvText.substring(middleStart, middleStart + middleLength);
-      
-      // Combine with clear markers
-      cvText = `${beginning}\n\n[...content truncated due to length...]\n\n${middle}\n\n[...content truncated due to length...]\n\n${end}`;
-      console.log(`Truncated CV text to ${cvText.length} chars for OpenAI processing`);
+      cvText = formatTextForOpenAI(cvText, 15000);
     }
     
     const jsonStructurePrompt = `
@@ -386,11 +294,30 @@ ${cvText}`;
       throw new Error("Failed to parse JSON response from OpenAI");
     }
     
-    // Clean up the temporary file
-    fs.unlinkSync(filePath);
-    
     // Map the OpenAI response to our CompleteCV structure
     const cv: CompleteCV = mapResponseToCV(parsedData);
+    
+    // Clean up temporary files
+    try {
+      // Clean up the original uploaded file
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`Cleaned up original file: ${filePath}`);
+      }
+      
+      // Also clean up any TXT files in the temp directory that may have been created
+      const tempDir = path.join(process.cwd(), 'temp');
+      const tempFiles = fs.readdirSync(tempDir);
+      for (const file of tempFiles) {
+        if (file.endsWith('.txt') && fs.statSync(path.join(tempDir, file)).mtime.getTime() > Date.now() - 300000) { // Files created in last 5 minutes
+          fs.unlinkSync(path.join(tempDir, file));
+          console.log(`Cleaned up temporary file: ${file}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error cleaning up temporary files:", error);
+      // Continue execution even if cleanup fails
+    }
     
     return cv;
   } catch (error: unknown) {

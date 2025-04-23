@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, BorderStyle } from 'docx';
 import { extractPDFText, PDFData } from './mock-pdf-parse';
+import * as mammoth from 'mammoth';
 
 const mkdir = promisify(fs.mkdir);
 const exists = promisify(fs.exists);
@@ -19,11 +19,15 @@ async function extractCVDataFromPDF(pdfBuffer: Buffer): Promise<PDFData> {
   try {
     // Use our advanced CV-optimized PDF text extraction
     const pdfData = await extractPDFText(pdfBuffer);
-    console.log(`PDF has ${pdfData.numpages} pages, extracted ${pdfData.text.length} characters`);
+    console.log(`PDF has ${pdfData.numpages || 1} pages, extracted ${pdfData.text.length} characters`);
     
     if (pdfData.text.length > 100) {
       // Successful extraction
-      console.log(`CV sections identified: ${Object.keys(pdfData.sections || {}).join(', ')}`);
+      if (pdfData.sections) {
+        console.log(`CV sections identified: ${Object.keys(pdfData.sections).join(', ')}`);
+      } else {
+        console.log('No CV sections identified in the document');
+      }
       return pdfData;
     } else {
       console.warn("Limited text extracted from PDF - likely a scanned document");
@@ -42,14 +46,31 @@ async function extractCVDataFromPDF(pdfBuffer: Buffer): Promise<PDFData> {
 }
 
 /**
- * Create a structured DOCX document from PDF sections
- * Optimized for CV/resume content with section-based organization
- * @param pdfPath Path to the PDF file
- * @returns Path to the created structured DOCX file
+ * Extract text from DOCX document
+ * @param docxBuffer DOCX file as buffer
+ * @returns Extracted plain text
  */
-export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
+async function extractTextFromDOCX(docxBuffer: Buffer): Promise<string> {
   try {
-    console.log(`Converting PDF to DOCX: ${path.basename(pdfPath)}`);
+    const result = await mammoth.extractRawText({ buffer: docxBuffer });
+    const text = result.value;
+    console.log(`Extracted ${text.length} characters from DOCX`);
+    return text;
+  } catch (error) {
+    console.error('Error extracting text from DOCX:', error);
+    return "Error extracting text from DOCX file.";
+  }
+}
+
+/**
+ * Convert PDF to plain text file
+ * Uses advanced section-based CV parsing to create a structured text file
+ * @param pdfPath Path to the PDF file
+ * @returns Path to the created TXT file
+ */
+export async function convertPDFtoTXT(pdfPath: string): Promise<string> {
+  try {
+    console.log(`Converting PDF to TXT: ${path.basename(pdfPath)}`);
     
     // Ensure temp directory exists
     const tempDir = path.join(process.cwd(), 'temp');
@@ -65,19 +86,10 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
     
     // Create a unique hash for the filename to avoid collisions
     const fileHash = Math.random().toString(36).substring(2, 15);
-    const docxPath = path.join(tempDir, `${fileHash}.docx`);
+    const txtPath = path.join(tempDir, `${fileHash}.txt`);
 
-    // Array to collect document paragraphs
-    const docElements: Paragraph[] = [];
-    
-    // Add document title
-    docElements.push(
-      new Paragraph({
-        text: "CV / Resume",
-        heading: HeadingLevel.TITLE,
-        thematicBreak: true,
-      })
-    );
+    // Built text content with structured format
+    let textContent = "CV / RESUME CONTENT\n\n";
     
     // Check if sections were identified
     const hasSections = cvData.sections && Object.keys(cvData.sections).length > 0;
@@ -90,14 +102,14 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
       ];
       
       const sectionTitles: Record<string, string> = {
-        "PERSONAL": "Personal Information",
-        "SUMMARY": "Professional Summary",
-        "SKILLS": "Skills & Competencies",
-        "EXPERIENCE": "Work Experience",
-        "EDUCATION": "Education",
-        "CERTIFICATIONS": "Certifications",
-        "LANGUAGES": "Languages",
-        "ADDITIONAL": "Additional Information"
+        "PERSONAL": "PERSONAL INFORMATION",
+        "SUMMARY": "PROFESSIONAL SUMMARY",
+        "SKILLS": "SKILLS & COMPETENCIES",
+        "EXPERIENCE": "WORK EXPERIENCE",
+        "EDUCATION": "EDUCATION",
+        "CERTIFICATIONS": "CERTIFICATIONS",
+        "LANGUAGES": "LANGUAGES",
+        "ADDITIONAL": "ADDITIONAL INFORMATION"
       };
       
       // Add each section in order
@@ -106,49 +118,16 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
         if (sectionKey in cvData.sections) {
           // Get the content
           const sectionContent = (cvData.sections as Record<string, string>)[sectionKey];
-          if (sectionContent) {
+          if (sectionContent && sectionContent.trim().length > 0) {
             // Add section heading with proper type handling
             const title = sectionKey in sectionTitles ? sectionTitles[sectionKey] : sectionKey;
-            docElements.push(
-              new Paragraph({
-                text: title,
-                heading: HeadingLevel.HEADING_1,
-                spacing: {
-                  before: 400,
-                  after: 200
-                }
-              })
-            );
-            
-            // Add section content (split by lines for better formatting)
-            const contentLines = sectionContent.split('\n');
-            for (const line of contentLines) {
-              if (line.trim().length > 0) {
-                docElements.push(
-                  new Paragraph({
-                    text: line,
-                    spacing: {
-                      before: 80,
-                      after: 80
-                    }
-                  })
-                );
-              }
-            }
+            textContent += `### ${title} ###\n\n${sectionContent.trim()}\n\n`;
           }
         }
       }
     } else {
       // No sections identified, just use the full text with some basic structure
       console.log("No CV sections identified, using simple text approach");
-      
-      // Show a note about this
-      docElements.push(
-        new Paragraph({
-          text: "CV Text Content",
-          heading: HeadingLevel.HEADING_1,
-        })
-      );
       
       // If the text is too long for OpenAI, truncate it intelligently
       let processedText = cvData.text;
@@ -171,63 +150,54 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
         console.log(`Truncated to ${processedText.length} chars`);
       }
       
-      // Split by lines for better formatting
-      const textLines = processedText.split('\n');
-      
-      // Handle text in chunks for better document structure
-      let currentParagraph: string[] = [];
-      
-      for (const line of textLines) {
-        if (line.trim().length === 0 && currentParagraph.length > 0) {
-          // Empty line means end of paragraph
-          docElements.push(
-            new Paragraph({
-              text: currentParagraph.join(' '),
-              spacing: {
-                before: 120,
-                after: 120
-              }
-            })
-          );
-          currentParagraph = [];
-        } else if (line.trim().length > 0) {
-          currentParagraph.push(line.trim());
-        }
-      }
-      
-      // Add any remaining paragraph
-      if (currentParagraph.length > 0) {
-        docElements.push(
-          new Paragraph({
-            text: currentParagraph.join(' '),
-            spacing: {
-              before: 120,
-              after: 120
-            }
-          })
-        );
-      }
+      textContent += processedText;
     }
     
-    // Create the document with all elements
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: docElements
-      }],
-    });
-
-    // Create a buffer with the Document
-    const buffer = await Packer.toBuffer(doc);
+    // Write the text content to the file
+    await writeFile(txtPath, textContent);
     
-    // Write the buffer to the file
-    await writeFile(docxPath, buffer);
+    console.log('PDF converted to TXT file successfully');
     
-    console.log('PDF converted to DOCX reference document successfully');
-    
-    return docxPath;
+    return txtPath;
   } catch (error: unknown) {
-    console.error('Error converting PDF to DOCX:', error);
-    throw new Error(`Failed to convert PDF to DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Error converting PDF to TXT:', error);
+    throw new Error(`Failed to convert PDF to TXT: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Convert DOCX to plain text file
+ * @param docxPath Path to the DOCX file
+ * @returns Path to the created TXT file
+ */
+export async function convertDOCXtoTXT(docxPath: string): Promise<string> {
+  try {
+    console.log(`Converting DOCX to TXT: ${path.basename(docxPath)}`);
+    
+    // Ensure temp directory exists
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!(await exists(tempDir))) {
+      await mkdir(tempDir, { recursive: true });
+    }
+
+    // Read the DOCX file
+    const docxBuffer = await readFile(docxPath);
+    
+    // Extract text from DOCX
+    const text = await extractTextFromDOCX(docxBuffer);
+    
+    // Create a unique hash for the filename to avoid collisions
+    const fileHash = Math.random().toString(36).substring(2, 15);
+    const txtPath = path.join(tempDir, `${fileHash}.txt`);
+
+    // Write the text content to the file
+    await writeFile(txtPath, text);
+    
+    console.log('DOCX converted to TXT file successfully');
+    
+    return txtPath;
+  } catch (error: unknown) {
+    console.error('Error converting DOCX to TXT:', error);
+    throw new Error(`Failed to convert DOCX to TXT: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

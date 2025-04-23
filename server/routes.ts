@@ -9,7 +9,7 @@ import { storage } from "./storage";
 import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
 import { parseCV } from "./openai-cv-parser";
-import { convertPDFtoDOCX } from "./pdf-to-docx";
+import { convertPDFtoTXT, convertDOCXtoTXT } from "./pdf-to-docx";
 import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Upload CV file and convert PDF to DOCX if needed
+  // Upload CV file and convert to TXT for processing
   app.post("/api/upload-cv", upload.single('cv'), async (req: Request, res: Response) => {
     try {
       // Check if file was uploaded
@@ -253,18 +253,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileType = req.file.mimetype;
       const originalName = req.file.originalname;
       
-      // If it's a PDF, convert it to DOCX
+      // If it's a PDF, convert it to TXT
       if (fileType === 'application/pdf') {
         try {
-          console.log(`Converting PDF to DOCX: ${originalName}`);
-          const docxPath = await convertPDFtoDOCX(filePath);
+          console.log(`Converting PDF to TXT: ${originalName}`);
+          const txtPath = await convertPDFtoTXT(filePath);
           
-          // Return the path to the DOCX file
+          // Return the path to the TXT file
           res.status(200).json({
             success: true,
             data: {
-              filePath: docxPath,
-              fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              filePath: txtPath,
+              fileType: 'text/plain',
               originalName,
               needsConversion: false
             }
@@ -277,11 +277,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Failed to delete original PDF file:", unlinkError);
           }
         } catch (conversionError) {
-          console.error("Error converting PDF to DOCX:", conversionError);
-          throw new Error(`Failed to convert PDF to DOCX: ${conversionError instanceof Error ? conversionError.message : "Unknown error"}`);
+          console.error("Error converting PDF to TXT:", conversionError);
+          throw new Error(`Failed to convert PDF to TXT: ${conversionError instanceof Error ? conversionError.message : "Unknown error"}`);
+        }
+      } else if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
+        // If it's a DOCX/DOC, convert to TXT
+        try {
+          console.log(`Converting DOCX to TXT: ${originalName}`);
+          const txtPath = await convertDOCXtoTXT(filePath);
+          
+          // Return the path to the TXT file
+          res.status(200).json({
+            success: true,
+            data: {
+              filePath: txtPath,
+              fileType: 'text/plain',
+              originalName,
+              needsConversion: false
+            }
+          });
+          
+          // Remove the original DOCX file
+          try {
+            fs.unlinkSync(filePath);
+          } catch (unlinkError) {
+            console.error("Failed to delete original DOCX file:", unlinkError);
+          }
+        } catch (conversionError) {
+          console.error("Error converting DOCX to TXT:", conversionError);
+          throw new Error(`Failed to convert DOCX to TXT: ${conversionError instanceof Error ? conversionError.message : "Unknown error"}`);
         }
       } else {
-        // If it's already a DOCX, just return the path
+        // For other file types, just return the path
         res.status(200).json({
           success: true,
           data: {
