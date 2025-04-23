@@ -149,104 +149,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Special multer instance for the parse-cv endpoint that accepts an empty file
-// when we're just passing a filePath
-const parseUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, os.tmpdir());
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      // Get file extension
-      const extension = path.extname(file.originalname);
-      cb(null, file.fieldname + '-' + uniqueSuffix + extension);
-    }
-  }),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // Limit to 10MB
-  },
-  fileFilter: (req, file, cb) => {
-    // If this is a filePath mode, accept any file (it will be empty anyway)
-    if (req.body.filePath) {
-      return cb(null, true);
-    }
-    
-    // Otherwise, check file types normally
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
-    
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'));
-    }
-  }
-});
-
-// Parse CV file and extract information
-  app.post("/api/parse-cv", parseUpload.single('cv'), async (req: Request, res: Response) => {
+  // Parse CV file and extract information (first step - uploaded file)
+  app.post("/api/parse-cv", upload.single('cv'), async (req: Request, res: Response) => {
     try {
-      // Check if filePath was provided in the request body
-      const filePath = req.body.filePath;
-      
-      if (!filePath && !req.file) {
+      // Check if file was uploaded
+      if (!req.file) {
         return res.status(400).json({
           success: false,
-          message: "No file uploaded or filePath provided"
+          message: "No file uploaded"
         });
       }
       
-      // Determine actual file path to use - either the uploaded file or the provided path
-      const actualFilePath = req.file ? req.file.path : filePath;
+      // Get file info
+      const filePath = req.file.path;
+      const fileType = req.file.mimetype;
       
-      // Parse CV file
-      try {
-        // Get file info
-        // If we have a file upload, use its mimetype, otherwise determine from the filePath extension
-        let fileType = req.file ? req.file.mimetype : "";
-        
-        if (!fileType && actualFilePath) {
-          const ext = path.extname(actualFilePath).toLowerCase();
-          if (ext === '.pdf') {
-            fileType = 'application/pdf';
-          } else if (ext === '.docx') {
-            fileType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-          } else if (ext === '.doc') {
-            fileType = 'application/msword';
-          }
-        }
-        
-        console.log(`Parsing CV from file: ${actualFilePath}, type: ${fileType}`);
-        
-        // Parse using OpenAI
-        const parsedCV = await parseCV(actualFilePath, fileType);
-        
-        // Return structured data
-        res.status(200).json({
-          success: true,
-          data: parsedCV
-        });
-      } catch (error) {
-        // Make sure to clean up the temp file if an error occurs and it was just uploaded
-        if (req.file && req.file.path) {
-          try {
-            fs.unlinkSync(req.file.path);
-          } catch (unlinkError) {
-            console.error("Failed to delete temporary file:", unlinkError);
-          }
-        }
-        
-        throw error;
-      }
+      console.log(`Parsing CV from uploaded file: ${filePath}, type: ${fileType}`);
+      
+      // Parse using OpenAI
+      const parsedCV = await parseCV(filePath, fileType);
+      
+      // Return structured data
+      res.status(200).json({
+        success: true,
+        data: parsedCV
+      });
     } catch (error) {
+      // Make sure to clean up the temp file if an error occurs
+      if (req.file && req.file.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error("Failed to delete temporary file:", unlinkError);
+        }
+      }
+      
       console.error("Error in /api/parse-cv:", error);
       res.status(500).json({
         success: false,
         message: "Failed to parse CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Parse from existing file path (second step - after upload)
+  app.post("/api/analyze-cv", async (req: Request, res: Response) => {
+    try {
+      // Check if filePath was provided
+      const { filePath } = req.body;
+      
+      if (!filePath) {
+        return res.status(400).json({
+          success: false,
+          message: "No file path provided"
+        });
+      }
+      
+      // Determine file type from extension
+      let fileType = "";
+      const ext = path.extname(filePath).toLowerCase();
+      if (ext === '.pdf') {
+        fileType = 'application/pdf';
+      } else if (ext === '.docx') {
+        fileType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      } else if (ext === '.doc') {
+        fileType = 'application/msword';
+      }
+      
+      console.log(`Analyzing CV from existing file: ${filePath}, type: ${fileType}`);
+      
+      // Parse using OpenAI
+      const parsedCV = await parseCV(filePath, fileType);
+      
+      // Return structured data
+      res.status(200).json({
+        success: true,
+        data: parsedCV
+      });
+    } catch (error) {
+      console.error("Error in /api/analyze-cv:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to analyze CV",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

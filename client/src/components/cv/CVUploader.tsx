@@ -78,26 +78,24 @@ export default function CVUploader() {
     },
   });
   
-  // Handle CV parsing via API
+  // Handle CV analysis via API (second step)
   const parseCVMutation = useMutation({
     mutationFn: async (filePath: string) => {
-      // Create a FormData with the file path
-      const formData = new FormData();
-      // Include an empty file to satisfy multer
-      formData.append("cv", new Blob([""], { type: "text/plain" }), "placeholder.txt");
-      // The filePath is what matters
-      formData.append("filePath", filePath);
-      
-      const url = "/api/parse-cv";
+      // Create the request with JSON body
       const options = {
         method: "POST",
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filePath })
       };
+      
+      const url = "/api/analyze-cv";
       const response = await fetch(url, options);
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to parse CV");
+        throw new Error(errorData.message || "Failed to analyze CV");
       }
       
       return response.json() as Promise<ParseCVResponse>;
