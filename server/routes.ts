@@ -249,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Upload and convert PDF to DOCX
+  // Upload CV without automatic conversion
   app.post("/api/upload-cv", upload.single('cv'), async (req: Request, res: Response) => {
     try {
       // Check if file was uploaded
@@ -263,51 +263,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get file info
       const filePath = req.file.path;
       const fileType = req.file.mimetype;
-      let docxPath = filePath;
       
-      // If it's a PDF, convert it to DOCX first
-      if (fileType === 'application/pdf') {
-        try {
-          console.log("Converting PDF to DOCX...");
-          docxPath = await convertPdfToDocx(filePath);
-          console.log("Conversion successful, DOCX path:", docxPath);
-          
-          // Return the path to the converted file 
-          return res.status(200).json({
-            success: true,
-            data: {
-              filePath: docxPath,
-              fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-              originalFileName: req.file.originalname,
-            }
-          });
-        } catch (error) {
-          console.error("PDF to DOCX conversion failed:", error);
-          // Clean up the uploaded file
-          try {
-            fs.unlinkSync(filePath);
-          } catch (unlinkError) {
-            console.error("Failed to delete temporary file:", unlinkError);
-          }
-          
-          throw new Error("PDF to DOCX conversion failed: " + (error instanceof Error ? error.message : "Unknown error"));
+      // Just return the file information, conversion happens in a separate step now
+      return res.status(200).json({
+        success: true,
+        data: {
+          filePath: filePath,
+          fileType: fileType,
+          originalFileName: req.file.originalname,
         }
-      } else {
-        // If it's already a DOCX, just return the path
-        return res.status(200).json({
-          success: true,
-          data: {
-            filePath: docxPath,
-            fileType: fileType,
-            originalFileName: req.file.originalname,
-          }
-        });
-      }
+      });
     } catch (error) {
       console.error("Error in /api/upload-cv:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to upload and process CV",
+        message: "Failed to upload CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Separate endpoint for PDF to DOCX conversion
+  app.post("/api/convert-pdf", async (req: Request, res: Response) => {
+    try {
+      const { filePath } = req.body;
+      
+      if (!filePath) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing file path"
+        });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          message: "File not found"
+        });
+      }
+      
+      // Check if it's a PDF (just check file extension for simplicity)
+      if (!filePath.endsWith('.pdf')) {
+        return res.status(400).json({
+          success: false,
+          message: "The file is not a PDF"
+        });
+      }
+      
+      try {
+        console.log("Converting PDF to DOCX...");
+        const docxPath = await convertPdfToDocx(filePath);
+        console.log("Conversion successful, DOCX path:", docxPath);
+        
+        // Delete the original PDF file to save space
+        try {
+          fs.unlinkSync(filePath);
+        } catch (unlinkError) {
+          console.error("Failed to delete original PDF file:", unlinkError);
+        }
+        
+        // Return the path to the converted file 
+        return res.status(200).json({
+          success: true,
+          data: {
+            filePath: docxPath,
+            fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            originalFileName: path.basename(filePath, '.pdf') + '.docx',
+          }
+        });
+      } catch (error) {
+        console.error("PDF to DOCX conversion failed:", error);
+        throw new Error("PDF to DOCX conversion failed: " + (error instanceof Error ? error.message : "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error in /api/convert-pdf:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to convert PDF",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
