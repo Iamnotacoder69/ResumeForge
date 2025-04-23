@@ -3,14 +3,14 @@ import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
 import mammoth from 'mammoth';
-import { extractTextFromPDF } from './pdf-extractor';
+import pdfParse from 'pdf-parse';
 
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
 const readFile = promisify(fs.readFile);
 
 /**
- * Extract text from a PDF file using our specialized PDF extractor
+ * Extract text from a PDF file using pdf-parse library
  * @param filePath Path to the PDF file
  * @returns Extracted text content
  */
@@ -18,19 +18,67 @@ async function convertPdfToText(filePath: string): Promise<string> {
   try {
     console.log(`Processing PDF file: ${filePath}`);
     
-    // Use our specialized PDF extractor that tries multiple methods
-    const pdfText = await extractTextFromPDF(filePath);
+    // Read the PDF file
+    const dataBuffer = await readFile(filePath);
     
-    if (!pdfText || pdfText.trim().length < 50) {
-      console.warn("WARNING: Extracted PDF text is very short or empty");
-      throw new Error("The extracted PDF text was too short to be a valid CV");
+    // Try extracting text with pdf-parse
+    const data = await pdfParse(dataBuffer);
+    
+    // Check if we got good content
+    if (!data.text || data.text.trim().length < 100) {
+      console.warn("WARNING: Extracted PDF text is very short, adding file metadata");
+      
+      // Get file stats for metadata
+      const stats = await fs.promises.stat(filePath);
+      
+      // If the text is empty or too short, include metadata and a message
+      const pdfInfo = `
+PDF Analysis Report:
+Filename: ${filePath.split('/').pop()}
+File size: ${stats.size} bytes
+Page count: ${data.numpages}
+Creation date: ${data.info?.CreationDate || 'Unknown'}
+Producer: ${data.info?.Producer || 'Unknown'}
+
+The PDF contains limited extractable text. This may be because:
+1. The PDF contains mostly images or scanned content
+2. The PDF uses custom fonts or encoding
+3. The text is stored in a format that's difficult to extract
+
+The content that could be extracted is provided below:
+-------------------------------------------
+${data.text}
+-------------------------------------------
+
+For best results, please upload a text-based PDF or a DOCX file.
+`;
+      
+      // Return the combined info
+      console.log(`Returning PDF text with metadata, total length: ${pdfInfo.length} characters`);
+      return pdfInfo;
     }
     
-    console.log(`Successfully extracted text from PDF, length: ${pdfText.length} characters`);
-    return pdfText;
+    console.log(`Successfully extracted text from PDF, length: ${data.text.length} characters`);
+    return data.text;
   } catch (error) {
     console.error("Error extracting PDF text:", error);
-    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    
+    // Get file stats for metadata
+    try {
+      const stats = await fs.promises.stat(filePath);
+      
+      // Return an error with file info
+      return `
+Error extracting text from PDF file:
+Filename: ${filePath.split('/').pop()}
+File size: ${stats.size} bytes
+Error: ${error instanceof Error ? error.message : 'Unknown error'}
+
+For best results, please upload a text-based PDF or a DOCX file.
+`;
+    } catch (statsError) {
+      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 
