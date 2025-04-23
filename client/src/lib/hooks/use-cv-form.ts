@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { completeCvSchema } from "@shared/schema";
 import { CompleteCV, SectionOrder } from "@shared/types";
 
-export function useCVForm() {
+export function useCVForm(initialData?: Partial<CompleteCV>) {
   // Default section order
   const defaultSectionOrder: SectionOrder[] = [
     { id: 'summary' as const, name: 'Professional Summary', visible: true, order: 0 },
@@ -77,9 +77,28 @@ export function useCVForm() {
     },
   };
 
+  // Merge initial data with default values if provided
+  const mergedValues = initialData 
+    ? {
+        ...defaultValues,
+        ...initialData,
+        // Handle nested objects manually to ensure proper merging
+        personal: { ...defaultValues.personal, ...initialData.personal },
+        professional: { ...defaultValues.professional, ...initialData.professional },
+        keyCompetencies: { ...defaultValues.keyCompetencies, ...initialData.keyCompetencies },
+        additional: { ...defaultValues.additional, ...initialData.additional },
+        templateSettings: { 
+          ...defaultValues.templateSettings, 
+          ...initialData.templateSettings,
+          // Ensure section order is properly merged
+          sectionOrder: initialData.templateSettings?.sectionOrder || defaultSectionOrder
+        }
+      } 
+    : defaultValues;
+  
   const form = useForm<CompleteCV>({
     resolver: zodResolver(completeCvSchema),
-    defaultValues,
+    defaultValues: mergedValues,
     mode: "onChange",
   });
 

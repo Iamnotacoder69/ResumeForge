@@ -37,7 +37,38 @@ const CVBuilder = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
-  const form = useCVForm();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Check if there's extracted CV data from the upload process
+  const extractedCVDataFromStorage = (() => {
+    try {
+      const dataString = sessionStorage.getItem('extractedCVData');
+      if (dataString) {
+        return JSON.parse(dataString);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error parsing extracted CV data:', error);
+      return null;
+    }
+  })();
+  
+  // Initialize the form with the extracted data if available
+  const form = useCVForm(extractedCVDataFromStorage);
+  
+  // Show a toast notification if we have extracted data
+  useEffect(() => {
+    if (extractedCVDataFromStorage) {
+      setIsLoading(false);
+      toast({
+        title: "CV Data Loaded",
+        description: "Your CV data has been loaded. You can now edit and enhance it.",
+        variant: "default"
+      });
+    } else {
+      setIsLoading(false);
+    }
+  }, [extractedCVDataFromStorage, toast]);
   
   // Default section order (matching the one in use-cv-form.ts)
   const defaultSectionOrder: SectionOrder[] = [

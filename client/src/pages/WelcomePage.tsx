@@ -1,234 +1,287 @@
-import { useState, useRef } from "react";
-import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, AlertCircle, Loader2 } from "lucide-react";
+import { useState } from 'react';
+import { useLocation } from 'wouter';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  FileText, 
+  Upload, 
+  ArrowRight, 
+  Loader2, 
+  Sparkles,
+  AlertCircle 
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation } from '@tanstack/react-query';
+import { getQueryFn } from '@/lib/queryClient';
 
 export default function WelcomePage() {
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [processingProgress, setProcessingProgress] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
-  // Handle file upload
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.match('application/pdf') && 
-        !file.type.match('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
-      setUploadError("Please upload a PDF or Word document (.docx) only");
-      return;
-    }
-
-    try {
+  // Mutation for uploading the CV
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
       setIsUploading(true);
       setUploadError(null);
-      setProcessingProgress(10);
-
-      // Create form data to send the file
+      
       const formData = new FormData();
       formData.append('cvFile', file);
-
-      // First API call: Upload file and convert to text
-      const uploadResponse = await fetch('/api/upload-cv', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`File upload failed: ${uploadResponse.statusText}`);
+      
+      try {
+        // Step 1: Upload the file and get text content
+        const uploadResponse = await fetch('/api/upload-cv', {
+          method: 'POST',
+          body: formData
+        }).then(res => res.json());
+        
+        if (!uploadResponse.success) {
+          throw new Error(uploadResponse.message || 'Failed to upload file');
+        }
+        
+        // Step 2: Extract structured data from text content
+        const extractResponse = await fetch('/api/extract-cv-data', {
+          method: 'POST',
+          body: JSON.stringify({ textContent: uploadResponse.textContent }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }).then(res => res.json());
+        
+        if (!extractResponse.success) {
+          throw new Error(extractResponse.message || 'Failed to extract data from CV');
+        }
+        
+        return extractResponse;
+      } finally {
+        setIsUploading(false);
       }
-
-      setProcessingProgress(40);
-      console.log("CV file uploaded successfully");
-
-      const { textContent } = await uploadResponse.json();
-
-      // Second API call: Extract CV data using OpenAI
-      setProcessingProgress(60);
-      const extractResponse = await fetch('/api/extract-cv-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ textContent }),
-      });
-
-      if (!extractResponse.ok) {
-        throw new Error(`Data extraction failed: ${extractResponse.statusText}`);
-      }
-
-      setProcessingProgress(90);
-      const extractedData = await extractResponse.json();
-      
-      console.log("CV data extracted successfully:");
-      console.log("Name: ", extractedData.personal?.firstName + " " + extractedData.personal?.lastName);
-      console.log("Email:", extractedData.personal?.email);
-      console.log("Skills:", 
-        extractedData.keyCompetencies?.technicalSkills?.length || 0, "technical,", 
-        extractedData.keyCompetencies?.softSkills?.length || 0, "soft");
-      console.log("Experience entries:", extractedData.experience?.length || 0);
-
-      // Store the extracted data in sessionStorage
-      sessionStorage.setItem('extractedCVData', JSON.stringify(extractedData));
-      
-      console.log("Populating form with parsed CV data");
-      setProcessingProgress(100);
-      
-      // Success toast
+    },
+    onSuccess: (data) => {
       toast({
         title: "CV Uploaded Successfully",
-        description: "Your CV has been analyzed and data extracted. Continue to edit your CV.",
-        duration: 5000,
+        description: "Your CV has been parsed and is ready for editing!",
+        variant: "default"
       });
-
-      // Redirect to the CV builder with the extracted data
+      
+      // Add a small delay to show the success message before navigating
       setTimeout(() => {
-        setLocation("/builder?source=uploaded");
+        // Navigate to the builder with the extracted data
+        // We're passing the data via sessionStorage since it could be large
+        sessionStorage.setItem('extractedCVData', JSON.stringify(data));
+        navigate('/builder');
       }, 1000);
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "An unknown error occurred");
-      console.error("CV upload error:", error);
-    } finally {
-      setIsUploading(false);
+    },
+    onError: (error: Error) => {
+      setUploadError(error.message);
+      toast({
+        title: "Upload Failed",
+        description: error.message || "There was an error uploading your CV. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      
+      // Check file type (PDF or DOCX)
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF or DOCX file.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Check file size (max 10MB)
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload a file smaller than 10MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setFile(selectedFile);
+      setUploadError(null);
     }
   };
 
-  // Trigger file input click
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+  const handleUpload = () => {
+    if (file) {
+      uploadMutation.mutate(file);
+    } else {
+      toast({
+        title: "No File Selected",
+        description: "Please select a file to upload.",
+        variant: "destructive"
+      });
+    }
   };
 
-  // Start from scratch
-  const startFromScratch = () => {
-    // Clear any previously extracted data
+  const handleStartFromScratch = () => {
+    // Remove any stored CV data from previous sessions
     sessionStorage.removeItem('extractedCVData');
-    // Navigate to the builder page
-    setLocation("/builder?source=scratch");
+    navigate('/builder');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-4">
-            Welcome to CV Builder Pro
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Create a professional CV in minutes
-          </p>
-        </div>
+    <div className="container max-w-6xl mx-auto py-12 px-4 sm:px-6">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          CV Builder Pro
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Create a professional CV in minutes. Upload your existing CV for intelligent parsing, or start from scratch.
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <Upload className="mr-2 h-5 w-5" />
-                Upload Your CV
-              </CardTitle>
-              <CardDescription>
-                Upload an existing CV to extract information automatically
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pb-2">
-              <div className="p-6 border-2 border-dashed rounded-lg border-muted-foreground/20 bg-muted/50 flex flex-col items-center justify-center text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  Drag and drop your PDF or Word document, or click to browse
+      <div className="grid md:grid-cols-2 gap-8 mt-8">
+        {/* Upload Option Card */}
+        <Card className="relative overflow-hidden">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Upload className="h-5 w-5" />
+              <span>Upload Your Existing CV</span>
+            </CardTitle>
+            <CardDescription>
+              Upload your existing CV in PDF or DOCX format. We'll extract the information automatically.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="border border-dashed border-primary/50 rounded-lg p-6 text-center bg-muted/50">
+              <input
+                type="file"
+                id="cv-upload"
+                accept=".pdf,.docx"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={isUploading}
+              />
+              <label 
+                htmlFor="cv-upload"
+                className="cursor-pointer block mb-4"
+              >
+                <FileText className="h-12 w-12 mx-auto mb-3 text-primary/70" />
+                <p className="text-sm text-muted-foreground">
+                  Click to browse for your CV file (PDF or DOCX)
                 </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.docx"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </div>
+              </label>
               
-              {uploadError && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{uploadError}</AlertDescription>
-                </Alert>
-              )}
-
-              {processingProgress !== null && (
-                <div className="mt-4">
-                  <div className="w-full bg-muted rounded-full h-2.5 mb-2">
-                    <div 
-                      className="bg-primary h-2.5 rounded-full transition-all duration-300" 
-                      style={{ width: `${processingProgress}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-center">
-                    {processingProgress < 100 
-                      ? `Processing your CV (${processingProgress}%)...` 
-                      : 'Processing complete!'}
-                  </p>
+              {file && (
+                <div className="mt-4 p-2 bg-primary/10 rounded flex items-center justify-between">
+                  <span className="text-sm font-medium truncate max-w-[200px]">{file.name}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setFile(null)}
+                  >
+                    Change
+                  </Button>
                 </div>
               )}
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={triggerFileUpload} 
-                className="w-full"
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload CV
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
+              
+              {uploadError && (
+                <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                  <span className="text-sm">{uploadError}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col items-stretch gap-4">
+            <Button 
+              className="w-full"
+              disabled={!file || isUploading}
+              onClick={handleUpload}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Upload & Extract Data
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
 
-          <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <FileText className="mr-2 h-5 w-5" />
-                Create From Scratch
-              </CardTitle>
-              <CardDescription>
-                Build your CV step-by-step using our intuitive form builder
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="p-6 bg-muted/50 rounded-lg flex flex-col items-center justify-center text-center h-full">
-                <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside text-left w-full">
-                  <li>Choose from multiple professional templates</li>
-                  <li>AI-powered writing suggestions for each section</li>
-                  <li>Easy to organize and rearrange sections</li>
-                  <li>One-click download as PDF</li>
-                  <li>Optimized for ATS (Applicant Tracking Systems)</li>
-                </ul>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={startFromScratch} 
-                variant="outline" 
-                className="w-full"
-                disabled={isUploading}
-              >
-                Start Building
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+        {/* Start from Scratch Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Start From Scratch</span>
+            </CardTitle>
+            <CardDescription>
+              Build your CV step by step using our guided process with professional templates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  </div>
+                  <span className="text-sm">Choose from professional templates</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  </div>
+                  <span className="text-sm">Fill in your information step by step</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  </div>
+                  <span className="text-sm">Use AI to enhance your content</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  </div>
+                  <span className="text-sm">Customize the order of your sections</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  </div>
+                  <span className="text-sm">Download your finished CV as a PDF</span>
+                </li>
+              </ul>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              className="w-full" 
+              variant="outline"
+              onClick={handleStartFromScratch}
+            >
+              Start Building Your CV
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
