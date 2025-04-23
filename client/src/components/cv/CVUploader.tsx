@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileText, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { CompleteCV } from "@shared/types";
 
@@ -50,35 +51,32 @@ export default function CVUploader() {
       );
       console.log("Experience entries:", data.data.experience?.length || 0);
       
-      // Store the parsed data in session storage
-      console.log("Populating form with parsed CV data");
+      // Save to session storage for retrieval on CVBuilder page
       sessionStorage.setItem("parsedCV", JSON.stringify(data.data));
       
-      // Navigate to the CV builder page
+      // Navigate to the CV builder with the parsed data
       navigate("/cv-builder");
       
-      // Show success message
       toast({
         title: "CV parsed successfully",
-        description: "Your CV data has been extracted and populated in the builder.",
+        description: "Your CV has been analyzed and the information has been extracted.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error("Error uploading CV:", error);
-      
-      // Show error message
       toast({
         variant: "destructive",
         title: "Failed to parse CV",
-        description: error.message || "An error occurred while parsing your CV. Please try again.",
+        description: error instanceof Error ? error.message : "Please check the file format and try again.",
       });
-    }
+    },
   });
   
-  // Handle file selection
+  // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
     }
   };
   
@@ -153,16 +151,16 @@ export default function CVUploader() {
         Create a standout CV or upload an existing one to get started
       </p>
       
-      <div className="max-w-2xl mx-auto">
-        {/* Single Upload CV card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Upload existing CV card */}
         <Card className="relative shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center justify-center">
-              <Upload className="h-6 w-6 mr-2" />
-              Upload CV
+            <CardTitle className="flex items-center">
+              <Upload className="h-5 w-5 mr-2" />
+              Upload Existing CV
             </CardTitle>
-            <CardDescription className="text-center">
-              Upload your CV in any format - we'll convert it to DOCX and extract the information
+            <CardDescription>
+              Upload your existing CV and we'll extract the information automatically
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -203,50 +201,82 @@ export default function CVUploader() {
               )}
             </div>
             
-            {/* Show alert about AI usage */}
+            {/* Show alert about API usage */}
             <Alert className="mt-4 bg-primary/5 text-primary border-primary/20">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>How it works</AlertTitle>
               <AlertDescription className="text-sm">
-                We'll automatically convert your file to DOCX format and extract all relevant information using AI. The data will be auto-filled in the CV builder form.
+                We use AI to analyze your CV and extract relevant information. The data will be automatically filled in the builder form.
               </AlertDescription>
             </Alert>
           </CardContent>
-          <CardFooter className="flex justify-between gap-4">
+          <CardFooter>
             <Button 
-              variant="outline"
-              onClick={handleCreateFromScratch}
+              onClick={handleUpload} 
               className="w-full"
-            >
-              Create Blank CV <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            
-            <Button 
-              disabled={!selectedFile || parseCVMutation.isPending} 
-              onClick={handleUpload}
-              className="w-full"
+              disabled={!selectedFile || parseCVMutation.isPending}
             >
               {parseCVMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  Analyzing Document...
                 </>
               ) : (
-                "Upload CV"
+                <>
+                  Upload and Analyze
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
               )}
             </Button>
           </CardFooter>
-          
-          {/* Processing overlay */}
-          {parseCVMutation.isPending && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-              <h3 className="font-semibold text-xl mb-2">Processing your CV</h3>
-              <p className="text-muted-foreground text-center max-w-xs">
-                Converting your file and extracting information. This may take a moment...
+        </Card>
+        
+        {/* Build from scratch card */}
+        <Card className="shadow-md bg-gradient-to-b from-primary/5 to-background">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileText className="h-5 w-5 mr-2" />
+              Build from Scratch
+            </CardTitle>
+            <CardDescription>
+              Create a new CV step by step with our guided builder
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 text-center min-h-[200px] flex flex-col items-center justify-center">
+              <div className="relative w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <FileText className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg">Start with a Clean Slate</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our intuitive CV builder will guide you through each section, providing tips and suggestions along the way.
               </p>
+              <ul className="text-sm text-start mx-auto space-y-2">
+                <li className="flex items-start">
+                  <div className="rounded-full h-5 w-5 bg-primary/20 flex items-center justify-center text-xs mr-2 mt-0.5">✓</div>
+                  Professional templates
+                </li>
+                <li className="flex items-start">
+                  <div className="rounded-full h-5 w-5 bg-primary/20 flex items-center justify-center text-xs mr-2 mt-0.5">✓</div>
+                  AI-powered text enhancement
+                </li>
+                <li className="flex items-start">
+                  <div className="rounded-full h-5 w-5 bg-primary/20 flex items-center justify-center text-xs mr-2 mt-0.5">✓</div>
+                  Customizable sections
+                </li>
+              </ul>
             </div>
-          )}
+          </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              className="w-full border-primary/50 hover:bg-primary/10"
+              onClick={handleCreateFromScratch}
+            >
+              Create from Scratch
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </div>
