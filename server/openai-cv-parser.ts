@@ -37,7 +37,7 @@ async function extractDetailedTextFromWord(filePath: string): Promise<string> {
       let allXmlContent = "";
       
       // Look at all XML files in the document
-      zipEntries.forEach((entry) => {
+      zipEntries.forEach((entry: any) => {
         if (entry.entryName.endsWith('.xml') && !entry.isDirectory) {
           try {
             const content = zip.readAsText(entry);

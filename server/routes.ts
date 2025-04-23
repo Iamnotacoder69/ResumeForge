@@ -313,6 +313,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Analyze a previously uploaded CV (step 2 of the two-step process)
+  app.post("/api/analyze-cv", async (req: Request, res: Response) => {
+    try {
+      // Get file info from request body
+      const { filePath, fileType } = req.body;
+      
+      if (!filePath || !fileType) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing file path or file type"
+        });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          message: "File not found"
+        });
+      }
+      
+      // Parse using OpenAI
+      const parsedCV = await parseCV(filePath, fileType);
+      
+      // Return structured data
+      res.status(200).json({
+        success: true,
+        data: parsedCV
+      });
+    } catch (error) {
+      console.error("Error in /api/analyze-cv:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to analyze CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
   // Generate PDF
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {
