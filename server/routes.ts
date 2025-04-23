@@ -7,7 +7,7 @@ import * as os from "os";
 import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
-import { enhanceTextWithAI } from "./openai";
+import { enhanceTextWithAI, analyzePDFWithVision } from "./openai";
 import { parseCV } from "./openai-cv-parser";
 import { convertPdfToDocx } from "./pdf-to-docx";
 import { completeCvSchema } from "@shared/schema";
@@ -149,58 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Analyze document from a given path (after upload/conversion)
-  app.post("/api/analyze-cv", async (req: Request, res: Response) => {
-    try {
-      const { filePath, fileType } = req.body;
-      
-      if (!filePath || !fileType) {
-        return res.status(400).json({
-          success: false,
-          message: "File path and type are required"
-        });
-      }
-      
-      // Verify the file exists
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({
-          success: false,
-          message: "File not found"
-        });
-      }
-      
-      // Only analyze DOCX files (PDF files should be converted first)
-      if (fileType !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && 
-          fileType !== 'application/msword') {
-        return res.status(400).json({
-          success: false,
-          message: "Only Word documents can be analyzed directly. PDF files should be converted first."
-        });
-      }
-      
-      // Parse the CV
-      try {
-        // Parse using OpenAI
-        const parsedCV = await parseCV(filePath, fileType);
-        
-        // Return structured data
-        return res.status(200).json({
-          success: true,
-          data: parsedCV
-        });
-      } catch (error) {
-        console.error("Error analyzing CV:", error);
-        throw error;
-      }
-    } catch (error) {
-      console.error("Error in /api/analyze-cv:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to analyze CV",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
+  // This endpoint is now replaced by the improved version below
   
   // Legacy Parse CV endpoint (keeping for backward compatibility)
   app.post("/api/parse-cv", upload.single('cv'), async (req: Request, res: Response) => {
@@ -368,23 +317,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Check if this is a converted PDF (DOCX file with "pdf" in the name)
-      const isPotentiallyConvertedPdf = 
-        fileType.includes("wordprocessingml") && 
-        filePath.includes(".pdf");
+      let parsedCV;
       
-      if (isPotentiallyConvertedPdf) {
+      // Direct PDF processing with Vision API
+      if (fileType === "application/pdf") {
+        console.log("Processing PDF directly with Vision API:", filePath);
+        
+        try {
+          // Use the vision-based PDF analyzer for direct PDF processing
+          parsedCV = await analyzePDFWithVision(filePath);
+          console.log("Successfully analyzed PDF with vision API");
+        } catch (visionError) {
+          console.error("Vision API PDF analysis failed:", visionError);
+          // Fall back to standard text extraction if vision fails
+          console.log("Falling back to standard PDF text extraction");
+          parsedCV = await parseCV(filePath, fileType);
+        }
+      }
+      // Check if this is a converted PDF (DOCX file with "pdf" in the name)
+      else if (fileType.includes("wordprocessingml") && filePath.includes(".pdf")) {
         // Look for the original PDF file if this is a converted DOCX
         const potentialPdfPath = filePath.replace('.docx', '.pdf');
         
-        // Check if the original PDF still exists (we didn't delete it during conversion)
+        // If the original PDF exists, use vision API directly on it
         if (fs.existsSync(potentialPdfPath)) {
-          console.log("Found original PDF file, will use it as fallback if needed:", potentialPdfPath);
+          console.log("Found original PDF file, using Vision API directly:", potentialPdfPath);
+          try {
+            // Use the vision-based PDF analyzer
+            parsedCV = await analyzePDFWithVision(potentialPdfPath);
+            console.log("Successfully analyzed original PDF with vision API");
+          } catch (visionError) {
+            console.error("Vision API PDF analysis failed:", visionError);
+            // Fall back to standard parsing if vision fails
+            console.log("Falling back to standard DOCX extraction");
+            parsedCV = await parseCV(filePath, fileType);
+          }
+        } else {
+          // If original PDF is gone, fall back to standard parsing
+          console.log("Original PDF not found, using standard DOCX extraction");
+          parsedCV = await parseCV(filePath, fileType);
         }
       }
-      
-      // Parse using OpenAI
-      const parsedCV = await parseCV(filePath, fileType);
+      // Standard document processing for non-PDF files
+      else {
+        console.log("Processing standard document with text extraction");
+        parsedCV = await parseCV(filePath, fileType);
+      }
       
       // Return structured data
       res.status(200).json({
