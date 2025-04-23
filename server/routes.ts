@@ -485,6 +485,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Add an endpoint for downloading files (PDF, DOCX, TXT, HTML)
+  app.post("/api/download-file", async (req: Request, res: Response) => {
+    try {
+      const { filePath } = req.body;
+      
+      if (!filePath) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing file path"
+        });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          message: "File not found"
+        });
+      }
+      
+      // Get the file extension
+      const fileExt = path.extname(filePath).toLowerCase();
+      
+      // Set the content type based on file extension
+      let contentType = 'application/octet-stream'; // Default
+      if (fileExt === '.pdf') {
+        contentType = 'application/pdf';
+      } else if (fileExt === '.docx') {
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      } else if (fileExt === '.txt') {
+        contentType = 'text/plain';
+      } else if (fileExt === '.html') {
+        contentType = 'text/html';
+      }
+      
+      // Read the file
+      const fileBuffer = fs.readFileSync(filePath);
+      
+      // Set headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+      
+      // Send the file
+      res.status(200).send(fileBuffer);
+      
+    } catch (error) {
+      console.error("Error in /api/download-file:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to download file",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
