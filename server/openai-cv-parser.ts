@@ -231,19 +231,20 @@ PAY SPECIAL ATTENTION TO:
 IMPORTANT INSTRUCTIONS:
 - The CV text may contain section markers like "### WORK EXPERIENCE ###" to help you identify content
 - If you see "[...content truncated due to length...]", make reasonable assumptions about the missing content
-- If specific dates or details are unclear, use your best judgment to infer reasonable values
-- NEVER leave important fields empty - provide reasonable values based on context
-- If personal information fields like name or email cannot be found, look throughout the entire text
+- If specific dates or details are unclear, use your best judgment to infer reasonable values ONLY if there is contextual evidence
+- DO NOT use placeholder or example data like "John Doe" or "example@email.com"
+- If you cannot find information for a field, leave it as an empty string ""
+- Extract ONLY information that is ACTUALLY PRESENT in the document
 
 RESPONSE FORMAT:
 Return ONLY a valid JSON object with this exact structure:
 {
   "personal": {
-    "firstName": "First name here",
-    "lastName": "Last name here",
-    "email": "email@example.com",
-    "phone": "Phone number here",
-    "linkedin": "LinkedIn URL or username"
+    "firstName": "",  // Extract actual first name from CV, do not use default values
+    "lastName": "",   // Extract actual last name from CV, do not use default values
+    "email": "",      // Extract actual email from CV, do not use default values
+    "phone": "",      // Extract actual phone from CV, do not use default values
+    "linkedin": ""    // Extract actual LinkedIn from CV, do not use default values
   },
   "summary": "Professional summary text",
   "skills": {
@@ -306,7 +307,7 @@ ${cvText}`;
       messages: [
         {
           role: "system",
-          content: "You are a professional CV parser that extracts structured information from resumes and CVs."
+          content: "You are a professional CV parser that extracts structured information from resumes and CVs. NEVER use placeholder values like 'John Doe' or 'example@email.com'. If you can't find the information in the document, leave the field empty or null. Extract only actual data found in the document, never insert default or sample values, even if the field would otherwise be empty."
         },
         {
           role: "user",
@@ -390,31 +391,36 @@ function mapResponseToCV(response: any): CompleteCV {
   console.log("Response mapping - Has skills data:", !!response.skills);
   console.log("Response mapping - Experience entries:", response.experience?.length || 0);
   
-  // Create default placeholder values in case response is incomplete
-  const defaultFirstName = "First";
-  const defaultLastName = "Last";
-  const placeholderEmail = "example@email.com";
+  // Get raw data directly from the OpenAI response
+  console.log("Raw personal data from OpenAI:", JSON.stringify(response.personal || {}));
   
-  // Get skills or use defaults
+  // Get skills from response or empty arrays (no defaults)
   const technicalSkills = Array.isArray(response.skills?.technical) ? response.skills.technical : 
                           Array.isArray(response.technicalSkills) ? response.technicalSkills : 
-                          ["Technical skill"];
+                          [];
                           
   const softSkills = Array.isArray(response.skills?.soft) ? response.skills.soft : 
                      Array.isArray(response.softSkills) ? response.softSkills : 
-                     ["Soft skill"];
+                     [];
   
-  // Create default CV structure with fallbacks
+  // For debugging - log what was extracted
+  if (response.personal) {
+    console.log(`Extracted name: ${response.personal.firstName || ""} ${response.personal.lastName || ""}`);
+    console.log(`Extracted email: ${response.personal.email || ""}`);
+    console.log(`Extracted phone: ${response.personal.phone || ""}`);
+  }
+  
+  // Create CV structure directly from response values, without defaults
   const cv: CompleteCV = {
     personal: {
-      firstName: response.personal?.firstName || response.personal?.first_name || response.personal?.givenName || defaultFirstName,
-      lastName: response.personal?.lastName || response.personal?.last_name || response.personal?.surname || defaultLastName,
-      email: response.personal?.email || response.personal?.emailAddress || response.contact?.email || placeholderEmail,
-      phone: response.personal?.phone || response.personal?.phoneNumber || response.personal?.mobile || response.contact?.phone || "123-456-7890",
+      firstName: response.personal?.firstName || response.personal?.first_name || response.personal?.givenName || "",
+      lastName: response.personal?.lastName || response.personal?.last_name || response.personal?.surname || "",
+      email: response.personal?.email || response.personal?.emailAddress || response.contact?.email || "",
+      phone: response.personal?.phone || response.personal?.phoneNumber || response.personal?.mobile || response.contact?.phone || "",
       linkedin: response.personal?.linkedin || response.personal?.linkedIn || response.personal?.linkedInUrl || response.contact?.linkedin || "",
     },
     professional: {
-      summary: response.summary || response.professionalSummary || response.profile || response.bio || "Professional with experience in the field.",
+      summary: response.summary || response.professionalSummary || response.profile || response.bio || "",
     },
     keyCompetencies: {
       technicalSkills,

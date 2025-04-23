@@ -167,7 +167,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Parsing CV from uploaded file: ${filePath}, type: ${fileType}`);
       
       // Parse using OpenAI
-      const parsedCV = await parseCV(filePath, fileType);
+      let parsedCV = await parseCV(filePath, fileType);
+      
+      // Verify we're not returning default placeholder values (e.g., "John Doe")
+      const defaultValueCheck = (value: string) => {
+        const commonDefaults = ["john", "doe", "example", "template", "sample", "test"];
+        return value && commonDefaults.some(def => value.toLowerCase().includes(def));
+      };
+      
+      // Check for placeholder values in personal info and clear them
+      if (parsedCV.personal) {
+        if (defaultValueCheck(parsedCV.personal.firstName)) {
+          console.log("Found default first name value, clearing field");
+          parsedCV.personal.firstName = "";
+        }
+        
+        if (defaultValueCheck(parsedCV.personal.lastName)) {
+          console.log("Found default last name value, clearing field");
+          parsedCV.personal.lastName = "";
+        }
+        
+        if (defaultValueCheck(parsedCV.personal.email)) {
+          console.log("Found default email value, clearing field");
+          parsedCV.personal.email = "";
+        }
+        
+        if (defaultValueCheck(parsedCV.personal.phone)) {
+          console.log("Found default phone value, clearing field");
+          parsedCV.personal.phone = "";
+        }
+      }
       
       // Return structured data
       res.status(200).json({
@@ -220,7 +249,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Analyzing CV from existing file: ${filePath}, type: ${fileType}`);
       
       // Parse using OpenAI
-      const parsedCV = await parseCV(filePath, fileType);
+      let parsedCV = await parseCV(filePath, fileType);
+      
+      // Verify we're not returning default placeholder values (e.g., "John Doe")
+      const defaultValueCheck = (value: string) => {
+        const commonDefaults = ["john", "doe", "example", "template", "sample", "test"];
+        return value && commonDefaults.some(def => value.toLowerCase().includes(def));
+      };
+      
+      // Check for placeholder values in personal info and clear them
+      if (parsedCV.personal) {
+        if (defaultValueCheck(parsedCV.personal.firstName)) {
+          console.log("Found default first name value, clearing field");
+          parsedCV.personal.firstName = "";
+        }
+        
+        if (defaultValueCheck(parsedCV.personal.lastName)) {
+          console.log("Found default last name value, clearing field");
+          parsedCV.personal.lastName = "";
+        }
+        
+        if (defaultValueCheck(parsedCV.personal.email)) {
+          console.log("Found default email value, clearing field");
+          parsedCV.personal.email = "";
+        }
+        
+        if (defaultValueCheck(parsedCV.personal.phone)) {
+          console.log("Found default phone value, clearing field");
+          parsedCV.personal.phone = "";
+        }
+      }
       
       // Return structured data
       res.status(200).json({
