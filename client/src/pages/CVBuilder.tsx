@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -64,15 +64,24 @@ const CVBuilder = () => {
   // Initialize the form with the extracted data if available
   const form = useCVForm(extractedCVDataFromStorage);
   
+  // Use a ref to prevent multiple loads of the same data
+  const dataLoadedRef = React.useRef(false);
+  
   // Show a toast notification if we have extracted data
   useEffect(() => {
-    if (extractedCVDataFromStorage) {
+    // Only load data once
+    if (extractedCVDataFromStorage && !dataLoadedRef.current) {
+      dataLoadedRef.current = true;
       setIsLoading(false);
       toast({
         title: "CV Data Loaded",
         description: "Your CV data has been loaded. You can now edit and enhance it.",
         variant: "default"
       });
+      
+      // Clear the storage to prevent reloads on page refresh
+      // This way we keep the data in the form but don't reprocess it
+      sessionStorage.removeItem('extractedCVData');
     } else {
       setIsLoading(false);
     }
