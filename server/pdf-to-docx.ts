@@ -48,6 +48,11 @@ export async function convertPdfToDocx(pdfPath: string): Promise<string> {
     await writeFileAsync(htmlPath, htmlContent);
     console.log(`Enhanced HTML content saved to ${htmlPath}`);
     
+    // Also save the raw text content for easier access
+    const textPath = path.join(path.dirname(pdfPath), `${pdfBaseName}.txt`);
+    await writeFileAsync(textPath, text);
+    console.log(`Raw text content saved to ${textPath}`);
+    
     // Convert HTML to DOCX using html-docx-js
     const docxBlob = htmlDocx.asBlob(htmlContent, {
       orientation: 'portrait',
@@ -61,8 +66,8 @@ export async function convertPdfToDocx(pdfPath: string): Promise<string> {
     
     console.log(`DOCX created successfully at ${docxPath}`);
     
-    // Clean up the HTML file
-    fs.unlinkSync(htmlPath);
+    // Keep the HTML file for reference (we'll use it during analysis)
+    // We'll clean it up after analysis is complete
     
     // Return the path to the DOCX file
     return docxPath;

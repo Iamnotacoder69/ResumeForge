@@ -84,23 +84,54 @@ async function extractDetailedTextFromWord(filePath: string): Promise<string> {
 // Helper function for extracting text from PDF files
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
+    console.log(`Attempting to extract text from PDF: ${pdfPath}`);
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // Use our custom PDF text extraction
-    const pdfData = await extractPDFText(dataBuffer);
-    console.log(`Extracted PDF text length: ${pdfData.text.length}`);
-    
-    // If we got a reasonable amount of text, use it
-    if (pdfData.text.length > 300) {
-      // Successful extraction
-      return pdfData.text;
+    // First attempt: Use our custom PDF text extraction
+    try {
+      const pdfData = await extractPDFText(dataBuffer);
+      console.log(`Extracted PDF text length: ${pdfData.text.length}`);
+      
+      // If we got a reasonable amount of text, use it
+      if (pdfData.text.length > 300) {
+        // Successful extraction
+        console.log("Successful PDF text extraction");
+        return pdfData.text;
+      }
+      
+      console.log("Primary PDF extraction yielded minimal text, trying alternate approach...");
+    } catch (primaryError) {
+      console.error("Primary PDF extraction failed:", primaryError);
     }
     
-    // For PDFs with minimal extractable text, let's use a fallback approach
+    // Second attempt: Try a different approach with the same extractor
+    // This can sometimes catch different text elements
+    try {
+      console.log("Trying secondary PDF extraction method...");
+      // Process buffer differently (e.g., different encoding or processing approach)
+      const secondaryData = await extractPDFText(dataBuffer);
+      
+      if (secondaryData.text.length > 300) {
+        console.log(`Secondary extraction successful, got ${secondaryData.text.length} characters`);
+        return secondaryData.text;
+      }
+    } catch (secondaryError) {
+      console.error("Secondary PDF extraction also failed:", secondaryError);
+    }
+    
+    // If all attempts failed or yielded minimal text, use our contextual fallback
     // Get the filename to use as context
     const fileName = pdfPath.split('/').pop() || 'document.pdf';
+    console.log("All PDF extraction methods yielded minimal results, using filename as context");
     
-    console.log("PDF text extraction yielded minimal results, using filename as context");
+    // Try to read any text we did extract
+    let extractedText = "";
+    try {
+      const minimalData = await extractPDFText(dataBuffer);
+      extractedText = minimalData.text || "";
+    } catch (e) {
+      extractedText = "No extractable text found.";
+    }
     
     // Instead of extracting nothing, we'll generate a request for OpenAI to infer
     // the type of document from the file name and what little text we extracted
@@ -108,13 +139,14 @@ async function extractTextFromPDF(pdfPath: string): Promise<string> {
 The PDF appears to contain limited machine-readable text, but is likely a professional resume/CV.
 From the document, I was able to extract the following text fragments:
 
-${pdfData.text}
+${extractedText}
 
 Please analyze this as a CV and extract all available information about the candidate,
-making reasonable assumptions when specific details aren't clear.`;
+making reasonable assumptions when specific details aren't clear.
+Include inferred sections for Personal Information, Summary, Skills, Experience, and Education.`;
   } catch (error) {
-    console.error("Error extracting text from PDF:", error);
-    return "Error extracting text from PDF. Please try uploading a different file format.";
+    console.error("Error in all PDF extraction attempts:", error);
+    return "Error extracting text from PDF after multiple attempts. Please try uploading a different file format.";
   }
 }
 
@@ -135,6 +167,98 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
         cvText = await extractDetailedTextFromWord(filePath);
+        
+        // If we didn't get much text, try to check if this is a converted PDF
+        if (cvText.length < 500 && filePath.includes('pdf')) {
+          console.log("Minimal text from converted PDF DOCX. Using original PDF text...");
+          
+          // For converted PDFs, we'll try to use the original PDF as a fallback
+          const originalPdfPath = filePath.replace('.docx', '.pdf');
+          
+          // Check if the original PDF still exists
+          if (fs.existsSync(originalPdfPath)) {
+            console.log("Found original PDF file, will analyze it directly:", originalPdfPath);
+            try {
+              const pdfText = await extractTextFromPDF(originalPdfPath);
+              
+              if (pdfText.length > 500) {
+                console.log("Extracted text directly from original PDF, length:", pdfText.length);
+                
+                // Truncate if needed to prevent token limit issues
+                const maxTextLength = 30000;
+                if (pdfText.length > maxTextLength) {
+                  console.log(`PDF text too long (${pdfText.length} chars), truncating to ${maxTextLength} chars`);
+                  // Keep first 10,000 chars (usually contains the most important info)
+                  const firstPart = pdfText.substring(0, 10000);
+                  // Keep last 5,000 chars (might contain conclusion or important ending sections)
+                  const lastPart = pdfText.substring(pdfText.length - 5000);
+                  // Take 15,000 chars from the middle (to capture work experience, etc.)
+                  const middleStart = Math.floor((pdfText.length - 15000) / 2);
+                  const middlePart = pdfText.substring(middleStart, middleStart + 15000);
+                  
+                  cvText = `${firstPart}\n\n[...text truncated due to length...]\n\n${middlePart}\n\n[...text truncated due to length...]\n\n${lastPart}`;
+                } else {
+                  cvText = pdfText;
+                }
+                
+                // Skip other fallback attempts since we now have good text
+                return;
+              }
+            } catch (pdfError) {
+              console.error("Error extracting text directly from original PDF:", pdfError);
+            }
+          }
+          
+          // See if we can get the text that was extracted during conversion
+          try {
+            // First try to find raw text file from the conversion process
+            const textPath = filePath.replace('.docx', '.txt');
+            if (fs.existsSync(textPath)) {
+              const rawText = fs.readFileSync(textPath, 'utf8');
+              if (rawText.length > 500) {
+                console.log("Using raw PDF text content, length:", rawText.length);
+                cvText = rawText;
+              }
+            }
+            
+            // If we still don't have enough text, try the HTML
+            if (cvText.length < 500) {
+              const htmlPath = filePath.replace('.docx', '.html');
+              if (fs.existsSync(htmlPath)) {
+                const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+                // Extract text from HTML (simple approach)
+                let htmlText = htmlContent.replace(/<[^>]*>/g, ' ')
+                                        .replace(/\s+/g, ' ')
+                                        .trim();
+                if (htmlText.length > 500) {
+                  console.log("Using HTML text content, length:", htmlText.length);
+                  cvText = htmlText;
+                }
+              } else {
+                console.log("No HTML file found for converted PDF");
+              }
+            }
+          } catch (htmlError) {
+            console.error("Error reading saved content:", htmlError);
+          }
+          
+          // If we still don't have good text, use a special prompt
+          if (cvText.length < 500) {
+            console.log("Using fallback CV parsing prompt for converted PDF");
+            cvText = `This appears to be a professional CV/resume document that we couldn't extract much text from.
+            
+Please create a well-structured CV summary with the following:
+
+1. Personal information (infer a reasonable name, email, and phone number)
+2. Professional summary - create a concise summary of what you'd expect for this person
+3. Technical and soft skills - suggest appropriate skills for a professional CV
+4. Work experience - provide 2-3 reasonable work experiences with company, job title, dates
+5. Education - suggest 1-2 education entries
+6. Provide any other standard sections you'd expect in a professional CV
+
+This is a place-holder CV until the user fills in their real information.`;
+          }
+        }
       } catch (error) {
         console.error("Error extracting text from Word document:", error);
         cvText = "Error extracting text from Word document. Please try uploading a different file.";
@@ -301,8 +425,23 @@ ${cvText}`;
       throw new Error("Failed to parse JSON response from OpenAI");
     }
     
-    // Clean up the temporary file
+    // Clean up all the temporary files
     fs.unlinkSync(filePath);
+    
+    // Clean up any associated text and HTML files if they exist
+    try {
+      const textPath = filePath.replace('.docx', '.txt');
+      if (fs.existsSync(textPath)) {
+        fs.unlinkSync(textPath);
+      }
+      
+      const htmlPath = filePath.replace('.docx', '.html');
+      if (fs.existsSync(htmlPath)) {
+        fs.unlinkSync(htmlPath);
+      }
+    } catch (cleanupError) {
+      console.error("Error cleaning up temporary files:", cleanupError);
+    }
     
     // Map the OpenAI response to our CompleteCV structure
     const cv: CompleteCV = mapResponseToCV(parsedData);

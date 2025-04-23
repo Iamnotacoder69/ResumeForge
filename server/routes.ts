@@ -316,12 +316,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const docxPath = await convertPdfToDocx(filePath);
         console.log("Conversion successful, DOCX path:", docxPath);
         
-        // Delete the original PDF file to save space
-        try {
-          fs.unlinkSync(filePath);
-        } catch (unlinkError) {
-          console.error("Failed to delete original PDF file:", unlinkError);
-        }
+        /* 
+        Note: We're not deleting the original PDF file yet
+        It might be needed as a fallback during analysis if the DOCX doesn't contain
+        enough extractable text
+        
+        The parseCV function will handle cleanup of files when it's done
+        */
         
         // Return the path to the converted file 
         return res.status(200).json({
@@ -365,6 +366,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: false,
           message: "File not found"
         });
+      }
+      
+      // Check if this is a converted PDF (DOCX file with "pdf" in the name)
+      const isPotentiallyConvertedPdf = 
+        fileType.includes("wordprocessingml") && 
+        filePath.includes(".pdf");
+      
+      if (isPotentiallyConvertedPdf) {
+        // Look for the original PDF file if this is a converted DOCX
+        const potentialPdfPath = filePath.replace('.docx', '.pdf');
+        
+        // Check if the original PDF still exists (we didn't delete it during conversion)
+        if (fs.existsSync(potentialPdfPath)) {
+          console.log("Found original PDF file, will use it as fallback if needed:", potentialPdfPath);
+        }
       }
       
       // Parse using OpenAI
