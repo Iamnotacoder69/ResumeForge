@@ -148,8 +148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Upload CV file and convert to DOCX if needed (Step 1)
-  app.post("/api/upload-cv", upload.single('cv'), async (req: Request, res: Response) => {
+  // Parse CV file and extract information
+  app.post("/api/parse-cv", upload.single('cv'), async (req: Request, res: Response) => {
     try {
       // Check if file was uploaded
       if (!req.file) {
@@ -159,103 +159,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get file info
-      const filePath = req.file.path;
-      const fileType = req.file.mimetype;
-      const fileName = req.file.originalname;
-      
-      // Store file info in a response object
-      const fileInfo = {
-        originalPath: filePath,
-        originalType: fileType,
-        originalName: fileName,
-        convertedPath: filePath, // Default to original path
-        needsConversion: false
-      };
-      
-      // For PDF files, just show a warning but don't attempt conversion since it works well for Word files
-      if (fileType === "application/pdf") {
-        console.log("PDF file detected:", filePath);
-        
-        // Just return the original file info with a warning
-        return res.status(200).json({
-          success: true,
-          data: fileInfo,
-          warning: "PDF files may have limited extraction ability. For best results, consider uploading a Word document."
-        });
-      }
-      
-      // File doesn't need conversion (already DOCX or other format)
-      return res.status(200).json({
-        success: true,
-        data: fileInfo
-      });
-    } catch (error) {
-      console.error("Error in /api/upload-cv:", error);
-      
-      // Clean up the temporary file if an error occurs
-      if (req.file && req.file.path) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (e) {
-          console.error("Error deleting temporary file:", e);
-        }
-      }
-      
-      return res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : "Failed to upload CV"
-      });
-    }
-  });
-  
-  // Parse CV file and extract information (Step 2)
-  app.post("/api/parse-cv", async (req: Request, res: Response) => {
-    try {
-      const { filePath, fileType } = req.body;
-      
-      if (!filePath) {
-        return res.status(400).json({
-          success: false,
-          message: "No file path provided"
-        });
-      }
-      
-      // Check if the file exists
-      if (!fs.existsSync(filePath)) {
-        return res.status(400).json({
-          success: false,
-          message: "File not found"
-        });
-      }
-      
-      // Determine file type if not provided
-      const determinedFileType = fileType || 
-        (filePath.endsWith('.docx') 
-          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          : "application/pdf");
-      
-      // Parse using OpenAI
+      // Parse CV file
       try {
-        const parsedCV = await parseCV(filePath, determinedFileType);
+        // Get file info
+        const filePath = req.file.path;
+        const fileType = req.file.mimetype;
+        
+        // Parse using OpenAI
+        const parsedCV = await parseCV(filePath, fileType);
         
         // Return structured data
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: parsedCV
         });
       } catch (error) {
-        console.error("Error parsing CV:", error);
-        return res.status(500).json({
-          success: false,
-          message: error instanceof Error ? error.message : "Failed to parse CV"
-        });
+        // Make sure to clean up the temp file if an error occurs
+        if (req.file && req.file.path) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (unlinkError) {
+            console.error("Failed to delete temporary file:", unlinkError);
+          }
+        }
+        
+        throw error;
       }
     } catch (error) {
       console.error("Error in /api/parse-cv:", error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
-        message: "Internal server error",
+        message: "Failed to parse CV",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

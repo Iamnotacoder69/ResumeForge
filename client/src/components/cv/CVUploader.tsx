@@ -6,23 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, AlertCircle, ArrowRight, Loader2, FileCheck, FileWarning } from "lucide-react";
+import { Upload, FileText, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { CompleteCV } from "@shared/types";
-import { Progress } from "@/components/ui/progress";
-
-type UploadCVResponse = {
-  success: boolean;
-  data: {
-    originalPath: string;
-    originalType: string;
-    originalName: string;
-    convertedPath: string;
-    needsConversion: boolean;
-  };
-  warning?: string;
-  message?: string;
-}
 
 type ParseCVResponse = {
   success: boolean;
@@ -33,15 +20,14 @@ type ParseCVResponse = {
 export default function CVUploader() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'converting' | 'ready' | 'analyzing'>('idle');
-  const [fileInfo, setFileInfo] = useState<UploadCVResponse['data'] | null>(null);
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
-  // Handle CV upload (Step 1)
-  const uploadCVMutation = useMutation({
+  // Handle CV parsing via API
+  const parseCVMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const url = "/api/upload-cv";
+      // Using the standard fetch API
+      const url = "/api/parse-cv";
       const options = {
         method: "POST",
         body: formData
@@ -50,66 +36,10 @@ export default function CVUploader() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to upload CV");
-      }
-      
-      return response.json() as Promise<UploadCVResponse>;
-    },
-    onSuccess: (data) => {
-      console.log("CV uploaded successfully:", data);
-      
-      // Check if there was a warning
-      if (data.warning) {
-        toast({
-          title: "Upload completed with warning",
-          description: data.warning,
-          variant: "default"
-        });
-      }
-      
-      // Store file info for Step 2
-      setFileInfo(data.data);
-      
-      // Set upload state to ready
-      setUploadState('ready');
-      
-      // If there's a warning about PDFs, show it to the user
-      if (data.warning && data.data.originalType === "application/pdf") {
-        toast({
-          title: "PDF document detected",
-          description: data.warning,
-          variant: "default"
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Error uploading CV:", error);
-      setUploadState('idle');
-      toast({
-        variant: "destructive",
-        title: "Failed to upload CV",
-        description: error instanceof Error ? error.message : "Please check the file format and try again.",
-      });
-    }
-  });
-  
-  // Handle CV parsing (Step 2)
-  const parseCVMutation = useMutation({
-    mutationFn: async (fileData: { filePath: string; fileType: string }) => {
-      const response = await fetch("/api/parse-cv", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(fileData)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
         throw new Error(errorData.message || "Failed to parse CV");
       }
       
-      return response.json() as Promise<ParseCVResponse>;
+      return response.json();
     },
     onSuccess: (data) => {
       console.log("CV data extracted successfully:");
@@ -131,21 +61,15 @@ export default function CVUploader() {
         title: "CV parsed successfully",
         description: "Your CV has been analyzed and the information has been extracted.",
       });
-      
-      // Reset state
-      setUploadState('idle');
-      setFileInfo(null);
-      setSelectedFile(null);
     },
     onError: (error) => {
-      console.error("Error parsing CV:", error);
-      setUploadState('ready'); // Go back to ready state to allow trying again
+      console.error("Error uploading CV:", error);
       toast({
         variant: "destructive",
         title: "Failed to parse CV",
         description: error instanceof Error ? error.message : "Please check the file format and try again.",
       });
-    }
+    },
   });
   
   // Handle file input change
@@ -153,8 +77,6 @@ export default function CVUploader() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
-      setUploadState('idle'); // Reset to idle state with new file
-      setFileInfo(null); // Clear any previous file info
     }
   };
   
@@ -179,12 +101,10 @@ export default function CVUploader() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       setSelectedFile(file);
-      setUploadState('idle'); // Reset to idle state with new file
-      setFileInfo(null); // Clear any previous file info
     }
   };
   
-  // Handle upload button click (Step 1)
+  // Handle upload button click
   const handleUpload = () => {
     if (!selectedFile) {
       toast({
@@ -207,38 +127,12 @@ export default function CVUploader() {
       return;
     }
     
-    // Update state to show we're uploading
-    setUploadState('uploading');
-    
     // Build form data
     const formData = new FormData();
     formData.append("cv", selectedFile);
     
-    // Call mutation to upload the file to the server
-    uploadCVMutation.mutate(formData);
-  };
-  
-  // Handle analyze button click (Step 2)
-  const handleAnalyze = () => {
-    if (!fileInfo) {
-      toast({
-        variant: "destructive",
-        title: "No file information",
-        description: "Please upload a file first.",
-      });
-      return;
-    }
-    
-    // Update state to show we're analyzing
-    setUploadState('analyzing');
-    
-    // Call mutation to parse the file
-    parseCVMutation.mutate({
-      filePath: fileInfo.convertedPath || fileInfo.originalPath,
-      fileType: fileInfo.convertedPath.endsWith('.docx') 
-        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-        : fileInfo.originalType
-    });
+    // Call mutation to send the file to the server
+    parseCVMutation.mutate(formData);
   };
   
   // Handle create from scratch button click
@@ -246,60 +140,6 @@ export default function CVUploader() {
     // Clear any previously parsed data from session storage
     sessionStorage.removeItem("parsedCV");
     navigate("/cv-builder");
-  };
-  
-  // Get the appropriate button label and state for the upload card
-  const getUploadButtonContent = () => {
-    switch (uploadState) {
-      case 'uploading':
-        return (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Uploading...
-          </>
-        );
-      case 'converting':
-        return (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Converting PDF to DOCX...
-          </>
-        );
-      case 'ready':
-        return (
-          <>
-            <FileCheck className="mr-2 h-4 w-4" />
-            Analyze and Proceed
-          </>
-        );
-      case 'analyzing':
-        return (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Analyzing Document...
-          </>
-        );
-      default:
-        return (
-          <>
-            Upload CV
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </>
-        );
-    }
-  };
-  
-  // Get the appropriate step label
-  const getStepLabel = () => {
-    if (uploadState === 'idle' || uploadState === 'uploading') {
-      return "Step 1: Upload your CV document";
-    } else if (uploadState === 'converting') {
-      return "Converting PDF to Word format...";
-    } else if (uploadState === 'ready') {
-      return "Step 2: Analyze your CV document";
-    } else {
-      return "Analyzing your CV...";
-    }
   };
   
   return (
@@ -320,123 +160,74 @@ export default function CVUploader() {
               Upload Existing CV
             </CardTitle>
             <CardDescription>
-              {getStepLabel()}
+              Upload your existing CV and we'll extract the information automatically
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Show progress bar during uploading/converting/analyzing */}
-            {(uploadState === 'uploading' || uploadState === 'converting' || uploadState === 'analyzing') && (
-              <div className="mb-6">
-                <p className="text-sm mb-2 text-center font-medium">
-                  {uploadState === 'uploading' ? 'Uploading file...' : 
-                   uploadState === 'converting' ? 'Converting PDF to Word format...' :
-                   'Analyzing document content...'}
-                </p>
-                <Progress 
-                  value={uploadState === 'uploading' ? 30 : 
-                         uploadState === 'converting' ? 60 : 
-                         uploadState === 'analyzing' ? 80 : 0} 
-                  className="h-2" 
-                />
-              </div>
-            )}
-            
-            {/* Show file drop zone only when not ready for analysis */}
-            {uploadState !== 'ready' && uploadState !== 'analyzing' && (
-              <div 
-                className={`border-2 border-dashed rounded-lg p-8 text-center flex flex-col items-center justify-center min-h-[200px] transition-colors ${
-                  dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20"
-                }`}
-                onDragEnter={handleDrag}
-                onDragOver={handleDrag}
-                onDragLeave={handleDrag}
-                onDrop={handleDrop}
-              >
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <Label htmlFor="file-upload" className="font-medium mb-2 cursor-pointer text-primary">
-                  Click to upload
-                </Label>
-                <p className="text-sm text-muted-foreground mb-4">
-                  or drag and drop your file here
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Supported formats: PDF, DOC, DOCX
-                </p>
-                <Input 
-                  id="file-upload" 
-                  type="file" 
-                  accept=".pdf,.doc,.docx" 
-                  onChange={handleFileChange} 
-                  className="hidden"
-                  disabled={uploadState === 'uploading' || uploadState === 'converting'}
-                />
-                
-                {selectedFile && (
-                  <div className="mt-4 flex items-center justify-center p-2 bg-muted rounded-md w-full">
-                    <FileText className="h-4 w-4 mr-2 text-primary" />
-                    <span className="text-sm font-medium truncate">
-                      {selectedFile.name}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Show ready state when file is uploaded and converted */}
-            {uploadState === 'ready' && (
-              <div className="border-2 border-primary/20 bg-primary/5 rounded-lg p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <FileCheck className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-medium mb-2">CV Ready for Analysis</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Your document has been uploaded successfully.
-                  {fileInfo?.originalType === "application/pdf" && (
-                    <span className="block text-amber-600 mt-1 font-medium">
-                      Note: PDF files may have limited extraction ability.
-                    </span>
-                  )}
-                </p>
-                <div className="flex items-center justify-center p-2 bg-muted rounded-md w-full">
+            <div 
+              className={`border-2 border-dashed rounded-lg p-8 text-center flex flex-col items-center justify-center min-h-[200px] transition-colors ${
+                dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20"
+              }`}
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+            >
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <Label htmlFor="file-upload" className="font-medium mb-2 cursor-pointer text-primary">
+                Click to upload
+              </Label>
+              <p className="text-sm text-muted-foreground mb-4">
+                or drag and drop your file here
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Supported formats: PDF, DOC, DOCX
+              </p>
+              <Input 
+                id="file-upload" 
+                type="file" 
+                accept=".pdf,.doc,.docx" 
+                onChange={handleFileChange} 
+                className="hidden"
+              />
+              
+              {selectedFile && (
+                <div className="mt-4 flex items-center justify-center p-2 bg-muted rounded-md w-full">
                   <FileText className="h-4 w-4 mr-2 text-primary" />
                   <span className="text-sm font-medium truncate">
-                    {fileInfo?.originalName || "Document"}
+                    {selectedFile.name}
                   </span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             
-            {/* Show alert about how it works */}
+            {/* Show alert about API usage */}
             <Alert className="mt-4 bg-primary/5 text-primary border-primary/20">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>How it works</AlertTitle>
               <AlertDescription className="text-sm">
-                {uploadState === 'ready' 
-                  ? "Click 'Analyze and Proceed' to extract information from your CV using AI. This process works best with Word documents."
-                  : "We use AI to analyze your CV and extract relevant information. For better results, PDF files will be converted to Word format automatically."}
+                We use AI to analyze your CV and extract relevant information. The data will be automatically filled in the builder form.
               </AlertDescription>
             </Alert>
           </CardContent>
           <CardFooter>
-            {uploadState === 'ready' ? (
-              // Show analyze button in ready state
-              <Button 
-                onClick={handleAnalyze} 
-                className="w-full"
-                disabled={parseCVMutation.isPending}
-              >
-                {getUploadButtonContent()}
-              </Button>
-            ) : (
-              // Show upload button in other states
-              <Button 
-                onClick={handleUpload} 
-                className="w-full"
-                disabled={!selectedFile || uploadState === 'uploading' || uploadState === 'converting' || uploadState === 'analyzing'}
-              >
-                {getUploadButtonContent()}
-              </Button>
-            )}
+            <Button 
+              onClick={handleUpload} 
+              className="w-full"
+              disabled={!selectedFile || parseCVMutation.isPending}
+            >
+              {parseCVMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing Document...
+                </>
+              ) : (
+                <>
+                  Upload and Analyze
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
           </CardFooter>
         </Card>
         

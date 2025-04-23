@@ -41,31 +41,9 @@ export async function extractPDFText(buffer: Buffer): Promise<PDFData> {
     }
     
     // Clean up the text - remove non-printable characters
-    let cleanedText = text.replace(/[^\x20-\x7E\r\n\t]/g, ' ')
-                          .replace(/\s{2,}/g, ' ')
-                          .trim();
-                         
-    // Try to identify and split lines properly (PDF extraction often combines lines)
-    // Look for patterns like capital letters after periods, capital first letters of lines,
-    // and bullet points
-    
-    // First convert multiple line breaks to a standard format
-    cleanedText = cleanedText.replace(/\r\n/g, '\n')
-                            .replace(/\r/g, '\n')
-                            .replace(/\n{3,}/g, '\n\n');
-    
-    // Then improve text parsing with additional formatting
-    cleanedText = cleanedText
-      // Create line breaks before bullet points
-      .replace(/([.!?]) ([•\-\*])/g, '$1\n$2')
-      // Create line breaks before dates in common formats (e.g., MM/YYYY, YYYY-YYYY)
-      .replace(/([.!?]) (\d{1,2}\/\d{4}|\d{4}-\d{4})/g, '$1\n$2')
-      // Create line breaks before uppercase-started sentences, being cautious of abbreviations
-      .replace(/([.!?]) ([A-Z][a-z])/g, '$1\n$2')
-      // Create line breaks after colons that are part of section headers
-      .replace(/([A-Za-z]+):\s+/g, '$1:\n')
-      // Ensure there's a line break after ALL CAPS text (common for headers)
-      .replace(/([A-Z]{2,}[A-Z ]{3,})\s+([a-z])/g, '$1\n$2');
+    const cleanedText = text.replace(/[^\x20-\x7E\r\n\t]/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
     
     return {
       text: cleanedText,
