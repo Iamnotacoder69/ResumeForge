@@ -3,16 +3,7 @@
  */
 
 import { PDFDocument } from 'pdf-lib';
-
-// Define the PDF output interface
-export interface PDFData {
-  text: string;
-  numpages: number;
-  info?: Record<string, any>;
-  metadata?: Record<string, any>;
-  version?: string;
-  sections?: Record<string, string>;
-}
+import { PDFData } from './pdf-wrapper';
 
 // CV/Resume common section markers (case insensitive)
 const SECTION_MARKERS = {
@@ -223,7 +214,7 @@ async function extractTextFromBinaryPDF(buffer: Buffer): Promise<string> {
  * @param text Full CV text
  * @returns Object with sections identified in the text
  */
-function identifyCVSections(text: string): Record<string, string> {
+export function identifyCVSections(text: string): Record<string, string> {
   const sections: Record<string, string> = {};
   const lines = text.split('\n').map(line => line.trim());
   

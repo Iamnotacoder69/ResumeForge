@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import { extractPDFText, PDFData } from './mock-pdf-parse';
+import { parsePDF } from './pdf-wrapper';
+import { identifyCVSections } from './mock-pdf-parse';
 import * as mammoth from 'mammoth';
 
 const mkdir = promisify(fs.mkdir);
@@ -15,20 +16,26 @@ const writeFile = promisify(fs.writeFile);
  * @param pdfBuffer PDF file as buffer
  * @returns Extracted data with both full text and identified sections
  */
-async function extractCVDataFromPDF(pdfBuffer: Buffer): Promise<PDFData> {
+async function extractCVDataFromPDF(pdfBuffer: Buffer) {
   try {
-    // Use our advanced CV-optimized PDF text extraction
-    const pdfData = await extractPDFText(pdfBuffer);
+    // Use pdf-parse for better text extraction
+    const pdfData = await parsePDF(pdfBuffer);
     console.log(`PDF has ${pdfData.numpages || 1} pages, extracted ${pdfData.text.length} characters`);
     
+    // Sample the first 100 characters for debugging
+    const textSample = pdfData.text.substring(0, 100).replace(/\n/g, '\\n');
+    console.log(`PDF text sample: ${textSample}...`);
+    
     if (pdfData.text.length > 100) {
-      // Successful extraction
-      if (pdfData.sections) {
-        console.log(`CV sections identified: ${Object.keys(pdfData.sections).join(', ')}`);
-      } else {
-        console.log('No CV sections identified in the document');
-      }
-      return pdfData;
+      // Enhanced data: identify CV sections from the extracted text
+      const sections = identifyCVSections(pdfData.text);
+      console.log(`Identified ${Object.keys(sections).length} CV sections from text content`);
+      
+      // Return combined data
+      return {
+        ...pdfData,
+        sections
+      };
     } else {
       console.warn("Limited text extracted from PDF - likely a scanned document");
       return pdfData;
@@ -40,6 +47,9 @@ async function extractCVDataFromPDF(pdfBuffer: Buffer): Promise<PDFData> {
     return {
       text: "Error extracting text from PDF. The document may be password-protected, corrupted, or contain no extractable text.",
       numpages: 0,
+      info: {},
+      metadata: {},
+      version: '',
       sections: {}
     };
   }

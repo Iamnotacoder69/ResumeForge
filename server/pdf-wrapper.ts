@@ -1,12 +1,13 @@
 import * as fs from 'fs';
 
 // Define the PDF output interface to match what we need
-interface PDFData {
+export interface PDFData {
   text: string;
   numpages: number;
   info?: Record<string, any>;
   metadata?: Record<string, any>;
   version?: string;
+  sections?: Record<string, string>;
 }
 
 // Custom function to safely parse PDFs without requiring test files
