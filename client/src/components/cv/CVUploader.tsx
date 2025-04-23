@@ -71,19 +71,13 @@ export default function CVUploader() {
       setUploadedFilePath(data.data.filePath);
       setUploadedFileType(data.data.fileType);
       
-      // If it's a PDF that needs conversion, we keep original file type
-      // Otherwise we update the step to uploaded
-      if (originalFileType === 'application/pdf') {
-        setUploadStep('uploaded'); // PDF needs conversion as a next step
-      } else {
-        setUploadStep('uploaded'); // DOCX doesn't need conversion
-      }
+      // We'll now skip the conversion step for PDFs since we can analyze them directly
+      // with our new vision-based implementation
+      setUploadStep('uploaded');
       
       toast({
         title: "File uploaded successfully",
-        description: originalFileType === 'application/pdf' 
-          ? "Your PDF file is ready for conversion to a format we can analyze." 
-          : "Your document is ready for analysis.",
+        description: "Your document is ready for analysis.",
       });
     },
     onError: (error) => {
@@ -348,17 +342,6 @@ export default function CVUploader() {
           Uploading...
         </Button>
       );
-    } else if (uploadStep === 'uploaded' && originalFileType === 'application/pdf') {
-      return (
-        <Button 
-          onClick={handleConvert} 
-          className="w-full"
-          variant="secondary"
-        >
-          Convert PDF to DOCX
-          <FileOutput className="ml-2 h-4 w-4" />
-        </Button>
-      );
     } else if (uploadStep === 'converting') {
       return (
         <Button 
@@ -469,32 +452,8 @@ export default function CVUploader() {
         </div>
       );
     } 
-    // Uploaded state for PDFs - waiting for conversion
-    else if (uploadStep === 'uploaded' && originalFileType === 'application/pdf') {
-      return (
-        <div className="p-8 text-center flex flex-col items-center justify-center min-h-[200px] border-2 border-primary/30 rounded-lg bg-primary/5">
-          <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-          <div className="text-lg font-semibold mb-2">PDF uploaded successfully!</div>
-          <p className="text-sm text-muted-foreground mb-6">
-            Your PDF needs to be converted before we can analyze it.
-          </p>
-          
-          <div className="flex items-center p-3 bg-background rounded-md w-full mb-2 border border-muted">
-            <FileType className="h-5 w-5 mr-3 text-primary" />
-            <div className="text-sm">
-              <div className="font-medium">{selectedFile?.name}</div>
-              <div className="text-xs text-muted-foreground">
-                PDF file ready for conversion to DOCX format
-              </div>
-            </div>
-          </div>
-          
-          <p className="text-sm mt-4">
-            Click "Convert PDF to DOCX" below to prepare your file for analysis
-          </p>
-        </div>
-      );
-    }
+    // We no longer need this condition as PDFs go straight to analysis
+    
     // Either after conversion for PDFs or after upload for DOCXs - ready for analysis
     else if (uploadStep === 'uploaded' || uploadStep === 'converted') {
       return (
@@ -529,13 +488,9 @@ export default function CVUploader() {
     }
   };
   
-  // Get the appropriate upload process explanation based on file type
+  // Get the upload process explanation - now simplified for all file types
   const getProcessDescription = () => {
-    if (!selectedFile) return "Two steps: Upload your CV, then analyze it to extract information.";
-    
-    return selectedFile.type === 'application/pdf'
-      ? "Three steps: Upload your PDF, convert it to DOCX format, then analyze it to extract information."
-      : "Two steps: Upload your document, then analyze it to extract information.";
+    return "Two steps: Upload your CV, then analyze it to extract information.";
   };
   
   return (
@@ -567,7 +522,7 @@ export default function CVUploader() {
               <Alert className="mt-4 bg-primary/5 text-primary border-primary/20">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>
-                  {selectedFile?.type === 'application/pdf' ? 'Three-step process' : 'Two-step process'}
+                  Two-step process
                 </AlertTitle>
                 <AlertDescription className="text-sm">
                   {getProcessDescription()}
