@@ -201,8 +201,10 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
                   cvText = pdfText;
                 }
                 
-                // Skip other fallback attempts since we now have good text
-                return;
+                // We have good text from the original PDF, nothing more to do
+                // The extracted PDF text is already saved in cvText
+                // The other extraction methods will be skipped in the next steps
+                console.log("Using original PDF text directly for analysis, skipping other extraction steps");
               }
             } catch (pdfError) {
               console.error("Error extracting text directly from original PDF:", pdfError);
