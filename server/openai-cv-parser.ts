@@ -4,7 +4,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mammoth from "mammoth";
 import { extractPDFText } from "./mock-pdf-parse";
-import { extractTextFromPDFBuffer, convertPDFtoText } from "./pdf-direct-parse";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -80,40 +79,22 @@ async function extractFromConvertedPDF(filePath: string): Promise<string> {
 }
 
 /**
- * Extract text directly from a PDF using pdf-parse library
+ * Extract text directly from a PDF using our advanced section-based PDF parser
  * @param pdfPath Path to the PDF file
  * @returns Extracted text with section structure preserved
  */
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
-    console.log(`Extracting text from PDF: ${path.basename(pdfPath)}`);
-    
     // Read the PDF file
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // First try our new direct PDF-to-text approach
-    try {
-      // Extract data from the PDF with section identification
-      const pdfData = await extractTextFromPDFBuffer(dataBuffer);
-      console.log(`Extracted PDF text length: ${pdfData.text.length} characters from ${pdfData.numpages} pages`);
-      
-      // Check if we successfully extracted a reasonable amount of text
-      if (pdfData.text.length > 300) {
-        console.log("Successfully extracted text from PDF using direct parser");
-        return pdfData.text;
-      }
-    } catch (pdfParseError) {
-      console.error("Error using direct PDF extraction:", pdfParseError);
-      // We'll fall back to our previous method
-    }
-    
-    // If pdf-parse failed or returned minimal text, try our previous approach
-    console.log("Falling back to alternative PDF extraction method");
+    // Use our advanced CV-optimized text extraction
     const pdfData = await extractPDFText(dataBuffer);
+    console.log(`Extracted PDF text length: ${pdfData.text.length}`);
     
-    // Check if sections were identified
+    // Check if sections were identified (this is our new approach)
     if (pdfData.sections && Object.keys(pdfData.sections).length > 0) {
-      console.log(`Fallback method identified ${Object.keys(pdfData.sections).length} CV sections`);
+      console.log(`Successfully identified ${Object.keys(pdfData.sections).length} CV sections`);
       
       // Format with section headings for better OpenAI understanding
       const sectionTitles: Record<string, string> = {
