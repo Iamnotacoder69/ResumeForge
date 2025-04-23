@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mammoth from "mammoth";
 import { extractPDFText } from "./mock-pdf-parse";
-import { convertPDFtoText, extractDataFromPDF } from "./pdf-to-text";
+import { extractTextFromPDFBuffer, convertPDFtoText } from "./pdf-direct-parse";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -91,25 +91,19 @@ async function extractTextFromPDF(pdfPath: string): Promise<string> {
     // Read the PDF file
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // First try our new PDF-to-text approach using pdf-parse
+    // First try our new direct PDF-to-text approach
     try {
       // Extract data from the PDF with section identification
-      const pdfData = await extractDataFromPDF(dataBuffer);
+      const pdfData = await extractTextFromPDFBuffer(dataBuffer);
       console.log(`Extracted PDF text length: ${pdfData.text.length} characters from ${pdfData.numpages} pages`);
       
       // Check if we successfully extracted a reasonable amount of text
       if (pdfData.text.length > 300) {
-        // Check if sections were identified
-        if (pdfData.sections && Object.keys(pdfData.sections).length > 0) {
-          console.log(`Successfully identified ${Object.keys(pdfData.sections).length} CV sections`);
-          return pdfData.text; // The text already has section markers from extractDataFromPDF
-        } else {
-          console.log(`Successfully extracted text but no sections identified`);
-          return pdfData.text; // Return plain text
-        }
+        console.log("Successfully extracted text from PDF using direct parser");
+        return pdfData.text;
       }
     } catch (pdfParseError) {
-      console.error("Error using pdf-parse extraction:", pdfParseError);
+      console.error("Error using direct PDF extraction:", pdfParseError);
       // We'll fall back to our previous method
     }
     

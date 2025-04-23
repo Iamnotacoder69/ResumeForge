@@ -39,7 +39,7 @@ export async function convertPDFtoText(pdfPath: string): Promise<string> {
     const pdfBuffer = await readFile(pdfPath);
     
     // Parse the PDF to extract text
-    const data = await pdfParse(pdfBuffer);
+    const data = await parsePDF(pdfBuffer);
     
     // Create a unique hash for the filename to avoid collisions
     const fileHash = Math.random().toString(36).substring(2, 15);
@@ -211,7 +211,7 @@ async function processPDFText(text: string): Promise<string> {
 export async function extractDataFromPDF(pdfBuffer: Buffer): Promise<PDFData> {
   try {
     // Parse the PDF to extract text
-    const data = await pdfParse(pdfBuffer);
+    const data = await parsePDF(pdfBuffer);
     
     // Process the text to identify sections
     const processedText = await processPDFText(data.text);

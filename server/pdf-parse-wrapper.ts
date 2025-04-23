@@ -3,9 +3,11 @@
  * from running and looking for a test file that might not exist.
  */
 import { PDFData } from './mock-pdf-parse';
+import fs from 'fs';
 
-// Import the actual parser from the library's lib directory instead of the main index
-const pdfParser = require('pdf-parse/lib/pdf-parse.js');
+// Import pdf-parse's direct module using dynamic import
+import pkg from 'pdf-parse';
+const pdfParser = pkg.default;
 
 /**
  * Parse a PDF buffer to extract text and metadata
