@@ -23,6 +23,30 @@ async function isConvertedPDF(filePath: string): Promise<boolean> {
   }
 }
 
+// Extract all useful data from a DOCX that was converted from a PDF
+async function extractFromConvertedPDF(filePath: string): Promise<string> {
+  try {
+    // Read the text from the file
+    const result = await mammoth.extractRawText({ path: filePath });
+    const text = result.value;
+    
+    // Since we know this is a converted PDF, we want to skip our header text and get to the actual content
+    // Find where our actual PDF content begins (after the header)
+    const contentStart = text.indexOf("This document was converted from a PDF.");
+    
+    if (contentStart > -1) {
+      // Extract everything after our header
+      return text.substring(contentStart + "This document was converted from a PDF.".length).trim();
+    }
+    
+    // If we can't find the marker, just return the whole text
+    return text;
+  } catch (error) {
+    console.error("Error extracting text from converted PDF:", error);
+    return "Error extracting text from the document.";
+  }
+}
+
 // Helper function for extracting text from PDF files
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
@@ -82,8 +106,14 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
         if (isConverted) {
           console.log("Detected a converted PDF document in DOCX format");
           // Special handling for converted PDFs
-          const result = await mammoth.extractRawText({path: filePath});
-          cvText = result.value;
+          const extractedText = await extractFromConvertedPDF(filePath);
+          cvText = extractedText;
+          
+          // If we got almost nothing from the extraction, add some context
+          if (cvText.length < 100) {
+            const filename = path.basename(filePath);
+            cvText = `This appears to be a CV document extracted from a PDF named ${filename}. The PDF may be an image-based or scanned document with limited machine-readable text. Please extract any information that can be determined from the available text fragments.`;
+          }
           
           // Add a note that this is a converted PDF to help the AI model
           cvText += "\n\nNote: This document was originally a PDF that was converted to DOCX format for processing. Some formatting or content may have been simplified during conversion.";

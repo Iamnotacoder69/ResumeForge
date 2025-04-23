@@ -3,6 +3,7 @@ import path from 'path';
 import { promisify } from 'util';
 import { PDFDocument } from 'pdf-lib';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { extractPDFText } from './mock-pdf-parse';
 
 const mkdir = promisify(fs.mkdir);
 const exists = promisify(fs.exists);
@@ -10,28 +11,43 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 /**
- * Extract text from PDF buffer
+ * Extract text from PDF buffer using our mock-pdf-parse
  * @param pdfBuffer PDF file as buffer
  * @returns Extracted text from PDF
  */
 async function extractTextFromPDF(pdfBuffer: Buffer): Promise<string> {
   try {
-    // Load the PDF document
+    // Use our custom PDF text extraction that works better than pdf-lib for text
+    const pdfData = await extractPDFText(pdfBuffer);
+    const pageCount = pdfData.numpages || 1;
+    
+    console.log(`PDF has ${pageCount} pages, extracted ${pdfData.text.length} characters`);
+    
+    if (pdfData.text.length > 100) {
+      // If we got a reasonable amount of text, use it
+      return pdfData.text;
+    }
+    
+    // If we didn't get much text, we'll add a note about it being a scanned PDF potentially
     const pdfDoc = await PDFDocument.load(pdfBuffer);
-    
-    // Get pages and page count
     const pages = pdfDoc.getPages();
-    const pageCount = pages.length;
     
-    console.log(`PDF has ${pageCount} pages`);
+    // Get the filename from the metadata if available
+    const title = pdfDoc.getTitle() || "Unknown PDF";
     
-    // Since we can't directly extract text with pdf-lib, 
-    // we'll return a placeholder that lets the OpenAI analyze PDF content directly
-    // We need to use other methods to get the actual text
-    return `PDF document with ${pageCount} pages. Content requires external processing.`;
+    return `This is a PDF document titled "${title}" with ${pages.length} pages. 
+    
+It appears to have limited machine-readable text, which may indicate it's a scanned document.
+
+The following text was extracted:
+
+${pdfData.text}
+
+This document has been converted to DOCX format for analysis.`;
   } catch (error: unknown) {
     console.error('Error extracting text from PDF:', error);
-    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Return at least something instead of failing completely
+    return "Error extracting text from PDF. The document may be password-protected, corrupted, or contain no extractable text.";
   }
 }
 
