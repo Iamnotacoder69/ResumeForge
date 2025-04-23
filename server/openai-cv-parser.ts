@@ -80,22 +80,46 @@ async function extractFromConvertedPDF(filePath: string): Promise<string> {
 }
 
 /**
- * Extract text directly from a PDF using our advanced section-based PDF parser
+ * Extract text directly from a PDF using pdf-parse library
  * @param pdfPath Path to the PDF file
  * @returns Extracted text with section structure preserved
  */
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
+    console.log(`Extracting text from PDF: ${path.basename(pdfPath)}`);
+    
     // Read the PDF file
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // Use our advanced CV-optimized text extraction
-    const pdfData = await extractPDFText(dataBuffer);
-    console.log(`Extracted PDF text length: ${pdfData.text.length}`);
+    // First try our new PDF-to-text approach using pdf-parse
+    try {
+      // Extract data from the PDF with section identification
+      const pdfData = await extractDataFromPDF(dataBuffer);
+      console.log(`Extracted PDF text length: ${pdfData.text.length} characters from ${pdfData.numpages} pages`);
+      
+      // Check if we successfully extracted a reasonable amount of text
+      if (pdfData.text.length > 300) {
+        // Check if sections were identified
+        if (pdfData.sections && Object.keys(pdfData.sections).length > 0) {
+          console.log(`Successfully identified ${Object.keys(pdfData.sections).length} CV sections`);
+          return pdfData.text; // The text already has section markers from extractDataFromPDF
+        } else {
+          console.log(`Successfully extracted text but no sections identified`);
+          return pdfData.text; // Return plain text
+        }
+      }
+    } catch (pdfParseError) {
+      console.error("Error using pdf-parse extraction:", pdfParseError);
+      // We'll fall back to our previous method
+    }
     
-    // Check if sections were identified (this is our new approach)
+    // If pdf-parse failed or returned minimal text, try our previous approach
+    console.log("Falling back to alternative PDF extraction method");
+    const pdfData = await extractPDFText(dataBuffer);
+    
+    // Check if sections were identified
     if (pdfData.sections && Object.keys(pdfData.sections).length > 0) {
-      console.log(`Successfully identified ${Object.keys(pdfData.sections).length} CV sections`);
+      console.log(`Fallback method identified ${Object.keys(pdfData.sections).length} CV sections`);
       
       // Format with section headings for better OpenAI understanding
       const sectionTitles: Record<string, string> = {

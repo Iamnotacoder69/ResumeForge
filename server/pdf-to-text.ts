@@ -1,9 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import pdfParse from 'pdf-parse';
 import { PDFData } from './mock-pdf-parse';
-import { exists, mkdir } from 'fs/promises';
+import { parsePDF } from './pdf-parse-wrapper';
+import { mkdir } from 'fs/promises';
+
+// Define exists function using fs.promises access
+const exists = async (path: string): Promise<boolean> => {
+  try {
+    await fs.promises.access(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 // Convert fs functions to promises
 const readFile = promisify(fs.readFile);
