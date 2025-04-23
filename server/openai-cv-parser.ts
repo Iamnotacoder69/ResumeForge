@@ -3,9 +3,83 @@ import { CompleteCV } from "@shared/types";
 import * as fs from "fs";
 import * as mammoth from "mammoth";
 import { extractPDFText } from "./mock-pdf-parse";
+import AdmZip from "adm-zip";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+/**
+ * Enhanced text extraction from Word document with fallback mechanisms
+ * This is specifically designed to handle DOCX files converted from PDFs
+ * which often don't extract well with standard methods
+ */
+async function extractDetailedTextFromWord(filePath: string): Promise<string> {
+  try {
+    // First try standard extraction
+    const standardResult = await mammoth.extractRawText({path: filePath});
+    let text = standardResult.value;
+    
+    console.log("Extracted Word text length:", text.length);
+    
+    // If we got enough text, just return it
+    if (text.length > 500) {
+      return text;
+    }
+    
+    // If the text is too short, try a more aggressive approach
+    console.log("Standard extraction yielded minimal text, trying alternate methods...");
+    
+    // Try to extract all text from all XML parts in the DOCX (which is just a ZIP file)
+    try {
+      const zip = new AdmZip(filePath);
+      const zipEntries = zip.getEntries();
+      
+      let allXmlContent = "";
+      
+      // Look at all XML files in the document
+      zipEntries.forEach((entry) => {
+        if (entry.entryName.endsWith('.xml') && !entry.isDirectory) {
+          try {
+            const content = zip.readAsText(entry);
+            
+            // Simple XML cleaning to extract just the text
+            let cleaned = content
+              .replace(/<\/w:t>/g, ' ')           // Add spaces between text elements
+              .replace(/<[^>]*>/g, '')            // Remove all XML tags
+              .replace(/\s+/g, ' ')               // Normalize whitespace
+              .trim();                            // Trim extra whitespace
+              
+            if (cleaned.length > 20) {  // Only add content with meaningful text
+              allXmlContent += cleaned + "\n\n";
+            }
+          } catch (e) {
+            // Skip files that can't be read as text
+          }
+        }
+      });
+      
+      // If we got some useful content from the XMLs
+      if (allXmlContent.length > text.length) {
+        console.log("XML extraction successful, got", allXmlContent.length, "characters");
+        text = allXmlContent;
+      }
+    } catch (zipError) {
+      console.error("Failed alternate DOCX extraction:", zipError);
+      // Continue with standard text
+    }
+    
+    // If still not much text, add a warning
+    if (text.length < 100) {
+      console.log("Warning: Very little text extracted from Word document");
+      text += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
+    }
+    
+    return text;
+  } catch (error) {
+    console.error("Error extracting text from Word document:", error);
+    throw error;
+  }
+}
 
 // Helper function for extracting text from PDF files
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
@@ -60,15 +134,7 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     // For Word documents, extract the text
     if (fileType.includes("wordprocessingml") || fileType.includes("msword")) {
       try {
-        const dataBuffer = fs.readFileSync(filePath);
-        const result = await mammoth.extractRawText({buffer: dataBuffer});
-        cvText = result.value;
-        console.log("Extracted Word text length:", cvText.length);
-        
-        if (cvText.length < 100) {
-          console.log("Warning: Very little text extracted from Word document");
-          cvText += "\n\nNote: Very little text was extracted from this document. It may not contain searchable text or might be mostly formatted as images.";
-        }
+        cvText = await extractDetailedTextFromWord(filePath);
       } catch (error) {
         console.error("Error extracting text from Word document:", error);
         cvText = "Error extracting text from Word document. Please try uploading a different file.";
