@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mammoth from "mammoth";
 import { extractPDFText } from "./mock-pdf-parse";
+import { convertPDFtoText, extractDataFromPDF } from "./pdf-to-text";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
