@@ -83,7 +83,9 @@ export default function CVUploader() {
     mutationFn: async (filePath: string) => {
       // Create a FormData with the file path
       const formData = new FormData();
-      formData.append("cv", new File([], "document.docx"));
+      // Include an empty file to satisfy multer
+      formData.append("cv", new Blob([""], { type: "text/plain" }), "placeholder.txt");
+      // The filePath is what matters
       formData.append("filePath", filePath);
       
       const url = "/api/parse-cv";

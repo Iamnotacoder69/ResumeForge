@@ -149,18 +149,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Parse CV file and extract information
-  app.post("/api/parse-cv", upload.single('cv'), async (req: Request, res: Response) => {
+  // Special multer instance for the parse-cv endpoint that accepts an empty file
+// when we're just passing a filePath
+const parseUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, os.tmpdir());
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      // Get file extension
+      const extension = path.extname(file.originalname);
+      cb(null, file.fieldname + '-' + uniqueSuffix + extension);
+    }
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // Limit to 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    // If this is a filePath mode, accept any file (it will be empty anyway)
+    if (req.body.filePath) {
+      return cb(null, true);
+    }
+    
+    // Otherwise, check file types normally
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'));
+    }
+  }
+});
+
+// Parse CV file and extract information
+  app.post("/api/parse-cv", parseUpload.single('cv'), async (req: Request, res: Response) => {
     try {
-      // Check if file was uploaded or if a filePath was provided
-      const filePath = req.body.filePath || (req.file ? req.file.path : null);
+      // Check if filePath was provided in the request body
+      const filePath = req.body.filePath;
       
-      if (!filePath) {
+      if (!filePath && !req.file) {
         return res.status(400).json({
           success: false,
           message: "No file uploaded or filePath provided"
         });
       }
+      
+      // Determine actual file path to use - either the uploaded file or the provided path
+      const actualFilePath = req.file ? req.file.path : filePath;
       
       // Parse CV file
       try {
@@ -168,8 +209,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If we have a file upload, use its mimetype, otherwise determine from the filePath extension
         let fileType = req.file ? req.file.mimetype : "";
         
-        if (!fileType && filePath) {
-          const ext = path.extname(filePath).toLowerCase();
+        if (!fileType && actualFilePath) {
+          const ext = path.extname(actualFilePath).toLowerCase();
           if (ext === '.pdf') {
             fileType = 'application/pdf';
           } else if (ext === '.docx') {
@@ -179,10 +220,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        console.log(`Parsing CV from file: ${filePath}, type: ${fileType}`);
+        console.log(`Parsing CV from file: ${actualFilePath}, type: ${fileType}`);
         
         // Parse using OpenAI
-        const parsedCV = await parseCV(filePath, fileType);
+        const parsedCV = await parseCV(actualFilePath, fileType);
         
         // Return structured data
         res.status(200).json({
