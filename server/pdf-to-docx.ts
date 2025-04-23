@@ -68,7 +68,7 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
     const docxPath = path.join(tempDir, `${fileHash}.docx`);
 
     // Array to collect document paragraphs
-    const docElements = [];
+    const docElements: Paragraph[] = [];
     
     // Add document title
     docElements.push(
@@ -79,17 +79,17 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
       })
     );
     
-    // Has sections been identified?
+    // Check if sections were identified
     const hasSections = cvData.sections && Object.keys(cvData.sections).length > 0;
     
-    if (hasSections) {
+    if (hasSections && cvData.sections) {
       // Structure document by CV sections
       const sectionOrder = [
         "PERSONAL", "SUMMARY", "SKILLS", "EXPERIENCE", 
         "EDUCATION", "CERTIFICATIONS", "LANGUAGES", "ADDITIONAL"
       ];
       
-      const sectionTitles = {
+      const sectionTitles: Record<string, string> = {
         "PERSONAL": "Personal Information",
         "SUMMARY": "Professional Summary",
         "SKILLS": "Skills & Competencies",
@@ -102,33 +102,38 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
       
       // Add each section in order
       for (const sectionKey of sectionOrder) {
-        const sectionContent = cvData.sections[sectionKey];
-        if (sectionContent) {
-          // Add section heading
-          docElements.push(
-            new Paragraph({
-              text: sectionTitles[sectionKey],
-              heading: HeadingLevel.HEADING_1,
-              spacing: {
-                before: 400,
-                after: 200
+        // Safely check if this key exists in sections
+        if (sectionKey in cvData.sections) {
+          // Get the content
+          const sectionContent = (cvData.sections as Record<string, string>)[sectionKey];
+          if (sectionContent) {
+            // Add section heading with proper type handling
+            const title = sectionKey in sectionTitles ? sectionTitles[sectionKey] : sectionKey;
+            docElements.push(
+              new Paragraph({
+                text: title,
+                heading: HeadingLevel.HEADING_1,
+                spacing: {
+                  before: 400,
+                  after: 200
+                }
+              })
+            );
+            
+            // Add section content (split by lines for better formatting)
+            const contentLines = sectionContent.split('\n');
+            for (const line of contentLines) {
+              if (line.trim().length > 0) {
+                docElements.push(
+                  new Paragraph({
+                    text: line,
+                    spacing: {
+                      before: 80,
+                      after: 80
+                    }
+                  })
+                );
               }
-            })
-          );
-          
-          // Add section content (split by lines for better formatting)
-          const contentLines = sectionContent.split('\n');
-          for (const line of contentLines) {
-            if (line.trim().length > 0) {
-              docElements.push(
-                new Paragraph({
-                  text: line,
-                  spacing: {
-                    before: 80,
-                    after: 80
-                  }
-                })
-              );
             }
           }
         }
@@ -170,7 +175,7 @@ export async function convertPDFtoDOCX(pdfPath: string): Promise<string> {
       const textLines = processedText.split('\n');
       
       // Handle text in chunks for better document structure
-      let currentParagraph = [];
+      let currentParagraph: string[] = [];
       
       for (const line of textLines) {
         if (line.trim().length === 0 && currentParagraph.length > 0) {

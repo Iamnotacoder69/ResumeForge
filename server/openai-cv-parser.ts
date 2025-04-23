@@ -78,29 +78,63 @@ async function extractFromConvertedPDF(filePath: string): Promise<string> {
   }
 }
 
-// Helper function for extracting text from PDF files
+/**
+ * Extract text directly from a PDF using our advanced section-based PDF parser
+ * @param pdfPath Path to the PDF file
+ * @returns Extracted text with section structure preserved
+ */
 async function extractTextFromPDF(pdfPath: string): Promise<string> {
   try {
+    // Read the PDF file
     const dataBuffer = fs.readFileSync(pdfPath);
     
-    // Use our custom PDF text extraction
+    // Use our advanced CV-optimized text extraction
     const pdfData = await extractPDFText(dataBuffer);
     console.log(`Extracted PDF text length: ${pdfData.text.length}`);
     
-    // If we got a reasonable amount of text, use it
+    // Check if sections were identified (this is our new approach)
+    if (pdfData.sections && Object.keys(pdfData.sections).length > 0) {
+      console.log(`Successfully identified ${Object.keys(pdfData.sections).length} CV sections`);
+      
+      // Format with section headings for better OpenAI understanding
+      const sectionTitles: Record<string, string> = {
+        "PERSONAL": "PERSONAL INFORMATION",
+        "SUMMARY": "PROFESSIONAL SUMMARY",
+        "SKILLS": "SKILLS & COMPETENCIES",
+        "EXPERIENCE": "WORK EXPERIENCE",
+        "EDUCATION": "EDUCATION",
+        "CERTIFICATIONS": "CERTIFICATIONS",
+        "LANGUAGES": "LANGUAGES",
+        "ADDITIONAL": "ADDITIONAL INFORMATION"
+      };
+      
+      // Build a structured text representation with clear section markers
+      let structuredText = "CV/RESUME CONTENT\n\n";
+      
+      // Add each section with clear headings that OpenAI can recognize
+      for (const [sectionKey, content] of Object.entries(pdfData.sections)) {
+        if (content && content.trim().length > 0) {
+          const title = sectionKey in sectionTitles ? sectionTitles[sectionKey] : sectionKey;
+          structuredText += `### ${title} ###\n${content}\n\n`;
+        }
+      }
+      
+      console.log("Successfully extracted structured CV content with sections");
+      return structuredText.trim();
+    }
+    
+    // If we got a reasonable amount of text but no sections, use the plain text
     if (pdfData.text.length > 300) {
-      // Successful extraction
+      console.log("No sections identified, using full text content");
       return pdfData.text;
     }
     
-    // For PDFs with minimal extractable text, let's use a fallback approach
-    // Get the filename to use as context
+    // For PDFs with minimal extractable text, use a fallback approach with filename context
     const fileName = pdfPath.split('/').pop() || 'document.pdf';
     
     console.log("PDF text extraction yielded minimal results, using filename as context");
     
-    // Instead of extracting nothing, we'll generate a request for OpenAI to infer
-    // the type of document from the file name and what little text we extracted
+    // Generate a request for OpenAI to infer document content from minimal text
     return `This is a CV/resume PDF document named "${fileName}". 
 The PDF appears to contain limited machine-readable text, but is likely a professional resume/CV.
 From the document, I was able to extract the following text fragments:
@@ -231,7 +265,7 @@ export async function parseCV(filePath: string, fileType: string): Promise<Compl
     }
     
     const jsonStructurePrompt = `
-You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, so you may need to infer some details from partial information." : ""}
+You are a professional CV parser specializing in extracting structured information from CVs and resumes. ${isPDF ? "This CV was uploaded as a PDF, and the text has been pre-processed to identify key sections." : ""}
 
 Please analyze the CV content carefully and extract ALL of the following information, making reasonable inferences even when information is incomplete:
 
@@ -245,7 +279,8 @@ Please analyze the CV content carefully and extract ALL of the following informa
 8. Extracurricular activities - identify any activities outside of work
 9. Any additional skills not covered above
 
-NOTE: The CV text has been truncated to fit token limits. Make reasonable assumptions about the person's experience based on the available context. If you identify a section heading that appears cut off, try to infer what might be contained in that section.
+NOTE: The CV content may be organized into sections with markers like "### SECTION NAME ###" which indicate different parts of the resume.
+Pay special attention to these section markers to help you identify the content type accurately.
 
 Format your response as a JSON object with the following structure:
 {
@@ -309,9 +344,10 @@ Format your response as a JSON object with the following structure:
 }
 
 IMPORTANT: 
-1. Work with the truncated text - parts of the CV are marked with "[...content truncated due to length...]".
-2. For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences.
-3. Focus on extracting key information from the available text segments.
+1. The text may have section markers like "### WORK EXPERIENCE ###" - use these to identify different parts of the CV.
+2. Parts of the CV might be marked with "[...content truncated due to length...]" - make reasonable assumptions about truncated content.
+3. For section content like work experiences, NEVER leave fields empty. If details are unclear, make reasonable inferences.
+4. Focus on extracting key information from the available text segments.
 
 CV content:
 ${cvText}`;
