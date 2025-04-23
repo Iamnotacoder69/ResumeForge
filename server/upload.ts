@@ -2,16 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
-import { spawn } from 'child_process';
 import mammoth from 'mammoth';
+import { extractTextFromPDF } from './pdf-extractor';
 
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
 const readFile = promisify(fs.readFile);
 
 /**
- * Extract text from a PDF file using the pdftotext command if available,
- * or provide a sample message if not
+ * Extract text from a PDF file using our specialized PDF extractor
  * @param filePath Path to the PDF file
  * @returns Extracted text content
  */
@@ -19,29 +18,19 @@ async function convertPdfToText(filePath: string): Promise<string> {
   try {
     console.log(`Processing PDF file: ${filePath}`);
     
-    // For now, we'll return a simple message that the PDF was processed
-    // but couldn't be fully parsed. In a production environment, 
-    // we would use a more robust PDF extraction library or tool
+    // Use our specialized PDF extractor that tries multiple methods
+    const pdfText = await extractTextFromPDF(filePath);
     
-    // This approach will let us at least test the overall flow
-    // Read the file size for basic validation that it contains content
-    const stats = await fs.promises.stat(filePath);
-    
-    if (stats.size === 0) {
-      throw new Error("PDF file is empty");
+    if (!pdfText || pdfText.trim().length < 50) {
+      console.warn("WARNING: Extracted PDF text is very short or empty");
+      throw new Error("The extracted PDF text was too short to be a valid CV");
     }
     
-    console.log(`PDF file size: ${stats.size} bytes`);
-    
-    // Return a message acknowledging the PDF, to be improved later
-    // This helps test the workflow without getting stuck on PDF parsing
-    return `PDF file processed. File size: ${stats.size} bytes. 
-    This is a placeholder for the actual PDF content which will be properly 
-    extracted and parsed in a production environment. The CV appears to contain
-    personal details, professional experience, education information, and skills.`;
+    console.log(`Successfully extracted text from PDF, length: ${pdfText.length} characters`);
+    return pdfText;
   } catch (error) {
-    console.error("Error handling PDF file:", error);
-    throw new Error(`Failed to process PDF file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Error extracting PDF text:", error);
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
