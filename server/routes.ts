@@ -124,6 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate PDF
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {
+      console.log("PDF Generation - Request received");
+      
       // Add debugging logs
       console.log("PDF Generation - Template:", req.body.templateSettings?.template);
       console.log("PDF Generation - Has Key Competencies:", !!req.body.keyCompetencies);
@@ -163,6 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Try to validate with the regular schema
         data = completeCvSchema.parse(req.body);
+        console.log("PDF Generation - CV data passed validation");
       } catch (validationError) {
         console.log("PDF validation issues detected, using relaxed mode for preview");
         
@@ -207,17 +210,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
-      // Generate PDF buffer
-      const pdfBuffer = await generatePDF(data);
+      console.log("PDF Generation - Calling generatePDF function");
       
-      // Set headers
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=cv.pdf');
-      
-      // Send PDF buffer
-      res.status(200).send(pdfBuffer);
+      try {
+        // Generate PDF buffer
+        const pdfBuffer = await generatePDF(data);
+        console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
+        
+        // Set headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=cv.pdf');
+        
+        // Send PDF buffer
+        res.status(200).send(pdfBuffer);
+        console.log("PDF Generation - Response sent successfully");
+      } catch (pdfError) {
+        console.error("PDF Generation - Error generating PDF:", pdfError);
+        throw pdfError;
+      }
     } catch (error) {
+      console.error("PDF Generation - Error caught:", error);
+      
       if (error instanceof z.ZodError) {
+        console.log("PDF Generation - Validation error");
         return res.status(400).json({ 
           success: false, 
           message: "Validation error", 
