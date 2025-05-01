@@ -512,7 +512,8 @@ const CVBuilder = () => {
                               </Button>
                             </div>
                             <Button 
-                              type="submit"
+                              type="button"
+                              onClick={handleSubmit}
                             >
                               <FileText className="mr-2 h-4 w-4" /> Generate PDF
                             </Button>
