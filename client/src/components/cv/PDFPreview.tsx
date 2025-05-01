@@ -50,32 +50,53 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
         setPdfUrl(null);
       }
       
-      const response = await fetch("/api/generate-pdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...data,
-          // Ensure template settings are included
-          templateSettings: {
-            template: templateType,
-            includePhoto: includePhoto,
-            sectionOrder: data.templateSettings?.sectionOrder
+      console.log("PDFPreview: Preparing to fetch PDF...");
+      
+      // Create a copy of the data to send to avoid any circular references
+      const dataToSend = {
+        ...data,
+        // Ensure template settings are included
+        templateSettings: {
+          template: templateType,
+          includePhoto: includePhoto,
+          sectionOrder: data.templateSettings?.sectionOrder
+        }
+      };
+      
+      console.log("PDFPreview: Template settings:", templateType, includePhoto);
+      
+      try {
+        const response = await fetch("/api/generate-pdf", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSend),
+        });
+        
+        console.log("PDFPreview: Response received:", response.status, response.statusText);
+        
+        if (!response.ok) {
+          try {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to generate PDF: ${response.statusText}`);
+          } catch (jsonError) {
+            // If response.json() fails, use the status text
+            throw new Error(`Failed to generate PDF: ${response.statusText}`);
           }
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to generate PDF: ${response.statusText}`);
+        }
+        
+        const blob = await response.blob();
+        console.log("PDFPreview: Blob received, size:", blob.size);
+        
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (fetchError) {
+        console.error("PDFPreview: Fetch error:", fetchError);
+        throw fetchError;
       }
-      
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
     } catch (error) {
-      console.error("Error generating PDF preview:", error);
+      console.error("PDFPreview: Error generating PDF preview:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setIsLoading(false);

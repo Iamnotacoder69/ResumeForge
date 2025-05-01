@@ -155,31 +155,72 @@ const CVBuilder = () => {
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/generate-pdf", data);
-      return response.blob();
+      console.log("Submit mutation: Starting PDF generation");
+      try {
+        // Make sure templateSettings is properly defined
+        const dataWithDefaults = {
+          ...data,
+          templateSettings: {
+            template: selectedTemplate,
+            includePhoto: includePhoto,
+            sectionOrder: sectionOrder,
+            ...(data.templateSettings || {})
+          }
+        };
+        
+        const response = await apiRequest("POST", "/api/generate-pdf", dataWithDefaults);
+        console.log("Submit mutation: Response received", response.status);
+        
+        // Check response content type to ensure it's a PDF
+        const contentType = response.headers.get('content-type');
+        console.log("Submit mutation: Content-Type:", contentType);
+        
+        if (contentType && contentType.includes('application/pdf')) {
+          console.log("Submit mutation: PDF content type confirmed");
+          return response.blob();
+        } else {
+          console.warn("Submit mutation: Unexpected content type", contentType);
+          // Try to get the blob anyway
+          return response.blob();
+        }
+      } catch (error) {
+        console.error("Submit mutation: Error in fetching PDF", error);
+        throw error;
+      }
     },
     onSuccess: (blob) => {
-      // Create a URL for the blob
-      const url = URL.createObjectURL(blob);
-      
-      // Create a download link and trigger download
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${form.getValues().personal.firstName}_${form.getValues().personal.lastName}_CV.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Success!",
-        description: "Your CV has been generated and downloaded",
-        variant: "default",
-      });
+      console.log("Submit mutation: Success, blob size:", blob.size);
+      try {
+        // Create a URL for the blob
+        const url = URL.createObjectURL(blob);
+        
+        // Create a download link and trigger download
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${form.getValues().personal.firstName}_${form.getValues().personal.lastName}_CV.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "Success!",
+          description: "Your CV has been generated and downloaded",
+          variant: "default",
+        });
+      } catch (downloadError) {
+        console.error("Submit mutation: Error during download", downloadError);
+        toast({
+          title: "Error",
+          description: "PDF was generated but there was an error downloading it",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error) => {
+      console.error("Submit mutation: Error handler called", error);
       toast({
         title: "Error",
         description: `Failed to generate PDF: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -209,7 +250,17 @@ const CVBuilder = () => {
   });
 
   const handleSubmit = form.handleSubmit((data) => {
-    submitMutation.mutate(data);
+    console.log("Submitting form data for PDF generation");
+    // Ensure templateSettings has the correct properties
+    const dataToSubmit = {
+      ...data,
+      templateSettings: {
+        template: selectedTemplate,
+        includePhoto: includePhoto,
+        sectionOrder: sectionOrder
+      }
+    };
+    submitMutation.mutate(dataToSubmit);
   });
 
   const saveAsDraft = () => {
@@ -236,7 +287,18 @@ const CVBuilder = () => {
         <PDFPreview 
           data={form.getValues()} 
           onClose={() => setShowPreview(false)}
-          onDownload={() => submitMutation.mutate(form.getValues())}
+          onDownload={() => {
+            console.log("PDFPreview download button clicked");
+            const dataWithTemplateSettings = {
+              ...form.getValues(),
+              templateSettings: {
+                template: selectedTemplate,
+                includePhoto: includePhoto,
+                sectionOrder: sectionOrder
+              }
+            };
+            submitMutation.mutate(dataWithTemplateSettings);
+          }}
         />
       ) : (
         <>
