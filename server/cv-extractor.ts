@@ -39,11 +39,14 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
       4. Work Experience:
          - For each position, extract company name, job title, start date, end date, and responsibilities
          - Mark current positions with isCurrent=true and endDate=null
-         - Consolidate responsibilities into a single coherent paragraph
+         - Preserve bullet points in responsibilities when they exist in the original text
+         - Bullet points should be included as "• " followed by the item content
+         - Keep bullet-pointed lists intact - do not convert bullet points into a paragraph
       
       5. Education:
          - Extract institution name, degree/major, start date, end date, and achievements/honors
          - Include all education listings, with the most recent first
+         - Preserve bullet points in achievements using "• " notation if they exist in the original text
       
       6. Certifications:
          - Extract certification name, issuing institution, date acquired, and expiration date if available
@@ -51,6 +54,7 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
       7. Extracurricular Activities:
          - Include volunteer work, community involvement, and other activities
          - Extract organization, role, dates, and description
+         - Preserve bullet points in description using "• " notation if they exist in the original text
       
       8. Languages:
          - Extract languages and their proficiency levels
