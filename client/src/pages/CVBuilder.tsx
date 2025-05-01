@@ -575,7 +575,17 @@ const CVBuilder = () => {
                             </div>
                             <Button 
                               type="button"
-                              onClick={handleSubmit}
+                              onClick={() => {
+                                const dataWithTemplateSettings = {
+                                  ...form.getValues(),
+                                  templateSettings: {
+                                    template: selectedTemplate,
+                                    includePhoto: includePhoto,
+                                    sectionOrder: sectionOrder
+                                  }
+                                };
+                                submitMutation.mutate(dataWithTemplateSettings);
+                              }}
                             >
                               <FileText className="mr-2 h-4 w-4" /> Generate PDF
                             </Button>
