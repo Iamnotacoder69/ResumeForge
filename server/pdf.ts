@@ -1,6 +1,29 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
+// Helper function to handle photo URLs, converting base64 data URLs if needed
+function prepareImageForPDF(photoUrl: string): { imageData: string, format: string } {
+  let format = 'JPEG';
+  let imageData = photoUrl;
+  
+  // Handle data URLs
+  if (photoUrl.startsWith('data:image/png;base64,')) {
+    format = 'PNG';
+  } else if (photoUrl.startsWith('data:image/jpeg;base64,')) {
+    format = 'JPEG';
+  } else if (photoUrl.startsWith('data:image/')) {
+    // Extract format from data URL
+    const formatMatch = photoUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,/);
+    if (formatMatch && formatMatch[1]) {
+      format = formatMatch[1].toUpperCase();
+    }
+  }
+  
+  console.log(`Image format detected: ${format} for image URL starting with: ${photoUrl.substring(0, 30)}...`);
+  
+  return { imageData, format };
+}
+
 // Define template style configurations
 interface TemplateStyle {
   titleFont: string;
@@ -146,21 +169,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const photoX = sidebarMargin;
         const photoY = sidebarYPos;
         
-        // Use consistent format handling for images
-        let imageFormat = 'JPEG';
-        
-        // Determine format based on extension or data URL prefix
-        if (photoUrl!.toLowerCase().endsWith('.png')) {
-          imageFormat = 'PNG';
-        } else if (photoUrl!.startsWith('data:image/png;base64')) {
-          imageFormat = 'PNG';
-        }
-        
-        console.log("Adding photo to sidebar, format:", imageFormat);
+        // Process image with our helper
+        const { imageData, format } = prepareImageForPDF(photoUrl!);
+        console.log("Adding photo to sidebar, format:", format);
         
         doc.addImage(
           photoUrl!, 
-          imageFormat, 
+          format, 
           photoX, 
           photoY, 
           photoSize, 
@@ -526,22 +541,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     const photoY = margin;
     
     try {
-      // Use consistent format handling for images
-      let imageFormat = 'JPEG';
-      
-      // Determine format based on extension or data URL prefix
-      if (photoUrl!.toLowerCase().endsWith('.png')) {
-        imageFormat = 'PNG';
-      } else if (photoUrl!.startsWith('data:image/png;base64')) {
-        imageFormat = 'PNG';
-      }
-      
-      console.log("Adding photo to standard template, format:", imageFormat);
+      // Process image with our helper
+      const { imageData, format } = prepareImageForPDF(photoUrl!);
+      console.log("Adding photo to standard template, format:", format);
       
       // Add the photo to the document with non-null assertion for TypeScript
       doc.addImage(
         photoUrl!, // Non-null assertion as we've already checked
-        imageFormat, 
+        format, 
         photoX, 
         photoY, 
         photoSize, 
