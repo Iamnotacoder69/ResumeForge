@@ -16,7 +16,8 @@ interface TemplateStyle {
   margin: number;
 }
 
-const templateStyles: Record<TemplateType, TemplateStyle> = {
+// Define template styles for each template type
+const templateStyles = {
   'minimalist': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
@@ -121,7 +122,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   
   // Modern Sidebar layout is handled differently
-  const isModernSidebar = templateType === 'modern-sidebar';
+  const isModernSidebar = templateType === 'modern-sidebar' as string;
   if (isModernSidebar) {
     // Sidebar width (approx 1/3 of the page)
     const sidebarWidth = 60;
@@ -589,7 +590,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   }
   
   // Add horizontal line for non-sidebar templates
-  if (templateType !== 'modern-sidebar') {
+  if (!isModernSidebar) {
     yPos += 3;
     doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
     doc.line(margin, yPos, pageWidth - margin, yPos);
