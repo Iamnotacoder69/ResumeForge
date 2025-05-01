@@ -9,13 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, Wand2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type ExtracurricularSectionProps = {
   form: any;
 };
 
 const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
+  const { toast } = useToast();
   const [enhancingIndex, setEnhancingIndex] = useState<number | null>(null);
   
   const { fields, append, remove } = useFieldArray({
@@ -24,42 +25,30 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
   });
   
   const enhanceMutation = useMutation({
-    mutationFn: async (text: string) => {
-      const response = await fetch("/api/enhance-text", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text,
-          type: "responsibilities"
-        }),
+    mutationFn: async ({ text, index }: { text: string, index: number }) => {
+      const response = await apiRequest("POST", "/api/enhance-text", {
+        text,
+        type: "responsibilities"
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to enhance text');
-      }
-      
-      return response.json();
+      const data = await response.json();
+      return { enhancedText: data.data.enhancedText, index };
     },
-    onSuccess: (data, variables, context) => {
-      if (enhancingIndex !== null && data.enhancedText) {
-        form.setValue(`extracurricular.${enhancingIndex}.description`, data.enhancedText);
-        toast({
-          title: "Text Enhanced",
-          description: "Your description has been professionally rewritten with AI.",
-        });
-      }
+    onSuccess: ({ enhancedText, index }) => {
+      form.setValue(`extracurricular.${index}.description`, enhancedText, { shouldValidate: true });
       setEnhancingIndex(null);
+      toast({
+        title: "Success!",
+        description: "Your description has been professionally enhanced",
+      });
     },
     onError: (error) => {
+      setEnhancingIndex(null);
       toast({
-        title: "Enhancement Failed",
-        description: "Could not enhance text. Please try again later.",
+        title: "Error",
+        description: `Failed to enhance text: ${error instanceof Error ? error.message : "Unknown error"}`,
         variant: "destructive",
       });
-      setEnhancingIndex(null);
-    }
+    },
   });
   
   const addExtracurricular = () => {
@@ -71,15 +60,24 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
       isCurrent: false,
       description: "",
     });
+    
+    toast({
+      title: "Success",
+      description: "New activity section added",
+    });
   };
   
   const handleRemove = (index: number) => {
     if (fields.length > 1) {
       remove(index);
+      toast({
+        title: "Success",
+        description: "Activity section removed",
+      });
     } else {
       toast({
-        title: "Cannot Remove",
-        description: "You need at least one extracurricular entry.",
+        title: "Error",
+        description: "Cannot remove the last activity section",
         variant: "destructive",
       });
     }
@@ -89,15 +87,15 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
     const description = form.getValues(`extracurricular.${index}.description`);
     if (description.trim().length < 10) {
       toast({
-        title: "Text Too Short",
-        description: "Please enter more text before enhancing.",
+        title: "Error",
+        description: "Please enter more text before enhancing",
         variant: "destructive",
       });
       return;
     }
     
     setEnhancingIndex(index);
-    enhanceMutation.mutate(description);
+    enhanceMutation.mutate({ text: description, index });
   };
   
   return (
