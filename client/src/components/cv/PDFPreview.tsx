@@ -16,6 +16,8 @@ const getTemplateStyles = (template: TemplateType): string => {
       return 'text-purple-800 bg-purple-100 border border-purple-300';
     case 'academic':
       return 'text-teal-800 bg-teal-100 border border-teal-300';
+    case 'modern-sidebar':
+      return 'text-gray-800 bg-yellow-100 border border-yellow-300';
     default:
       return 'text-gray-500 bg-gray-100';
   }

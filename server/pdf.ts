@@ -68,6 +68,19 @@ const templateStyles: Record<TemplateType, TemplateStyle> = {
     secondaryColor: [70, 70, 70],
     accentColor: [36, 128, 116],
     margin: 25
+  },
+  'modern-sidebar': {
+    titleFont: "helvetica",
+    bodyFont: "helvetica",
+    titleFontSize: 20,
+    subtitleFontSize: 16,
+    sectionTitleFontSize: 14,
+    bodyFontSize: 10,
+    lineHeight: 7,
+    primaryColor: [50, 50, 50],      // Dark gray for main content
+    secondaryColor: [80, 80, 80],    // Mid gray for text
+    accentColor: [255, 196, 0],      // Yellow for sidebar and accents
+    margin: 15
   }
 };
 
