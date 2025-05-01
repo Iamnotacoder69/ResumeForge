@@ -387,6 +387,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
             }
           }
+          
+          // Add extra spacing after the entire experience section
+          mainYPos += 7;
           break;
           
         case 'education':
@@ -440,6 +443,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               mainYPos += 10; // Increased spacing between education entries
             }
           }
+          
+          // Add extra spacing after the entire education section
+          mainYPos += 7;
           break;
           
         case 'certificates':
@@ -491,9 +497,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 mainYPos += (achievementsLines.length * lineHeight);
               }
               
-              mainYPos += 10; // Increased spacing between certificate entries
+              mainYPos += 5; // Balanced spacing between certificate entries
             }
           }
+          
+          // Add extra spacing after the entire certificates section
+          mainYPos += 7;
           break;
           
         case 'extracurricular':
@@ -541,9 +550,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFont(bodyFont, "normal");
               const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
               doc.text(descriptionLines, mainContentX + 8, mainYPos);
-              mainYPos += (descriptionLines.length * lineHeight) + 10; // Increased spacing between extracurricular entries
+              mainYPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
             }
           }
+          
+          // Add extra spacing after the entire extracurricular section
+          mainYPos += 7;
           break;
       }
     }
@@ -794,6 +806,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(responsibilitiesLines, margin, yPos);
             yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
           }
+          
+          // Add extra spacing after the entire experience section
+          yPos += 7;
         }
         break;
         
@@ -884,8 +899,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 2; // Reduced from 3
+            yPos += 5; // Balanced spacing between certificate entries
           }
+          
+          // Add extra spacing after the entire certificates section
+          yPos += 7;
         }
         break;
         
@@ -925,8 +943,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
             doc.text(descriptionLines, margin, yPos);
-            yPos += (descriptionLines.length * lineHeight) + 2; // Reduced from 3
+            yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
           }
+          
+          // Add extra spacing after the entire extracurricular section
+          yPos += 7;
         }
         break;
         
@@ -956,6 +977,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   
   // Languages section (always include this at the end)
   if (data.languages && data.languages.length > 0) {
+    // Add consistent spacing before the languages section
+    yPos += 7;
+    
     if (yPos > doc.internal.pageSize.height - 30) {
       doc.addPage();
       yPos = margin;
