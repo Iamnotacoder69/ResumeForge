@@ -502,7 +502,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add extra spacing after the entire certificates section
-          mainYPos += 7;
+          mainYPos += 7; // 7 units consistent spacing after section
           break;
           
         case 'extracurricular':
@@ -555,7 +555,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add extra spacing after the entire extracurricular section
-          mainYPos += 7;
+          mainYPos += 7; // 7 units consistent spacing after section
           break;
       }
     }
@@ -723,7 +723,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
         // Add consistent spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 12; // Consistent spacing after section
+        yPos += (summaryLines.length * lineHeight) + 7; // 7 units consistent spacing after section
         break;
         
       case 'keyCompetencies':
@@ -763,7 +763,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 12; // Consistent spacing after section
+          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
         }
         break;
         
@@ -966,7 +966,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 5; // Restored to original value
+          yPos += (skillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
         }
         break;
         
@@ -1001,6 +1001,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     
     const languagesLines = doc.splitTextToSize(languagesText, contentWidth);
     doc.text(languagesLines, margin, yPos);
+    // Add consistent spacing after languages section
+    yPos += (languagesLines.length * lineHeight) + 7; // 7 units consistent spacing after section
   }
   
   // Convert to buffer
