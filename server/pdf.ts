@@ -335,7 +335,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           // Split text to handle line breaks
           const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
           doc.text(summaryLines, mainContentX, mainYPos);
-          mainYPos += (summaryLines.length * lineHeight) + 6; // Reduced from 10
+          mainYPos += (summaryLines.length * lineHeight) + 8; // Increased for better section separation
           break;
           
         case 'experience':
@@ -384,7 +384,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFont(bodyFont, "normal");
               const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
               doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-              mainYPos += (responsibilitiesLines.length * lineHeight) + 4; // Reduced from 6
+              mainYPos += (responsibilitiesLines.length * lineHeight) + 5; // Slightly increased for better readability
             }
           }
           break;
@@ -711,7 +711,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
         // Add minimal spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 3; // Reduced from 5
+        yPos += (summaryLines.length * lineHeight) + 5; // Restored to original value
         break;
         
       case 'keyCompetencies':
@@ -751,7 +751,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 3; // Reduced from 5
+          yPos += (softSkillsLines.length * lineHeight) + 6; // Increased from 3
         }
         break;
         
@@ -942,7 +942,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 3; // Reduced from 5
+          yPos += (skillsLines.length * lineHeight) + 5; // Restored to original value
         }
         break;
         
