@@ -3,8 +3,8 @@ import OpenAI from "openai";
 // Initialize the OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const MODEL = "gpt-4o";
+// Using GPT-3.5 Turbo for better performance and cost efficiency
+const MODEL = "gpt-3.5-turbo";
 
 /**
  * Enhances text using OpenAI's GPT model
