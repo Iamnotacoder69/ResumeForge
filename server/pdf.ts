@@ -710,8 +710,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         // Split text to handle line breaks
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
-        // Add consistent spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 15;
+        // Add minimal spacing after this section
+        yPos += (summaryLines.length * lineHeight) + 5;
         break;
         
       case 'keyCompetencies':
@@ -720,7 +720,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Key Competencies", margin, yPos);
-        yPos += lineHeight + 2;
+        yPos += lineHeight + 1;
         
         doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         
@@ -751,7 +751,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 15;
+          yPos += (softSkillsLines.length * lineHeight) + 5;
         }
         break;
         
@@ -762,7 +762,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Professional Experience", margin, yPos);
-          yPos += lineHeight + 2;
+          yPos += lineHeight + 1;
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -792,7 +792,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
             doc.text(responsibilitiesLines, margin, yPos);
-            yPos += (responsibilitiesLines.length * lineHeight) + 8;
+            yPos += (responsibilitiesLines.length * lineHeight) + 3;
           }
         }
         break;
@@ -836,7 +836,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 8;
+            yPos += 3;
           }
         }
         break;
@@ -881,7 +881,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 8;
+            yPos += 3;
           }
         }
         break;
@@ -922,7 +922,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
             doc.text(descriptionLines, margin, yPos);
-            yPos += (descriptionLines.length * lineHeight) + 8;
+            yPos += (descriptionLines.length * lineHeight) + 3;
           }
         }
         break;
@@ -942,7 +942,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 15;
+          yPos += (skillsLines.length * lineHeight) + 5;
         }
         break;
         
