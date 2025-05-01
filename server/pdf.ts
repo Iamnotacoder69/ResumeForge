@@ -56,11 +56,11 @@ const templateStyles = {
     subtitleFontSize: 13,
     sectionTitleFontSize: 11,
     bodyFontSize: 10,
-    lineHeight: 6,
+    lineHeight: 4,  // Reduced from 6
     primaryColor: [50, 50, 50],
     secondaryColor: [100, 100, 100],
     accentColor: [150, 150, 150],
-    margin: 20
+    margin: 15      // Reduced from 20
   },
   'professional': {
     titleFont: "helvetica",
@@ -69,11 +69,11 @@ const templateStyles = {
     subtitleFontSize: 14,
     sectionTitleFontSize: 12,
     bodyFontSize: 10,
-    lineHeight: 7,
+    lineHeight: 4.5, // Reduced from 7
     primaryColor: [0, 62, 116],
     secondaryColor: [70, 70, 70],
     accentColor: [0, 103, 164],
-    margin: 20
+    margin: 15      // Reduced from 20
   },
   'creative': {
     titleFont: "helvetica",
@@ -82,11 +82,11 @@ const templateStyles = {
     subtitleFontSize: 16,
     sectionTitleFontSize: 14,
     bodyFontSize: 10,
-    lineHeight: 7,
+    lineHeight: 4.5, // Reduced from 7
     primaryColor: [142, 68, 173],
     secondaryColor: [80, 80, 80],
     accentColor: [187, 143, 206],
-    margin: 22
+    margin: 15      // Reduced from 22
   },
   'academic': {
     titleFont: "times",
@@ -95,11 +95,11 @@ const templateStyles = {
     subtitleFontSize: 14,
     sectionTitleFontSize: 12,
     bodyFontSize: 10,
-    lineHeight: 7,
+    lineHeight: 4.5, // Reduced from 7
     primaryColor: [15, 82, 87],
     secondaryColor: [70, 70, 70],
     accentColor: [36, 128, 116],
-    margin: 25
+    margin: 15      // Reduced from 25
   },
   'modern-sidebar': {
     titleFont: "helvetica",
@@ -108,11 +108,11 @@ const templateStyles = {
     subtitleFontSize: 16,
     sectionTitleFontSize: 14,
     bodyFontSize: 10,
-    lineHeight: 7,
+    lineHeight: 4.5, // Reduced from 7
     primaryColor: [50, 50, 50],      // Dark gray for main content
     secondaryColor: [80, 80, 80],    // Mid gray for text
     accentColor: [255, 196, 0],      // Yellow for sidebar and accents
-    margin: 15
+    margin: 12      // Reduced from 15
   }
 };
 
@@ -335,7 +335,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           // Split text to handle line breaks
           const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
           doc.text(summaryLines, mainContentX, mainYPos);
-          mainYPos += (summaryLines.length * lineHeight) + 10;
+          mainYPos += (summaryLines.length * lineHeight) + 6; // Reduced from 10
           break;
           
         case 'experience':
@@ -711,7 +711,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
         // Add minimal spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 5;
+        yPos += (summaryLines.length * lineHeight) + 3; // Reduced from 5
         break;
         
       case 'keyCompetencies':
@@ -736,7 +736,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
           const techSkillsLines = doc.splitTextToSize(techSkillsText, contentWidth);
           doc.text(techSkillsLines, margin, yPos);
-          yPos += (techSkillsLines.length * lineHeight) + 3;
+          yPos += (techSkillsLines.length * lineHeight) + 2; // Reduced from 3
         }
         
         // Soft Skills
