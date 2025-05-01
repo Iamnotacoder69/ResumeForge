@@ -711,7 +711,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
         // Add minimal spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 5; // Restored to original value
+        yPos += (summaryLines.length * lineHeight) + 15; // Increased spacing after summary section
         break;
         
       case 'keyCompetencies':
@@ -751,7 +751,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 6; // Increased from 3
+          yPos += (softSkillsLines.length * lineHeight) + 15; // Increased spacing after competencies section
         }
         break;
         
