@@ -56,7 +56,7 @@ const templateStyles = {
     subtitleFontSize: 13,
     sectionTitleFontSize: 11,
     bodyFontSize: 10,
-    lineHeight: 4,  // Reduced from 6
+    lineHeight: 3.5,  // Reduced further from 4
     primaryColor: [50, 50, 50],
     secondaryColor: [100, 100, 100],
     accentColor: [150, 150, 150],
@@ -69,7 +69,7 @@ const templateStyles = {
     subtitleFontSize: 14,
     sectionTitleFontSize: 12,
     bodyFontSize: 10,
-    lineHeight: 4.5, // Reduced from 7
+    lineHeight: 4, // Reduced further from 4.5
     primaryColor: [0, 62, 116],
     secondaryColor: [70, 70, 70],
     accentColor: [0, 103, 164],
@@ -82,7 +82,7 @@ const templateStyles = {
     subtitleFontSize: 16,
     sectionTitleFontSize: 14,
     bodyFontSize: 10,
-    lineHeight: 4.5, // Reduced from 7
+    lineHeight: 4, // Reduced further from 4.5
     primaryColor: [142, 68, 173],
     secondaryColor: [80, 80, 80],
     accentColor: [187, 143, 206],
@@ -95,7 +95,7 @@ const templateStyles = {
     subtitleFontSize: 14,
     sectionTitleFontSize: 12,
     bodyFontSize: 10,
-    lineHeight: 4.5, // Reduced from 7
+    lineHeight: 4, // Reduced further from 4.5
     primaryColor: [15, 82, 87],
     secondaryColor: [70, 70, 70],
     accentColor: [36, 128, 116],
@@ -108,7 +108,7 @@ const templateStyles = {
     subtitleFontSize: 16,
     sectionTitleFontSize: 14,
     bodyFontSize: 10,
-    lineHeight: 4.5, // Reduced from 7
+    lineHeight: 4, // Reduced further from 4.5
     primaryColor: [50, 50, 50],      // Dark gray for main content
     secondaryColor: [80, 80, 80],    // Mid gray for text
     accentColor: [255, 196, 0],      // Yellow for sidebar and accents
@@ -384,7 +384,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFont(bodyFont, "normal");
               const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
               doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-              mainYPos += (responsibilitiesLines.length * lineHeight) + 6;
+              mainYPos += (responsibilitiesLines.length * lineHeight) + 4; // Reduced from 6
             }
           }
           break;
