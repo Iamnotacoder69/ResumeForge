@@ -58,8 +58,24 @@ For best results, please upload a text-based PDF or a DOCX file.
       return pdfInfo;
     }
     
-    console.log(`Successfully extracted text from PDF, length: ${data.text.length} characters`);
-    return data.text;
+    // Process the extracted text to preserve bullet points and special formatting
+    let processedText = data.text;
+    
+    // Preserve bullet points - PDF can have various bullet point formats
+    // Common patterns: • ● ○ ▪ ▫ ◦ ► ▶ ◾ ◽ ◼ ◻
+    // Also standard ASCII bullets like * - + and numbered bullets like 1. 2. a. b. i. ii.
+    
+    // Step 1: Identify bullet-based lines and ensure they have proper spacing
+    processedText = processedText.replace(/(\n\s*[-•●○▪▫◦►▶◾◽◼◻*+]|\n\s*\d+\.|\n\s*[a-z]+\.|\n\s*[ivxIVX]+\.)\s+/g, "\n• ");
+    
+    // Step 2: Make sure there's proper spacing between paragraphs
+    processedText = processedText.replace(/\n{3,}/g, "\n\n"); // Normalize multiple newlines
+    
+    // Step 3: Clean any broken hyphenations often found in PDFs
+    processedText = processedText.replace(/(\w+)-\n(\w+)/g, "$1$2");
+    
+    console.log(`Successfully extracted and processed text from PDF, length: ${processedText.length} characters`);
+    return processedText;
   } catch (error) {
     console.error("Error extracting PDF text:", error);
     
@@ -90,18 +106,30 @@ For best results, please upload a text-based PDF or a DOCX file.
 async function convertDocxToText(filePath: string): Promise<string> {
   try {
     console.log(`Processing DOCX file: ${filePath}`);
+    
+    // Extract the raw text from the DOCX
     const result = await mammoth.extractRawText({ path: filePath });
     
     if (!result.value || result.value.trim().length < 50) {
       console.warn("Warning: DOCX content was very short or empty");
     }
     
-    console.log(`Successfully extracted text from DOCX, length: ${result.value.length} characters`);
+    // Process the extracted text to preserve bullet points and special formatting
+    let processedText = result.value;
+    
+    // Common patterns for bullet points in documents
+    // Look for potential list items and ensure they're marked with bullets consistently
+    processedText = processedText.replace(/(\n\s*[-•●○▪▫◦►▶◾◽◼◻*+]|\n\s*\d+\.|\n\s*[a-z]+\.|\n\s*[ivxIVX]+\.)\s+/g, "\n• ");
+    
+    // Normalize spacing between paragraphs
+    processedText = processedText.replace(/\n{3,}/g, "\n\n");
+    
+    console.log(`Successfully extracted and processed text from DOCX, length: ${processedText.length} characters`);
     if (result.messages.length > 0) {
       console.log("Mammoth extraction messages:", result.messages);
     }
     
-    return result.value;
+    return processedText;
   } catch (error) {
     console.error("Error converting DOCX to text:", error);
     throw new Error(`Failed to extract text from DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`);

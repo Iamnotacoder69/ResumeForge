@@ -3,6 +3,7 @@ declare module 'mammoth' {
     path?: string;
     buffer?: Buffer;
     arrayBuffer?: ArrayBuffer;
+    transformDocument?: any;
   }
 
   interface MammothResult {
@@ -17,5 +18,9 @@ declare module 'mammoth' {
   function extractRawText(options: MammothOptions): Promise<MammothResult>;
   function convertToHtml(options: MammothOptions): Promise<MammothResult>;
 
-  export { extractRawText, convertToHtml };
+  namespace transforms {
+    function paragraph(transformer: (paragraph: any) => any): any;
+  }
+
+  export { extractRawText, convertToHtml, transforms };
 }

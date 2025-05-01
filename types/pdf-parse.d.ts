@@ -7,7 +7,8 @@ declare module 'pdf-parse' {
     metadata: any;
     version: string;
   }
-
+  
   function parse(dataBuffer: Buffer, options?: any): Promise<PDFData>;
+  
   export = parse;
 }
