@@ -114,11 +114,394 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   
   // Calculate page width minus margins
   const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
   const contentWidth = pageWidth - (margin * 2);
   
   // Apply template styling
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   
+  // Modern Sidebar layout is handled differently
+  const isModernSidebar = templateType === 'modern-sidebar';
+  if (isModernSidebar) {
+    // Sidebar width (approx 1/3 of the page)
+    const sidebarWidth = 60;
+    const sidebarMargin = 10;
+    const sidebarmainContentX = sidebarWidth + 5; // 5mm gap between sidebar and main content
+    const sidebarmainContentWidth = pageWidth - sidebarmainContentX - margin;
+    
+    // Draw sidebar background
+    doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]); // Yellow sidebar
+    doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+    
+    // Start with photo if included
+    const photoUrl = data.personal.photoUrl;
+    let hasPhoto = includePhoto && photoUrl && typeof photoUrl === 'string';
+    let sidebarYPos = margin + 10; // Start a bit lower in the sidebar
+    
+    if (hasPhoto) {
+      try {
+        // Circular photo effect in PDF (approximation with square photo)
+        const photoSize = 40; // 40mm diameter
+        const photoX = sidebarMargin;
+        const photoY = sidebarYPos;
+        
+        doc.addImage(
+          photoUrl!, 
+          'JPEG', 
+          photoX, 
+          photoY, 
+          photoSize, 
+          photoSize
+        );
+        
+        sidebarYPos += photoSize + 15; // Space after photo
+      } catch (error) {
+        console.error("Error adding photo to PDF:", error);
+        hasPhoto = false;
+      }
+    }
+    
+    // Add name to sidebar
+    doc.setTextColor(255, 255, 255); // White text for sidebar
+    doc.setFont(titleFont, "bold");
+    doc.setFontSize(titleFontSize);
+    
+    // Split name to fit
+    const nameText = `${data.personal.firstName} ${data.personal.lastName}`;
+    const nameLines = doc.splitTextToSize(nameText, sidebarWidth - (sidebarMargin * 2));
+    doc.text(nameLines, sidebarMargin, sidebarYPos);
+    sidebarYPos += (nameLines.length * lineHeight) + 5;
+    
+    // Add contact info section in sidebar
+    doc.setFont(titleFont, "bold");
+    doc.setFontSize(subtitleFontSize - 2);
+    doc.text("CONTACT", sidebarMargin, sidebarYPos);
+    sidebarYPos += lineHeight + 2;
+    
+    // Contact details
+    doc.setFont(bodyFont, "normal");
+    doc.setFontSize(bodyFontSize);
+    
+    // Email
+    doc.text(`Email:`, sidebarMargin, sidebarYPos);
+    sidebarYPos += lineHeight - 3;
+    doc.text(`${data.personal.email}`, sidebarMargin, sidebarYPos);
+    sidebarYPos += lineHeight + 2;
+    
+    // Phone
+    doc.text(`Phone:`, sidebarMargin, sidebarYPos);
+    sidebarYPos += lineHeight - 3;
+    doc.text(`${data.personal.phone}`, sidebarMargin, sidebarYPos);
+    sidebarYPos += lineHeight + 2;
+    
+    // LinkedIn if available
+    if (data.personal.linkedin) {
+      doc.text(`LinkedIn:`, sidebarMargin, sidebarYPos);
+      sidebarYPos += lineHeight - 3;
+      doc.text(`linkedin.com/in/${data.personal.linkedin}`, sidebarMargin, sidebarYPos);
+      sidebarYPos += lineHeight + 2;
+    }
+    
+    // Technical skills section in sidebar
+    if (data.keyCompetencies?.technicalSkills?.length > 0) {
+      // Add some extra spacing before skills section
+      sidebarYPos += 5;
+      
+      doc.setFont(titleFont, "bold");
+      doc.setFontSize(subtitleFontSize - 2);
+      doc.text("SKILLS", sidebarMargin, sidebarYPos);
+      sidebarYPos += lineHeight + 2;
+      
+      doc.setFont(bodyFont, "normal");
+      doc.setFontSize(bodyFontSize);
+      
+      // List technical skills
+      for (const skill of data.keyCompetencies.technicalSkills) {
+        const skillLines = doc.splitTextToSize(skill, sidebarWidth - (sidebarMargin * 2));
+        doc.text(skillLines, sidebarMargin, sidebarYPos);
+        sidebarYPos += (skillLines.length * lineHeight) + 1;
+        
+        // Prevent overflowing sidebar
+        if (sidebarYPos > pageHeight - 20) {
+          break;
+        }
+      }
+    }
+    
+    // Start main content area
+    let mainYPos = margin;
+    // Use the same variables we defined above
+    const mainContentX = sidebarmainContentX; 
+    const mainContentWidth = sidebarmainContentWidth;
+    
+    // Set text color for main content
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    
+    // Set up section order from user preferences or use default
+    const defaultSectionOrder: SectionOrder[] = [
+      { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
+      { id: 'experience', name: 'Work Experience', visible: true, order: 1 },
+      { id: 'education', name: 'Education', visible: true, order: 2 },
+      { id: 'certificates', name: 'Certificates', visible: true, order: 3 },
+      { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 4 },
+    ];
+    
+    // Use user-defined section order or fall back to default
+    const sectionOrder = data.templateSettings?.sectionOrder?.filter(section => section.visible) || defaultSectionOrder;
+    
+    // Process main content sections based on order (except skills which are in sidebar)
+    for (const section of sectionOrder) {
+      // Skip hidden sections and skip keyCompetencies (already in sidebar)
+      if (!section.visible || section.id === 'keyCompetencies') continue;
+      
+      // Add page break if needed
+      if (mainYPos > doc.internal.pageSize.height - 40) {
+        doc.addPage();
+        // Add sidebar to new page
+        doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+        doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+        mainYPos = margin;
+      }
+      
+      switch (section.id) {
+        case 'summary':
+          // Professional Summary section
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.setFont(titleFont, "bold");
+          doc.setFontSize(subtitleFontSize);
+          doc.text("PROFILE", mainContentX, mainYPos);
+          mainYPos += lineHeight + 2;
+          
+          // Yellow dot accent
+          doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+          doc.circle(mainContentX + 3, mainYPos - 5, 1.5, 'F');
+          
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.setFont(bodyFont, "normal");
+          doc.setFontSize(bodyFontSize);
+          
+          // Split text to handle line breaks
+          const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
+          doc.text(summaryLines, mainContentX, mainYPos);
+          mainYPos += (summaryLines.length * lineHeight) + 10;
+          break;
+          
+        case 'experience':
+          // Experience section
+          if (data.experience && data.experience.length > 0) {
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont(titleFont, "bold");
+            doc.setFontSize(subtitleFontSize);
+            doc.text("EXPERIENCE", mainContentX, mainYPos);
+            mainYPos += lineHeight + 2;
+            
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            
+            for (const exp of data.experience) {
+              // Check if we need a new page
+              if (mainYPos > doc.internal.pageSize.height - 30) {
+                doc.addPage();
+                // Add sidebar to new page
+                doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+                doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+                mainYPos = margin;
+              }
+              
+              // Yellow dot accent
+              doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+              doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
+              
+              doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+              doc.setFont(titleFont, "bold");
+              doc.setFontSize(sectionTitleFontSize);
+              doc.text(exp.jobTitle, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              doc.setFont(bodyFont, "italic");
+              doc.setFontSize(bodyFontSize);
+              doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+              
+              // Format dates
+              const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const endDateDisplay = exp.isCurrent ? 'Present' : 
+                                 exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              
+              doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              doc.setFont(bodyFont, "normal");
+              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+              doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
+              mainYPos += (responsibilitiesLines.length * lineHeight) + 6;
+            }
+          }
+          break;
+          
+        case 'education':
+          // Education section
+          if (data.education && data.education.length > 0) {
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont(titleFont, "bold");
+            doc.setFontSize(subtitleFontSize);
+            doc.text("EDUCATION", mainContentX, mainYPos);
+            mainYPos += lineHeight + 2;
+            
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            
+            for (const edu of data.education) {
+              if (mainYPos > doc.internal.pageSize.height - 30) {
+                doc.addPage();
+                // Add sidebar to new page
+                doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+                doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+                mainYPos = margin;
+              }
+              
+              // Yellow dot accent
+              doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+              doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
+              
+              doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+              doc.setFont(titleFont, "bold");
+              doc.setFontSize(sectionTitleFontSize);
+              doc.text(edu.major, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              doc.setFont(bodyFont, "italic");
+              doc.setFontSize(bodyFontSize);
+              doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+              
+              // Format dates
+              const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              
+              doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              if (edu.achievements) {
+                doc.setFont(bodyFont, "normal");
+                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
+                doc.text(achievementsLines, mainContentX + 8, mainYPos);
+                mainYPos += (achievementsLines.length * lineHeight);
+              }
+              
+              mainYPos += 6;
+            }
+          }
+          break;
+          
+        case 'certificates':
+          // Certificates section
+          if (data.certificates && data.certificates.length > 0) {
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont(titleFont, "bold");
+            doc.setFontSize(subtitleFontSize);
+            doc.text("CERTIFICATES", mainContentX, mainYPos);
+            mainYPos += lineHeight + 2;
+            
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            
+            for (const cert of data.certificates) {
+              if (mainYPos > doc.internal.pageSize.height - 30) {
+                doc.addPage();
+                // Add sidebar to new page
+                doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+                doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+                mainYPos = margin;
+              }
+              
+              // Yellow dot accent
+              doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+              doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
+              
+              doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+              doc.setFont(titleFont, "bold");
+              doc.setFontSize(sectionTitleFontSize);
+              doc.text(cert.name, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              doc.setFont(bodyFont, "italic");
+              doc.setFontSize(bodyFontSize);
+              doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+              
+              // Format date
+              const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const expirationText = cert.expirationDate ? 
+                                 ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
+              
+              doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              if (cert.achievements) {
+                doc.setFont(bodyFont, "normal");
+                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
+                doc.text(achievementsLines, mainContentX + 8, mainYPos);
+                mainYPos += (achievementsLines.length * lineHeight);
+              }
+              
+              mainYPos += 6;
+            }
+          }
+          break;
+          
+        case 'extracurricular':
+          // Extracurricular Activities section
+          if (data.extracurricular && data.extracurricular.length > 0) {
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont(titleFont, "bold");
+            doc.setFontSize(subtitleFontSize);
+            doc.text("EXTRACURRICULAR", mainContentX, mainYPos);
+            mainYPos += lineHeight + 2;
+            
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            
+            for (const activity of data.extracurricular) {
+              if (mainYPos > doc.internal.pageSize.height - 30) {
+                doc.addPage();
+                // Add sidebar to new page
+                doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+                doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+                mainYPos = margin;
+              }
+              
+              // Yellow dot accent
+              doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+              doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
+              
+              doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+              doc.setFont(titleFont, "bold");
+              doc.setFontSize(sectionTitleFontSize);
+              doc.text(activity.role, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              doc.setFont(bodyFont, "italic");
+              doc.setFontSize(bodyFontSize);
+              doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+              
+              // Format dates
+              const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const endDateDisplay = activity.isCurrent ? 'Present' : 
+                activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              
+              doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
+              mainYPos += lineHeight;
+              
+              doc.setFont(bodyFont, "normal");
+              const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+              doc.text(descriptionLines, mainContentX + 8, mainYPos);
+              mainYPos += (descriptionLines.length * lineHeight) + 6;
+            }
+          }
+          break;
+      }
+    }
+    
+    // Convert ArrayBuffer to Buffer for compatibility
+    const arrayBuffer = doc.output('arraybuffer');
+    return Buffer.from(arrayBuffer);
+  }
+  
+  // All other templates use standard layout
   // Set up the layout with photo if included
   const photoUrl = data.personal.photoUrl;
   let hasPhoto = includePhoto && photoUrl && typeof photoUrl === 'string';
@@ -185,7 +568,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   }
   
   // Standard layout (no photo)
-  if (!hasPhoto) {
+  if (!hasPhoto && !isModernSidebar) {
     // Add header with name
     doc.setFont(titleFont, "bold");
     doc.setFontSize(titleFontSize);
@@ -205,11 +588,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     }
   }
   
-  // Add horizontal line
-  yPos += 3;
-  doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
-  doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 5;
+  // Add horizontal line for non-sidebar templates
+  if (templateType !== 'modern-sidebar') {
+    yPos += 3;
+    doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 5;
+  }
   
   // Set up section order from user preferences or use default if not defined
   const defaultSectionOrder: SectionOrder[] = [
