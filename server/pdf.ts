@@ -146,9 +146,21 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const photoX = sidebarMargin;
         const photoY = sidebarYPos;
         
+        // Use consistent format handling for images
+        let imageFormat = 'JPEG';
+        
+        // Determine format based on extension or data URL prefix
+        if (photoUrl!.toLowerCase().endsWith('.png')) {
+          imageFormat = 'PNG';
+        } else if (photoUrl!.startsWith('data:image/png;base64')) {
+          imageFormat = 'PNG';
+        }
+        
+        console.log("Adding photo to sidebar, format:", imageFormat);
+        
         doc.addImage(
           photoUrl!, 
-          'JPEG', 
+          imageFormat, 
           photoX, 
           photoY, 
           photoSize, 
@@ -157,7 +169,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         
         sidebarYPos += photoSize + 15; // Space after photo
       } catch (error) {
-        console.error("Error adding photo to PDF:", error);
+        console.error("Error adding photo to PDF:", error, photoUrl);
         hasPhoto = false;
       }
     }
@@ -514,10 +526,22 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     const photoY = margin;
     
     try {
+      // Use consistent format handling for images
+      let imageFormat = 'JPEG';
+      
+      // Determine format based on extension or data URL prefix
+      if (photoUrl!.toLowerCase().endsWith('.png')) {
+        imageFormat = 'PNG';
+      } else if (photoUrl!.startsWith('data:image/png;base64')) {
+        imageFormat = 'PNG';
+      }
+      
+      console.log("Adding photo to standard template, format:", imageFormat);
+      
       // Add the photo to the document with non-null assertion for TypeScript
       doc.addImage(
         photoUrl!, // Non-null assertion as we've already checked
-        'JPEG', 
+        imageFormat, 
         photoX, 
         photoY, 
         photoSize, 
@@ -562,8 +586,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         yPos = photoBottom;
       }
     } catch (error) {
-      console.error("Error adding photo to PDF:", error);
+      console.error("Error adding photo to PDF:", error, "Photo URL:", photoUrl);
       // If photo fails, revert to standard layout
+      console.log("Fallback to standard layout without photo");
       hasPhoto = false;
     }
   }

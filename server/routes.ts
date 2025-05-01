@@ -129,6 +129,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PDF Generation - Has Key Competencies:", !!req.body.keyCompetencies);
       console.log("PDF Generation - Has Extracurricular:", !!req.body.extracurricular);
       console.log("PDF Generation - Sections:", req.body.templateSettings?.sectionOrder?.map((s: any) => s.id));
+      console.log("PDF Generation - Include Photo:", req.body.templateSettings?.includePhoto);
+      
+      // If photo is included, log photo info
+      if (req.body.templateSettings?.includePhoto && req.body.personal?.photoUrl) {
+        console.log("PDF Generation - Photo URL provided:", 
+          typeof req.body.personal.photoUrl === 'string' ? 
+          `URL length: ${req.body.personal.photoUrl.length}` : 'Not a string');
+      }
       
       // For preview mode, use a relaxed parsing that allows empty fields
       // instead of rejecting the entire request
@@ -147,7 +155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: req.body.personal?.lastName || "",
             email: req.body.personal?.email || "",
             phone: req.body.personal?.phone || "",
-            linkedin: req.body.personal?.linkedin || ""
+            linkedin: req.body.personal?.linkedin || "",
+            photoUrl: req.body.personal?.photoUrl || ""
           },
           professional: { 
             summary: req.body.professional?.summary || ""
