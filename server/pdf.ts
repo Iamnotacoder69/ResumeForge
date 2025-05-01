@@ -9,17 +9,25 @@ function prepareImageForPDF(photoUrl: string): { imageData: string, format: stri
   // Handle data URLs
   if (photoUrl.startsWith('data:image/png;base64,')) {
     format = 'PNG';
+    // Extract base64 data - remove the data URL prefix
+    imageData = photoUrl.substring('data:image/png;base64,'.length);
   } else if (photoUrl.startsWith('data:image/jpeg;base64,')) {
     format = 'JPEG';
+    // Extract base64 data - remove the data URL prefix
+    imageData = photoUrl.substring('data:image/jpeg;base64,'.length);
   } else if (photoUrl.startsWith('data:image/')) {
     // Extract format from data URL
     const formatMatch = photoUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,/);
     if (formatMatch && formatMatch[1]) {
       format = formatMatch[1].toUpperCase();
+      // Extract the base64 data only
+      const prefix = `data:image/${formatMatch[1]};base64,`;
+      imageData = photoUrl.substring(prefix.length);
     }
   }
   
   console.log(`Image format detected: ${format} for image URL starting with: ${photoUrl.substring(0, 30)}...`);
+  console.log(`Image data length: ${imageData.length} characters`);
   
   return { imageData, format };
 }
@@ -173,14 +181,30 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         const { imageData, format } = prepareImageForPDF(photoUrl!);
         console.log("Adding photo to sidebar, format:", format);
         
-        doc.addImage(
-          photoUrl!, 
-          format, 
-          photoX, 
-          photoY, 
-          photoSize, 
-          photoSize
-        );
+        try {
+          // First try using the raw source
+          doc.addImage(
+            photoUrl!, 
+            format, 
+            photoX, 
+            photoY, 
+            photoSize, 
+            photoSize
+          );
+          console.log("Image added successfully using full URL");
+        } catch (e) {
+          console.log("Failed to add image with full URL, trying with extracted data:", e);
+          // If that fails, try with just the base64 data
+          doc.addImage(
+            imageData, 
+            format, 
+            photoX, 
+            photoY, 
+            photoSize, 
+            photoSize
+          );
+          console.log("Image added successfully using extracted data");
+        }
         
         sidebarYPos += photoSize + 15; // Space after photo
       } catch (error) {
@@ -546,14 +570,30 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       console.log("Adding photo to standard template, format:", format);
       
       // Add the photo to the document with non-null assertion for TypeScript
-      doc.addImage(
-        photoUrl!, // Non-null assertion as we've already checked
-        format, 
-        photoX, 
-        photoY, 
-        photoSize, 
-        photoSize
-      );
+      try {
+        // First try using the raw source
+        doc.addImage(
+          photoUrl!, // Non-null assertion as we've already checked
+          format, 
+          photoX, 
+          photoY, 
+          photoSize, 
+          photoSize
+        );
+        console.log("Image added successfully to standard template using full URL");
+      } catch (e) {
+        console.log("Failed to add image to standard template with full URL, trying with extracted data:", e);
+        // If that fails, try with just the base64 data
+        doc.addImage(
+          imageData, 
+          format, 
+          photoX, 
+          photoY, 
+          photoSize, 
+          photoSize
+        );
+        console.log("Image added successfully to standard template using extracted data");
+      }
       
       // Adjust content width to account for photo
       const textWidth = photoX - margin - 5; // 5mm buffer between text and photo

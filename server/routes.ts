@@ -135,7 +135,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.templateSettings?.includePhoto && req.body.personal?.photoUrl) {
         console.log("PDF Generation - Photo URL provided:", 
           typeof req.body.personal.photoUrl === 'string' ? 
-          `URL length: ${req.body.personal.photoUrl.length}` : 'Not a string');
+          `URL length: ${req.body.personal.photoUrl.length}, starts with: ${req.body.personal.photoUrl.substring(0, 30)}...` : 'Not a string');
+          
+        // More detailed debugging for the image
+        if (typeof req.body.personal.photoUrl === 'string') {
+          const photoUrl = req.body.personal.photoUrl;
+          let formatInfo = "Unknown format";
+          
+          if (photoUrl.startsWith('data:image/png;base64,')) {
+            formatInfo = "PNG base64";
+          } else if (photoUrl.startsWith('data:image/jpeg;base64,')) {
+            formatInfo = "JPEG base64";
+          } else if (photoUrl.startsWith('data:image/')) {
+            formatInfo = "Other image base64";
+          } else if (photoUrl.startsWith('http')) {
+            formatInfo = "HTTP URL";
+          }
+          
+          console.log("PDF Generation - Image format appears to be:", formatInfo);
+        }
       }
       
       // For preview mode, use a relaxed parsing that allows empty fields
