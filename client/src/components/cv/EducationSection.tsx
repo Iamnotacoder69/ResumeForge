@@ -58,55 +58,53 @@ const EducationSection = ({ form }: EducationSectionProps) => {
   
   const handleAchievementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     let text = e.target.value;
+    const fieldName = `education.${index}.achievements`;
     
-    // Special case: if the entire input is being cleared, allow it
-    if (text.trim() === '') {
-      form.setValue(`education.${index}.achievements`, '');
+    // Case 1: If the user is completely erasing content, let them
+    if (text === '') {
+      form.setValue(fieldName, '');
       return;
     }
     
-    // Special case: handle backspace that would remove the last bullet point
-    // If there's just a bullet point and space left, allow it to be deleted completely
-    const existingText = form.getValues(`education.${index}.achievements`);
-    if (existingText.trim() === '•' && text.trim() === '') {
-      form.setValue(`education.${index}.achievements`, '');
-      return;
-    }
-    
-    // Check if Enter key was just pressed (text ends with newline)
+    // Case 2: Handle Enter key for line breaks and bullet points
     if (text.endsWith('\n')) {
-      // Process the text to ensure all lines have bullet points
+      // Split the text by line breaks
       const lines = text.split('\n');
-      const formattedLines = lines.map((line, i) => {
-        // Skip empty lines but preserve them
-        if (line.trim() === '') return '';
-        
-        // Add bullet point if the line doesn't already have one
-        if (!line.trimStart().startsWith('•')) {
-          return '• ' + line.trimStart();
-        }
-        return line;
-      });
       
-      // Add a new bullet point at the end if Enter was pressed on a non-empty line
-      if (lines.length > 1 && lines[lines.length - 2].trim() !== '' && lines[lines.length - 1].trim() === '') {
-        formattedLines[formattedLines.length - 1] = '• ';
+      // Format each non-empty line to have a bullet point
+      const formattedLines = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (i === lines.length - 1 && line === '') {
+          // This is the new line created by Enter - add a bullet point
+          formattedLines.push('• ');
+        } else if (line.trim() !== '') {
+          // Non-empty line - ensure it has a bullet
+          if (!line.trimStart().startsWith('•')) {
+            formattedLines.push('• ' + line.trimStart());
+          } else {
+            formattedLines.push(line);
+          }
+        } else {
+          // Empty line - preserve it
+          formattedLines.push('');
+        }
       }
       
-      // Join the lines back together
-      text = formattedLines.join('\n');
-      form.setValue(`education.${index}.achievements`, text);
+      // Set the formatted text
+      form.setValue(fieldName, formattedLines.join('\n'));
       return;
     }
     
-    // Handle initial input - ensure first character is a bullet point
+    // Case 3: Initial input or normal typing - ensure first non-empty line has a bullet point
     if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
-      text = '• ' + text.trimStart();
-      form.setValue(`education.${index}.achievements`, text);
+      // Add bullet point to the first line
+      form.setValue(fieldName, '• ' + text.trimStart());
       return;
     }
     
-    form.setValue(`education.${index}.achievements`, text);
+    // Default: Just set the value as-is
+    form.setValue(fieldName, text);
   };
   
   return (
