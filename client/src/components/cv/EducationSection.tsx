@@ -56,25 +56,19 @@ const EducationSection = ({ form }: EducationSectionProps) => {
     }
   };
   
-  // Simplified approach - only add bullet points on Enter and initial typing
+  // Completely new approach - no automatic formatting, just manual bullet point insertion on Enter
   const handleAchievementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     const fieldName = `education.${index}.achievements`;
     let text = e.target.value;
     
-    // First, just update the text as-is to maintain cursor position for the user
+    // Always set the raw text value first (makes everything deletable)
     form.setValue(fieldName, text);
     
-    // If user pressed Enter, add a bullet point to the new line
+    // Only add bullet points on explicit Enter press
     if (text.endsWith('\n')) {
-      // Update text with a bullet point after the newline
-      form.setValue(fieldName, text + '• ');
-      return;
-    }
-    
-    // When starting to type in an empty field, add bullet point
-    if (text.length === 1 && text !== '•' && text.trim() !== '') {
-      form.setValue(fieldName, '• ' + text);
-      return;
+      // Add bullet point to the new line but don't format any existing content
+      const newText = text + '• ';
+      form.setValue(fieldName, newText);
     }
   };
   
