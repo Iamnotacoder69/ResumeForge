@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
-import { generateWord } from "./word";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -244,101 +243,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "Failed to generate PDF", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  // Generate Word Document
-  app.post("/api/generate-word", async (req: Request, res: Response) => {
-    try {
-      console.log("Word Document Generation - Request received");
-      
-      // For preview mode, use a relaxed parsing that allows empty fields
-      // instead of rejecting the entire request
-      let data;
-      
-      try {
-        // Try to validate with the regular schema
-        data = completeCvSchema.parse(req.body);
-        console.log("Word Generation - CV data passed validation");
-      } catch (validationError) {
-        console.log("Word validation issues detected, using relaxed mode for preview");
-        
-        // Create default data structure with empty values
-        data = {
-          personal: { 
-            firstName: req.body.personal?.firstName || "",
-            lastName: req.body.personal?.lastName || "",
-            email: req.body.personal?.email || "",
-            phone: req.body.personal?.phone || "",
-            linkedin: req.body.personal?.linkedin || "",
-            photoUrl: req.body.personal?.photoUrl || ""
-          },
-          professional: { 
-            summary: req.body.professional?.summary || ""
-          },
-          keyCompetencies: {
-            technicalSkills: req.body.keyCompetencies?.technicalSkills || [],
-            softSkills: req.body.keyCompetencies?.softSkills || []
-          },
-          experience: req.body.experience || [],
-          education: req.body.education || [],
-          certificates: req.body.certificates || [],
-          extracurricular: req.body.extracurricular || [],
-          additional: { 
-            skills: req.body.additional?.skills || []
-          },
-          languages: req.body.languages || [],
-          templateSettings: {
-            template: req.body.templateSettings?.template || "professional",
-            includePhoto: req.body.templateSettings?.includePhoto || false,
-            sectionOrder: req.body.templateSettings?.sectionOrder || [
-              { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
-              { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 1 },
-              { id: 'experience', name: 'Work Experience', visible: true, order: 2 },
-              { id: 'education', name: 'Education', visible: true, order: 3 },
-              { id: 'certificates', name: 'Certificates', visible: true, order: 4 },
-              { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 5 },
-              { id: 'additional', name: 'Additional Information', visible: true, order: 6 },
-            ]
-          }
-        };
-      }
-      
-      console.log("Word Generation - Calling generateWord function");
-      
-      try {
-        // Generate Word document buffer
-        const wordBuffer = await generateWord(data);
-        console.log("Word Generation - Word buffer created, size:", wordBuffer.length);
-        
-        // Set headers
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        res.setHeader('Content-Disposition', 'attachment; filename=cv.docx');
-        
-        // Send Word buffer
-        res.status(200).send(wordBuffer);
-        console.log("Word Generation - Response sent successfully");
-      } catch (wordError) {
-        console.error("Word Generation - Error generating Word document:", wordError);
-        throw wordError;
-      }
-    } catch (error) {
-      console.error("Word Generation - Error caught:", error);
-      
-      if (error instanceof z.ZodError) {
-        console.log("Word Generation - Validation error");
-        return res.status(400).json({ 
-          success: false, 
-          message: "Validation error", 
-          errors: fromZodError(error).message 
-        });
-      }
-      
-      res.status(500).json({ 
-        success: false, 
-        message: "Failed to generate Word document", 
         error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
