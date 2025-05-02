@@ -64,7 +64,7 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
       startDate: "",
       endDate: "",
       isCurrent: false,
-      description: "• ",
+      description: "",
     });
     
     toast({
@@ -104,18 +104,43 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
     enhanceMutation.mutate({ text: description, index });
   };
   
-  // Direct text handling with no special logic beyond Enter key
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-    const fieldName = `extracurricular.${index}.description`;
     let text = e.target.value;
     
-    // Don't interfere with manual deletion - set value directly
-    form.setValue(fieldName, text);
-    
-    // ONLY when user presses Enter, add a bullet point to the new line
+    // Check if Enter key was just pressed (text ends with newline)
     if (text.endsWith('\n')) {
-      form.setValue(fieldName, text + '• ');
+      // Process the text to ensure all lines have bullet points
+      const lines = text.split('\n');
+      const formattedLines = lines.map((line, i) => {
+        // Skip empty lines
+        if (line.trim() === '') return '';
+        
+        // Add bullet point if the line doesn't already have one
+        if (!line.trimStart().startsWith('•')) {
+          return '• ' + line.trimStart();
+        }
+        return line;
+      });
+      
+      // Add a new bullet point at the end if Enter was pressed
+      if (lines[lines.length - 1].trim() === '') {
+        formattedLines[formattedLines.length - 1] = '• ';
+      }
+      
+      // Join the lines back together
+      text = formattedLines.join('\n');
+      form.setValue(`extracurricular.${index}.description`, text);
+      return;
     }
+    
+    // Handle initial input - ensure first character is a bullet point
+    if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
+      text = '• ' + text.trimStart();
+      form.setValue(`extracurricular.${index}.description`, text);
+      return;
+    }
+    
+    form.setValue(`extracurricular.${index}.description`, text);
   };
   
   return (
