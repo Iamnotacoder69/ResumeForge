@@ -865,9 +865,35 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
-            doc.text(responsibilitiesLines, margin, yPos);
-            yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
+            
+            // Handle bullet points in responsibilities
+            const responsibilities = exp.responsibilities.split('\n').filter(item => item.trim().length > 0);
+            let bulletYPos = yPos;
+            
+            for (const responsibility of responsibilities) {
+              // Clean the text (remove leading bullet if exists)
+              let responsibilityText = responsibility.trim();
+              if (responsibilityText.startsWith('•')) {
+                responsibilityText = responsibilityText.substring(1).trim();
+              }
+              
+              // Add bullet point
+              doc.setFont(bodyFont, "normal");
+              const textLines = doc.splitTextToSize(responsibilityText, contentWidth - 4);
+              
+              // Draw bullet
+              doc.text('•', margin, bulletYPos);
+              
+              // Draw text with indent
+              doc.text(textLines, margin + 4, bulletYPos);
+              
+              // Move to next line
+              bulletYPos += (textLines.length * lineHeight);
+            }
+            
+            // Update overall Y position
+            yPos = bulletYPos;
+            yPos += 6; // Balanced spacing between experience entries
           }
           
           // Add extra spacing after the entire experience section
