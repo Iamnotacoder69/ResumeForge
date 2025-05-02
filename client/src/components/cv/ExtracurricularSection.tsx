@@ -232,19 +232,12 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
                   <FormLabel>Description*</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <div className="border rounded-md bg-white overflow-hidden">
-                        <div className="p-2 bg-gray-50 border-b text-sm font-medium">
-                          Add each achievement or responsibility as a bullet point (one per line)
-                        </div>
-                        <Textarea 
-                          rows={4} 
-                          placeholder="• Organized fundraising events raising over $5,000
-• Led a team of 10 volunteers for community projects
-• Implemented new scheduling system for volunteers" 
-                          className="resize-none pr-4 md:pr-32 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                          {...field}
-                        />
-                      </div>
+                      <Textarea 
+                        rows={4} 
+                        placeholder="Describe your activities, responsibilities, and achievements..." 
+                        className="resize-none pr-4 md:pr-32"
+                        {...field}
+                      />
                       <div className="w-full flex justify-end mt-2 md:mt-0">
                         <Button
                           type="button"

@@ -162,19 +162,12 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
                 <FormItem>
                   <FormLabel>Achievements (Optional)</FormLabel>
                   <FormControl>
-                    <div className="border rounded-md bg-white overflow-hidden">
-                      <div className="p-2 bg-gray-50 border-b text-sm font-medium">
-                        Add each achievement as a bullet point (one per line)
-                      </div>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="• Scored in the top 10% of test takers
-• Applied skills in multiple client projects
-• Completed 5 case studies for certification" 
-                        className="resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        {...field}
-                      />
-                    </div>
+                    <Textarea 
+                      rows={2} 
+                      placeholder="Relevant projects, scores, special recognitions..." 
+                      className="resize-none"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

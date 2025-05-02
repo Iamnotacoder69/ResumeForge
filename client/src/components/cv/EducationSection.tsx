@@ -156,19 +156,12 @@ const EducationSection = ({ form }: EducationSectionProps) => {
                 <FormItem>
                   <FormLabel>Achievements (Optional)</FormLabel>
                   <FormControl>
-                    <div className="border rounded-md bg-white overflow-hidden">
-                      <div className="p-2 bg-gray-50 border-b text-sm font-medium">
-                        Add each achievement as a bullet point (one per line)
-                      </div>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="• Graduated with honors (3.8 GPA)
-• Relevant coursework: Data Structures, Algorithms
-• Dean's List for 4 consecutive semesters" 
-                        className="resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        {...field}
-                      />
-                    </div>
+                    <Textarea 
+                      rows={2} 
+                      placeholder="Awards, honors, relevant coursework..." 
+                      className="resize-none"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
