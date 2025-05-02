@@ -229,6 +229,83 @@ const CVBuilder = () => {
     },
   });
 
+  // Word document generation mutation
+  const wordMutation = useMutation({
+    mutationFn: async (data: any) => {
+      console.log("Word mutation: Starting Word document generation");
+      try {
+        // Make sure templateSettings is properly defined
+        const dataWithDefaults = {
+          ...data,
+          templateSettings: {
+            template: selectedTemplate,
+            includePhoto: includePhoto,
+            sectionOrder: sectionOrder,
+            ...(data.templateSettings || {})
+          }
+        };
+        
+        const response = await apiRequest("POST", "/api/generate-word", dataWithDefaults);
+        console.log("Word mutation: Response received", response.status);
+        
+        // Check response content type to ensure it's a Word document
+        const contentType = response.headers.get('content-type');
+        console.log("Word mutation: Content-Type:", contentType);
+        
+        if (contentType && contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+          console.log("Word mutation: Word document content type confirmed");
+          return response.blob();
+        } else {
+          console.warn("Word mutation: Unexpected content type", contentType);
+          // Try to get the blob anyway
+          return response.blob();
+        }
+      } catch (error) {
+        console.error("Word mutation: Error in fetching Word document", error);
+        throw error;
+      }
+    },
+    onSuccess: (blob) => {
+      console.log("Word mutation: Success, blob size:", blob.size);
+      try {
+        // Create a URL for the blob
+        const url = URL.createObjectURL(blob);
+        
+        // Create a download link and trigger download
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${form.getValues().personal.firstName}_${form.getValues().personal.lastName}_CV.docx`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "Success!",
+          description: "Your CV has been generated and downloaded as a Word document",
+          variant: "default",
+        });
+      } catch (downloadError) {
+        console.error("Word mutation: Error during download", downloadError);
+        toast({
+          title: "Error",
+          description: "Word document was generated but there was an error downloading it",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("Word mutation: Error handler called", error);
+      toast({
+        title: "Error",
+        description: `Failed to generate Word document: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
       return await apiRequest("POST", "/api/cv", data);
@@ -298,6 +375,18 @@ const CVBuilder = () => {
               }
             };
             submitMutation.mutate(dataWithTemplateSettings);
+          }}
+          onDownloadWord={() => {
+            console.log("PDFPreview Word download button clicked");
+            const dataWithTemplateSettings = {
+              ...form.getValues(),
+              templateSettings: {
+                template: selectedTemplate,
+                includePhoto: includePhoto,
+                sectionOrder: sectionOrder
+              }
+            };
+            wordMutation.mutate(dataWithTemplateSettings);
           }}
         />
       ) : (
