@@ -1009,7 +1009,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
           }
           
-          // No extra spacing here as it will be added before the next section
+          // Add consistent spacing after the extracurricular section
+          yPos += 7; // 7 units consistent spacing
         }
         break;
         
