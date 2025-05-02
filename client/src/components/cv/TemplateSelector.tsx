@@ -40,11 +40,6 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       id: 'academic',
       name: 'Academic',
       description: 'Detailed format for academic and research positions'
-    },
-    {
-      id: 'modern-sidebar',
-      name: 'Modern Sidebar',
-      description: 'Contemporary two-column layout with colorful sidebar accent'
     }
   ];
 
@@ -132,29 +127,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     </>
                   )}
                   
-                  {template.id === 'modern-sidebar' && (
-                    <>
-                      {/* Yellow sidebar */}
-                      <div className="absolute top-0 left-0 w-7 h-24 bg-yellow-400"></div>
-                      {/* Photo circle in sidebar */}
-                      <div className="absolute top-3 left-1 w-5 h-5 bg-white rounded-full border border-gray-300"></div>
-                      {/* Name in sidebar */}
-                      <div className="absolute top-9 left-1 w-5 h-1 bg-white rounded"></div>
-                      {/* Skills in sidebar */}
-                      <div className="absolute top-12 left-1 w-5 h-0.5 bg-white rounded"></div>
-                      <div className="absolute top-14 left-1 w-5 h-0.5 bg-white rounded"></div>
-                      <div className="absolute top-16 left-1 w-5 h-0.5 bg-white rounded"></div>
-                      {/* Right content */}
-                      <div className="absolute top-3 left-9 right-2 h-2 bg-gray-800 rounded"></div>
-                      <div className="absolute top-7 left-9 right-2 h-1 bg-gray-400 rounded"></div>
-                      <div className="absolute top-9 left-9 right-2 h-1 bg-gray-400 rounded"></div>
-                      <div className="absolute top-13 left-9 right-2 h-1.5 bg-gray-600 rounded"></div>
-                      <div className="absolute top-16 left-10 w-2 h-2 bg-yellow-400 rounded-full"></div>
-                      <div className="absolute top-16 left-13 right-2 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-18 left-10 w-2 h-2 bg-yellow-400 rounded-full"></div>
-                      <div className="absolute top-18 left-13 right-2 h-1 bg-gray-500 rounded"></div>
-                    </>
-                  )}
+                  {/* Modern sidebar template has been removed */}
                 </div>
               </div>
               <h3 className="font-medium text-gray-900">{template.name}</h3>
