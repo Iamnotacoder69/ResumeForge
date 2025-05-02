@@ -106,14 +106,27 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
   
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     let text = e.target.value;
+    const prevText = form.getValues(`extracurricular.${index}.description`);
+    const textArea = e.target;
+    const cursorPosition = textArea.selectionStart;
     
-    // Check if Enter key was just pressed (text ends with newline)
-    if (text.endsWith('\n')) {
-      // Process the text to ensure all lines have bullet points
+    // Check if Enter key was just pressed (current text has one more newline than previous text)
+    if (text.endsWith('\n') || (text.split('\n').length > prevText.split('\n').length)) {
+      // Get cursor position before the Enter was pressed
+      const linesBefore = text.substring(0, cursorPosition).split('\n');
+      const currentLineIndex = linesBefore.length - 1;
+      
+      // Process all lines
       const lines = text.split('\n');
       const formattedLines = lines.map((line, i) => {
-        // Skip empty lines
-        if (line.trim() === '') return '';
+        // Skip empty lines unless it's at the cursor position after pressing Enter
+        if (line.trim() === '') {
+          // If this is where the cursor is after pressing Enter, add a bullet point
+          if (i === currentLineIndex) {
+            return '• ';
+          }
+          return '';
+        }
         
         // Add bullet point if the line doesn't already have one
         if (!line.trimStart().startsWith('•')) {
@@ -122,13 +135,34 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
         return line;
       });
       
-      // Add a new bullet point at the end if Enter was pressed
-      if (lines[lines.length - 1].trim() === '') {
-        formattedLines[formattedLines.length - 1] = '• ';
-      }
-      
       // Join the lines back together
       text = formattedLines.join('\n');
+      
+      // Set the value and restore cursor position with adjustment for added bullet
+      form.setValue(`extracurricular.${index}.description`, text);
+      
+      // Schedule cursor position restoration after React updates the DOM
+      setTimeout(() => {
+        // Find the textarea element again as it might have been rerendered
+        const textarea = document.querySelector(`textarea[name="extracurricular.${index}.description"]`) as HTMLTextAreaElement;
+        if (textarea) {
+          // Calculate new cursor position - after the bullet point in the new line
+          const newLines = text.split('\n');
+          let newPosition = 0;
+          for (let i = 0; i < currentLineIndex; i++) {
+            newPosition += newLines[i].length + 1; // +1 for the newline character
+          }
+          newPosition += 2; // Position after the '• ' in the new line
+          textarea.setSelectionRange(newPosition, newPosition);
+          textarea.focus();
+        }
+      }, 0);
+      
+      return;
+    }
+    
+    // Handle backspace at the beginning of a bullet point - allow removing the bullet
+    if (prevText.length > text.length && prevText.includes('• ') && !text.includes('• ')) {
       form.setValue(`extracurricular.${index}.description`, text);
       return;
     }
