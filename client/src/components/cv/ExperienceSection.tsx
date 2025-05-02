@@ -105,22 +105,38 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
   };
   
   const handleResponsibilitiesChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-    const text = e.target.value;
+    let text = e.target.value;
     
-    // Add bullet points when the user presses Enter
+    // Check if Enter key was just pressed (text ends with newline)
     if (text.endsWith('\n')) {
-      const lines = text.split('\n').filter(line => line.trim() !== '');
-      // Only add a bullet if the last line doesn't start with one
-      const shouldAddBullet = lines.length > 0 && !lines[lines.length - 1].trimStart().startsWith('•');
-      if (shouldAddBullet) {
-        form.setValue(`experience.${index}.responsibilities`, text + '• ');
-        return;
+      // Process the text to ensure all lines have bullet points
+      const lines = text.split('\n');
+      const formattedLines = lines.map((line, i) => {
+        // Skip empty lines
+        if (line.trim() === '') return '';
+        
+        // Add bullet point if the line doesn't already have one
+        if (!line.trimStart().startsWith('•')) {
+          return '• ' + line.trimStart();
+        }
+        return line;
+      });
+      
+      // Add a new bullet point at the end if Enter was pressed
+      if (lines[lines.length - 1].trim() === '') {
+        formattedLines[formattedLines.length - 1] = '• ';
       }
+      
+      // Join the lines back together
+      text = formattedLines.join('\n');
+      form.setValue(`experience.${index}.responsibilities`, text);
+      return;
     }
     
-    // Ensure the first line starts with a bullet if it's not empty
+    // Handle initial input - ensure first character is a bullet point
     if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
-      form.setValue(`experience.${index}.responsibilities`, '• ' + text);
+      text = '• ' + text.trimStart();
+      form.setValue(`experience.${index}.responsibilities`, text);
       return;
     }
     
