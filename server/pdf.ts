@@ -101,19 +101,7 @@ const templateStyles = {
     accentColor: [36, 128, 116],
     margin: 15      // Reduced from 25
   },
-  'modern-sidebar': {
-    titleFont: "helvetica",
-    bodyFont: "helvetica",
-    titleFontSize: 20,
-    subtitleFontSize: 16,
-    sectionTitleFontSize: 14,
-    bodyFontSize: 10,
-    lineHeight: 4, // Reduced further from 4.5
-    primaryColor: [50, 50, 50],      // Dark gray for main content
-    secondaryColor: [80, 80, 80],    // Mid gray for text
-    accentColor: [255, 196, 0],      // Yellow for sidebar and accents
-    margin: 12      // Reduced from 15
-  }
+  // modern-sidebar template removed
 };
 
 /**
@@ -152,9 +140,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   // Apply template styling
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   
-  // Modern Sidebar layout is handled differently
-  const isModernSidebar = templateType === 'modern-sidebar' as string;
-  if (isModernSidebar) {
+  // Modern Sidebar layout is no longer used
+  const isModernSidebar = false;
+  if (false) { // This block will be skipped
     // Sidebar width (approx 1/3 of the page)
     const sidebarWidth = 60;
     const sidebarMargin = 10;
