@@ -296,6 +296,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       { id: 'education', name: 'Education', visible: true, order: 2 },
       { id: 'certificates', name: 'Certificates', visible: true, order: 3 },
       { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 4 },
+      { id: 'additional', name: 'Additional Information', visible: true, order: 5 },
     ];
     
     // Use user-defined section order or fall back to default
@@ -555,6 +556,80 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add extra spacing after the entire extracurricular section
+          mainYPos += 7; // 7 units consistent spacing after section
+          break;
+          
+        case 'additional':
+          // Additional Information section (Computer Skills and Languages)
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.setFont(titleFont, "bold");
+          doc.setFontSize(subtitleFontSize);
+          doc.text("ADDITIONAL INFORMATION", mainContentX, mainYPos);
+          mainYPos += lineHeight + 2;
+          
+          // Computer Skills subsection
+          if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
+            if (mainYPos > doc.internal.pageSize.height - 30) {
+              doc.addPage();
+              // Add sidebar to new page
+              doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+              doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+              mainYPos = margin;
+            }
+            
+            // Yellow dot accent
+            doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+            doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
+            
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont(titleFont, "bold");
+            doc.setFontSize(sectionTitleFontSize);
+            doc.text("Computer Skills", mainContentX + 8, mainYPos);
+            mainYPos += lineHeight;
+            
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            doc.setFont(bodyFont, "normal");
+            doc.setFontSize(bodyFontSize);
+            const skillsText = data.additional.skills.join(", ");
+            const skillsLines = doc.splitTextToSize(skillsText, mainContentWidth - 8);
+            doc.text(skillsLines, mainContentX + 8, mainYPos);
+            mainYPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
+          }
+          
+          // Languages subsection
+          if (data.languages && data.languages.length > 0) {
+            if (mainYPos > doc.internal.pageSize.height - 30) {
+              doc.addPage();
+              // Add sidebar to new page
+              doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+              doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+              mainYPos = margin;
+            }
+            
+            // Yellow dot accent
+            doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+            doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
+            
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont(titleFont, "bold");
+            doc.setFontSize(sectionTitleFontSize);
+            doc.text("Languages", mainContentX + 8, mainYPos);
+            mainYPos += lineHeight;
+            
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+            doc.setFont(bodyFont, "normal");
+            doc.setFontSize(bodyFontSize);
+            
+            const languagesText = data.languages.map(lang => 
+              `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
+            ).join(", ");
+            
+            const languagesLines = doc.splitTextToSize(languagesText, mainContentWidth - 8);
+            doc.text(languagesLines, mainContentX + 8, mainYPos);
+            mainYPos += (languagesLines.length * lineHeight);
+          }
+          
+          // Add consistent spacing after the entire Additional Information section
           mainYPos += 7; // 7 units consistent spacing after section
           break;
       }
