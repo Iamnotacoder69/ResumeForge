@@ -232,12 +232,19 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                   <FormLabel>Responsibilities*</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Textarea 
-                        rows={4} 
-                        placeholder="Describe your key responsibilities and achievements..." 
-                        className="resize-none pr-4 md:pr-32"
-                        {...field}
-                      />
+                      <div className="border rounded-md bg-white overflow-hidden">
+                        <div className="p-2 bg-gray-50 border-b text-sm font-medium">
+                          Add each responsibility as a bullet point (one per line)
+                        </div>
+                        <Textarea 
+                          rows={4} 
+                          placeholder="• Achieved 10% growth in first quarter
+• Managed a team of 5 developers
+• Implemented new reporting system" 
+                          className="resize-none pr-4 md:pr-32 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          {...field}
+                        />
+                      </div>
                       <div className="w-full flex justify-end mt-2 md:mt-0">
                         <Button
                           type="button"
