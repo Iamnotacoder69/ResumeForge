@@ -782,8 +782,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(bodyFont, "normal");
         doc.setFontSize(bodyFontSize);
         
-        // Split text to handle line breaks
-        const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
+        // Clean up the text to handle unwanted line breaks
+        const cleanedSummary = data.professional.summary.replace(/(\r\n|\n|\r)/gm, " ").replace(/\s+/g, " ").trim();
+        // Split text to handle line breaks based on content width
+        const summaryLines = doc.splitTextToSize(cleanedSummary, contentWidth);
         doc.text(summaryLines, margin, yPos);
         // Add consistent spacing after this section
         yPos += (summaryLines.length * lineHeight) + 7; // 7 units consistent spacing after section
@@ -865,7 +867,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
+            // Clean up the text to handle unwanted line breaks, while preserving intentional bullet points
+            const cleanedResponsibilities = exp.responsibilities
+              .replace(/(\r\n|\n|\r)(?!\s*[•\-])/gm, " ") // Replace line breaks unless they're followed by a bullet point
+              .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+              .trim();
+            const responsibilitiesLines = doc.splitTextToSize(cleanedResponsibilities, contentWidth);
             doc.text(responsibilitiesLines, margin, yPos);
             yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
           }
@@ -909,7 +916,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (edu.achievements) {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
+              // Clean up unwanted line breaks in achievements
+              const cleanedAchievements = edu.achievements
+                .replace(/(\r\n|\n|\r)(?!\s*[•\-])/gm, " ") // Keep bullet points
+                .replace(/\s+/g, " ")
+                .trim();
+              const achievementsLines = doc.splitTextToSize(cleanedAchievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -957,7 +969,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (cert.achievements) {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
+              // Clean up unwanted line breaks in achievements
+              const cleanedAchievements = cert.achievements
+                .replace(/(\r\n|\n|\r)(?!\s*[•\-])/gm, " ") // Keep bullet points
+                .replace(/\s+/g, " ")
+                .trim();
+              const achievementsLines = doc.splitTextToSize(cleanedAchievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1004,7 +1021,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+            // Clean up unwanted line breaks in extracurricular description
+            const cleanedDescription = activity.description
+              .replace(/(\r\n|\n|\r)(?!\s*[•\-])/gm, " ") // Keep bullet points
+              .replace(/\s+/g, " ")
+              .trim();
+            const descriptionLines = doc.splitTextToSize(cleanedDescription, contentWidth);
             doc.text(descriptionLines, margin, yPos);
             yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
           }
