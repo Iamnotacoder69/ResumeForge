@@ -59,12 +59,26 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
   const handleAchievementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     let text = e.target.value;
     
+    // Special case: if the entire input is being cleared, allow it
+    if (text.trim() === '') {
+      form.setValue(`certificates.${index}.achievements`, '');
+      return;
+    }
+    
+    // Special case: handle backspace that would remove the last bullet point
+    // If there's just a bullet point and space left, allow it to be deleted completely
+    const existingText = form.getValues(`certificates.${index}.achievements`);
+    if (existingText.trim() === '•' && text.trim() === '') {
+      form.setValue(`certificates.${index}.achievements`, '');
+      return;
+    }
+    
     // Check if Enter key was just pressed (text ends with newline)
     if (text.endsWith('\n')) {
       // Process the text to ensure all lines have bullet points
       const lines = text.split('\n');
       const formattedLines = lines.map((line, i) => {
-        // Skip empty lines
+        // Skip empty lines but preserve them
         if (line.trim() === '') return '';
         
         // Add bullet point if the line doesn't already have one
@@ -74,8 +88,8 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
         return line;
       });
       
-      // Add a new bullet point at the end if Enter was pressed
-      if (lines[lines.length - 1].trim() === '') {
+      // Add a new bullet point at the end if Enter was pressed on a non-empty line
+      if (lines.length > 1 && lines[lines.length - 2].trim() !== '' && lines[lines.length - 1].trim() === '') {
         formattedLines[formattedLines.length - 1] = '• ';
       }
       
