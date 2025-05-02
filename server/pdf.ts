@@ -785,8 +785,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         // Split text to handle line breaks
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
-        // Add consistent spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+        
+        // Space AFTER the section (not before next section)
+        yPos += (summaryLines.length * lineHeight);
+        
+        // Add a blank line after this section that's copiable from the PDF
+        doc.text(" ", margin, yPos);
+        yPos += lineHeight;
         break;
         
       case 'keyCompetencies':
@@ -811,7 +816,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
           const techSkillsLines = doc.splitTextToSize(techSkillsText, contentWidth);
           doc.text(techSkillsLines, margin, yPos);
-          yPos += (techSkillsLines.length * lineHeight) + 2; // Reduced from 3
+          
+          // Add spacing after this subsection, only if there are soft skills
+          yPos += (techSkillsLines.length * lineHeight);
+          if (data.keyCompetencies?.softSkills?.length > 0) {
+            yPos += 3; // Small spacing between subsections
+          }
         }
         
         // Soft Skills
@@ -826,8 +836,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+          yPos += (softSkillsLines.length * lineHeight);
         }
+        
+        // Add a blank line after this section that's copiable from the PDF
+        doc.text(" ", margin, yPos);
+        yPos += lineHeight;
         break;
         
       case 'experience':
@@ -841,7 +855,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (const exp of data.experience) {
+          for (let i = 0; i < data.experience.length; i++) {
+            const exp = data.experience[i];
+            const isLastExperience = i === data.experience.length - 1;
+            
             // Check if we need a new page
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
@@ -859,7 +876,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format dates
             const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDateDisplay = exp.isCurrent ? 'Present' : 
-                               exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                               (exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
             
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
@@ -867,11 +884,17 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
             doc.text(responsibilitiesLines, margin, yPos);
-            yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
+            yPos += (responsibilitiesLines.length * lineHeight);
+            
+            // Add spacing between entries, but not after the last one
+            if (!isLastExperience) {
+              yPos += 5; // Small spacing between experience entries
+            }
           }
           
-          // Add extra spacing after the entire experience section
-          yPos += 7;
+          // Add a blank line after this section that's copiable from the PDF
+          doc.text(" ", margin, yPos);
+          yPos += lineHeight;
         }
         break;
         
@@ -886,7 +909,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (const edu of data.education) {
+          for (let i = 0; i < data.education.length; i++) {
+            const edu = data.education[i];
+            const isLastEducation = i === data.education.length - 1;
+            
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
               yPos = margin;
@@ -914,11 +940,15 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 5; // Balanced spacing between education entries
+            // Add spacing between entries, but not after the last one
+            if (!isLastEducation) {
+              yPos += 5; // Small spacing between education entries
+            }
           }
           
-          // Add consistent spacing after the education section
-          yPos += 7; // 7 units consistent spacing
+          // Add a blank line after this section that's copiable from the PDF
+          doc.text(" ", margin, yPos);
+          yPos += lineHeight;
         }
         break;
         
@@ -933,7 +963,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (const cert of data.certificates) {
+          for (let i = 0; i < data.certificates.length; i++) {
+            const cert = data.certificates[i];
+            const isLastCertificate = i === data.certificates.length - 1;
+            
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
               yPos = margin;
@@ -962,11 +995,15 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 5; // Balanced spacing between certificate entries
+            // Add spacing between entries, but not after the last one
+            if (!isLastCertificate) {
+              yPos += 5; // Small spacing between certificate entries
+            }
           }
           
-          // Add extra spacing after the entire certificates section
-          yPos += 7;
+          // Add a blank line after this section that's copiable from the PDF
+          doc.text(" ", margin, yPos);
+          yPos += lineHeight;
         }
         break;
         
