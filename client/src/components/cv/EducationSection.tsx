@@ -31,7 +31,7 @@ const EducationSection = ({ form }: EducationSectionProps) => {
       major: "",
       startDate: "",
       endDate: "",
-      achievements: ""
+      achievements: "• "
     });
     
     toast({
@@ -56,19 +56,17 @@ const EducationSection = ({ form }: EducationSectionProps) => {
     }
   };
   
-  // Completely new approach - no automatic formatting, just manual bullet point insertion on Enter
+  // Direct text handling with no special logic beyond Enter key
   const handleAchievementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     const fieldName = `education.${index}.achievements`;
     let text = e.target.value;
     
-    // Always set the raw text value first (makes everything deletable)
+    // Don't interfere with manual deletion - set value directly
     form.setValue(fieldName, text);
     
-    // Only add bullet points on explicit Enter press
+    // ONLY when user presses Enter, add a bullet point to the new line
     if (text.endsWith('\n')) {
-      // Add bullet point to the new line but don't format any existing content
-      const newText = text + '• ';
-      form.setValue(fieldName, newText);
+      form.setValue(fieldName, text + '• ');
     }
   };
   
