@@ -581,7 +581,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
             doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
             
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
             doc.setFont(titleFont, "bold");
             doc.setFontSize(sectionTitleFontSize);
             doc.text("Computer Skills", mainContentX + 8, mainYPos);
@@ -610,7 +610,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
             doc.circle(mainContentX + 3, mainYPos - 1, 1.5, 'F');
             
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
             doc.setFont(titleFont, "bold");
             doc.setFontSize(sectionTitleFontSize);
             doc.text("Languages", mainContentX + 8, mainYPos);
@@ -1036,7 +1036,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         
         // Additional Skills subsection
         if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
-          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.setFont(titleFont, "bold");
           doc.setFontSize(sectionTitleFontSize);
           doc.text("Computer Skills", margin, yPos);
@@ -1058,7 +1058,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos = margin;
           }
           
-          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.setFont(titleFont, "bold");
           doc.setFontSize(sectionTitleFontSize);
           doc.text("Languages", margin, yPos);
