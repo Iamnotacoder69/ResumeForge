@@ -104,55 +104,26 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
     }
   };
   
+  // Simplified approach - only add bullet points on Enter and initial typing
   const handleResponsibilitiesChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-    let text = e.target.value;
     const fieldName = `experience.${index}.responsibilities`;
+    let text = e.target.value;
     
-    // Case 1: If the user is completely erasing content, let them
-    if (text === '') {
-      form.setValue(fieldName, '');
-      return;
-    }
-    
-    // Case 2: Handle Enter key for line breaks and bullet points
-    if (text.endsWith('\n')) {
-      // Split the text by line breaks
-      const lines = text.split('\n');
-      
-      // Format each non-empty line to have a bullet point
-      const formattedLines = [];
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (i === lines.length - 1 && line === '') {
-          // This is the new line created by Enter - add a bullet point
-          formattedLines.push('• ');
-        } else if (line.trim() !== '') {
-          // Non-empty line - ensure it has a bullet
-          if (!line.trimStart().startsWith('•')) {
-            formattedLines.push('• ' + line.trimStart());
-          } else {
-            formattedLines.push(line);
-          }
-        } else {
-          // Empty line - preserve it
-          formattedLines.push('');
-        }
-      }
-      
-      // Set the formatted text
-      form.setValue(fieldName, formattedLines.join('\n'));
-      return;
-    }
-    
-    // Case 3: Initial input or normal typing - ensure first non-empty line has a bullet point
-    if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
-      // Add bullet point to the first line
-      form.setValue(fieldName, '• ' + text.trimStart());
-      return;
-    }
-    
-    // Default: Just set the value as-is
+    // First, just update the text as-is to maintain cursor position for the user
     form.setValue(fieldName, text);
+    
+    // If user pressed Enter, add a bullet point to the new line
+    if (text.endsWith('\n')) {
+      // Update text with a bullet point after the newline
+      form.setValue(fieldName, text + '• ');
+      return;
+    }
+    
+    // When starting to type in an empty field, add bullet point
+    if (text.length === 1 && text !== '•' && text.trim() !== '') {
+      form.setValue(fieldName, '• ' + text);
+      return;
+    }
   };
   
   return (
