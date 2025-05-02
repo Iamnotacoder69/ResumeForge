@@ -23,8 +23,12 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
   // Sort sections by order
   const orderedSections = [...sections].filter(s => s.visible).sort((a, b) => a.order - b.order);
   
-  // Create document
+  // Create document with sections
   const doc = new Document({
+    sections: [{
+      properties: {},
+      children: []
+    }],
     styles: {
       paragraphStyles: [
         {
@@ -205,7 +209,7 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
         break;
 
       case 'experience':
-        if (experiences && experiences.length > 0) {
+        if (experience && experience.length > 0) {
           children.push(
             new Paragraph({
               text: "Professional Experience",
@@ -213,16 +217,21 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
             })
           );
 
-          for (const exp of experiences) {
+          for (const exp of experience) {
             const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDateDisplay = exp.isCurrent ? 'Present' : 
                                   exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
 
+            // Use TextRun with bold formatting
+            const titleRun = new TextRun({
+              text: exp.jobTitle,
+              bold: true,
+              size: 22,
+            });
+            
             children.push(
               new Paragraph({
-                text: exp.jobTitle,
-                style: "Normal",
-                bold: true,
+                children: [titleRun],
                 spacing: {
                   before: 200,
                 },
@@ -268,11 +277,16 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
             const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
+            // Use TextRun with bold formatting
+            const majorRun = new TextRun({
+              text: edu.major,
+              bold: true,
+              size: 22,
+            });
+            
             children.push(
               new Paragraph({
-                text: edu.major,
-                style: "Normal",
-                bold: true,
+                children: [majorRun],
                 spacing: {
                   before: 200,
                 },
@@ -321,11 +335,16 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
             const expirationText = cert.expirationDate ? 
                              ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
 
+            // Use TextRun with bold formatting
+            const certNameRun = new TextRun({
+              text: cert.name,
+              bold: true,
+              size: 22,
+            });
+            
             children.push(
               new Paragraph({
-                text: cert.name,
-                style: "Normal",
-                bold: true,
+                children: [certNameRun],
                 spacing: {
                   before: 200,
                 },
@@ -374,11 +393,16 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
             const endDateDisplay = activity.isCurrent ? 'Present' : 
                                 activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
 
+            // Use TextRun with bold formatting
+            const roleRun = new TextRun({
+              text: activity.role,
+              bold: true,
+              size: 22,
+            });
+            
             children.push(
               new Paragraph({
-                text: activity.role,
-                style: "Normal",
-                bold: true,
+                children: [roleRun],
                 spacing: {
                   before: 200,
                 },
@@ -424,11 +448,16 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
           );
 
           if (hasSkills) {
+            // Use TextRun with bold formatting
+            const skillsTitleRun = new TextRun({
+              text: "Computer Skills",
+              bold: true,
+              size: 22,
+            });
+            
             children.push(
               new Paragraph({
-                text: "Computer Skills",
-                style: "Normal",
-                bold: true,
+                children: [skillsTitleRun],
                 spacing: {
                   before: 160,
                   after: 80,
@@ -447,11 +476,16 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
           }
 
           if (hasLanguages) {
+            // Use TextRun with bold formatting
+            const langTitleRun = new TextRun({
+              text: "Languages",
+              bold: true,
+              size: 22,
+            });
+            
             children.push(
               new Paragraph({
-                text: "Languages",
-                style: "Normal",
-                bold: true,
+                children: [langTitleRun],
                 spacing: {
                   before: 160,
                   after: 80,
@@ -477,9 +511,8 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
     }
   }
 
-  doc.addSection({
-    children: children,
-  });
+  // Add the children to the first section of the document
+  doc.sections[0].children = children;
 
   // Create a buffer with the word document
   const buffer = await Packer.toBuffer(doc);
