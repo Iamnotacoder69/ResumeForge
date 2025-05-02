@@ -857,9 +857,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(bodyFontSize);
             
             // Format dates
-            const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             const endDateDisplay = exp.isCurrent ? 'Present' : 
-                               exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                               (exp.endDate && exp.endDate.toString().trim().length > 0) ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
@@ -927,17 +927,42 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(bodyFontSize);
             
             // Format dates
-            const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+            const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, margin, yPos);
             yPos += lineHeight;
             
-            if (edu.achievements) {
+            if (edu.achievements && edu.achievements.trim()) {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
-              doc.text(achievementsLines, margin, yPos);
-              yPos += (achievementsLines.length * lineHeight);
+              
+              // Handle bullet points in achievements
+              const achievements = edu.achievements.split('\n').filter(item => item.trim().length > 0);
+              let bulletYPos = yPos;
+              
+              for (const achievement of achievements) {
+                // Clean the text (remove leading bullet if exists)
+                let achievementText = achievement.trim();
+                if (achievementText.startsWith('•')) {
+                  achievementText = achievementText.substring(1).trim();
+                }
+                
+                // Add bullet point
+                doc.setFont(bodyFont, "normal");
+                const textLines = doc.splitTextToSize(achievementText, contentWidth - 4);
+                
+                // Draw bullet
+                doc.text('•', margin, bulletYPos);
+                
+                // Draw text with indent
+                doc.text(textLines, margin + 4, bulletYPos);
+                
+                // Move to next line
+                bulletYPos += (textLines.length * lineHeight);
+              }
+              
+              // Update overall Y position
+              yPos = bulletYPos;
             }
             
             yPos += 5; // Balanced spacing between education entries
@@ -974,18 +999,43 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(bodyFontSize);
             
             // Format date
-            const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const expirationText = cert.expirationDate ? 
+            const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+            const expirationText = (cert.expirationDate && cert.expirationDate.toString().trim().length > 0) ? 
                                ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
             
             doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, margin, yPos);
             yPos += lineHeight;
             
-            if (cert.achievements) {
+            if (cert.achievements && cert.achievements.trim()) {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
-              doc.text(achievementsLines, margin, yPos);
-              yPos += (achievementsLines.length * lineHeight);
+              
+              // Handle bullet points in achievements
+              const achievements = cert.achievements.split('\n').filter(item => item.trim().length > 0);
+              let bulletYPos = yPos;
+              
+              for (const achievement of achievements) {
+                // Clean the text (remove leading bullet if exists)
+                let achievementText = achievement.trim();
+                if (achievementText.startsWith('•')) {
+                  achievementText = achievementText.substring(1).trim();
+                }
+                
+                // Add bullet point
+                doc.setFont(bodyFont, "normal");
+                const textLines = doc.splitTextToSize(achievementText, contentWidth - 4);
+                
+                // Draw bullet
+                doc.text('•', margin, bulletYPos);
+                
+                // Draw text with indent
+                doc.text(textLines, margin + 4, bulletYPos);
+                
+                // Move to next line
+                bulletYPos += (textLines.length * lineHeight);
+              }
+              
+              // Update overall Y position
+              yPos = bulletYPos;
             }
             
             yPos += 5; // Balanced spacing between certificate entries
@@ -1022,17 +1072,46 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(bodyFontSize);
             
             // Format dates
-            const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             const endDateDisplay = activity.isCurrent ? 'Present' : 
-                               activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                               (activity.endDate && activity.endDate.toString().trim().length > 0) ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
-            doc.text(descriptionLines, margin, yPos);
-            yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
+            
+            // Handle bullet points in description
+            if (activity.description && activity.description.trim()) {
+              const descriptions = activity.description.split('\n').filter(item => item.trim().length > 0);
+              let bulletYPos = yPos;
+              
+              for (const description of descriptions) {
+                // Clean the text (remove leading bullet if exists)
+                let descriptionText = description.trim();
+                if (descriptionText.startsWith('•')) {
+                  descriptionText = descriptionText.substring(1).trim();
+                }
+                
+                // Add bullet point
+                doc.setFont(bodyFont, "normal");
+                const textLines = doc.splitTextToSize(descriptionText, contentWidth - 4);
+                
+                // Draw bullet
+                doc.text('•', margin, bulletYPos);
+                
+                // Draw text with indent
+                doc.text(textLines, margin + 4, bulletYPos);
+                
+                // Move to next line
+                bulletYPos += (textLines.length * lineHeight);
+              }
+              
+              // Update overall Y position
+              yPos = bulletYPos;
+            }
+            
+            yPos += 5; // Balanced spacing between extracurricular entries
           }
           
           // Add consistent spacing after the extracurricular section
