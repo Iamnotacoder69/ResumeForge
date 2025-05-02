@@ -363,17 +363,23 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
-              const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const startDate = exp.startDate && typeof exp.startDate === 'string' ? 
+                                new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               const endDateDisplay = exp.isCurrent ? 'Present' : 
-                                 exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                                 (exp.endDate && typeof exp.endDate === 'string') ? 
+                                 new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               doc.setFont(bodyFont, "normal");
-              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
-              doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-              mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
+              if (exp.responsibilities && typeof exp.responsibilities === 'string') {
+                const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+                doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
+                mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
+              } else {
+                mainYPos += lineHeight + 7; // Add a line of space even if no responsibilities plus spacing
+              }
             }
           }
           
@@ -416,13 +422,15 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
-              const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-              const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const startDate = edu.startDate && typeof edu.startDate === 'string' ? 
+                                new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              const endDate = edu.endDate && typeof edu.endDate === 'string' ? 
+                              new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present';
               
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              if (edu.achievements) {
+              if (edu.achievements && typeof edu.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -472,14 +480,15 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format date
-              const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-              const expirationText = cert.expirationDate ? 
+              const dateAcquired = cert.dateAcquired && typeof cert.dateAcquired === 'string' ? 
+                                  new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              const expirationText = cert.expirationDate && typeof cert.expirationDate === 'string' ? 
                                  ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
               
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              if (cert.achievements) {
+              if (cert.achievements && typeof cert.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -529,17 +538,22 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
-              const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const startDate = activity.startDate && typeof activity.startDate === 'string' ? 
+                                new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               const endDateDisplay = activity.isCurrent ? 'Present' : 
-                activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                (activity.endDate && typeof activity.endDate === 'string') ? 
+                new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               doc.setFont(bodyFont, "normal");
-              const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
-              doc.text(descriptionLines, mainContentX + 8, mainYPos);
-              mainYPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
+              if (activity.description && typeof activity.description === 'string') {
+                const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+                doc.text(descriptionLines, mainContentX + 8, mainYPos);
+                mainYPos += (descriptionLines.length * lineHeight);
+              }
+              mainYPos += 5; // Balanced spacing between extracurricular entries
             }
           }
           
@@ -933,7 +947,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, margin, yPos);
             yPos += lineHeight;
             
-            if (edu.achievements) {
+            if (edu.achievements && typeof edu.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
               const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
@@ -1044,9 +1058,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
-            doc.text(descriptionLines, margin, yPos);
-            yPos += (descriptionLines.length * lineHeight);
+            if (activity.description && typeof activity.description === 'string') {
+              const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+              doc.text(descriptionLines, margin, yPos);
+              yPos += (descriptionLines.length * lineHeight);
+            } else {
+              yPos += lineHeight; // Add a line of space even if no description
+            }
             
             // Add spacing between entries, but not after the last one
             if (!isLastActivity) {
