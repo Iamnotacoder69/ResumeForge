@@ -185,6 +185,46 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
       return;
     }
     
+    // Analyze the current text to find which line we're on and if it's missing a bullet
+    const linesBeforeCursor = text.substring(0, cursorPosition).split('\n');
+    const currentLineIndex = linesBeforeCursor.length - 1;
+    const lines = text.split('\n');
+    
+    // Check if the current line we're typing on doesn't have a bullet
+    if (currentLineIndex >= 0 && 
+        currentLineIndex < lines.length && 
+        lines[currentLineIndex].trim() !== '' && 
+        !lines[currentLineIndex].trimStart().startsWith('•')) {
+      
+      // Add a bullet to just the current line
+      const newLines = [...lines];
+      newLines[currentLineIndex] = '• ' + newLines[currentLineIndex].trimStart();
+      
+      // Calculate the new cursor position after adding the bullet
+      const oldCursorLinePosition = cursorPosition - text.substring(0, cursorPosition).lastIndexOf('\n') - 1;
+      const newLinePosition = oldCursorLinePosition + 2; // +2 for the added bullet
+      
+      // Join the lines back together
+      const newText = newLines.join('\n');
+      form.setValue(`experience.${index}.responsibilities`, newText);
+      
+      // Set cursor position after added bullet
+      setTimeout(() => {
+        const textarea = document.querySelector(`textarea[name="experience.${index}.responsibilities"]`) as HTMLTextAreaElement;
+        if (textarea) {
+          let beforeCurrentLineLength = 0;
+          for (let i = 0; i < currentLineIndex; i++) {
+            beforeCurrentLineLength += newLines[i].length + 1; // +1 for the newline character
+          }
+          const newCursorPosition = beforeCurrentLineLength + newLinePosition;
+          textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+          textarea.focus();
+        }
+      }, 0);
+      
+      return;
+    }
+    
     // Handle initial input - ensure first character is a bullet point
     if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
       text = '• ' + text.trimStart();
