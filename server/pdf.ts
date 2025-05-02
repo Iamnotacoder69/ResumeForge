@@ -952,12 +952,19 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         break;
         
       case 'additional':
-        // Additional Info section (skills)
+        // Additional Info section (skills and languages)
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont(titleFont, "bold");
+        doc.setFontSize(subtitleFontSize);
+        doc.text("Additional Information", margin, yPos);
+        yPos += lineHeight + 1;
+        
+        // Additional Skills subsection
         if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
           doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
           doc.setFont(titleFont, "bold");
-          doc.setFontSize(subtitleFontSize);
-          doc.text("Additional Skills", margin, yPos);
+          doc.setFontSize(sectionTitleFontSize);
+          doc.text("Computer Skills", margin, yPos);
           yPos += lineHeight;
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
@@ -966,43 +973,42 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
         }
+        
+        // Languages subsection
+        if (data.languages && data.languages.length > 0) {
+          if (yPos > doc.internal.pageSize.height - 30) {
+            doc.addPage();
+            yPos = margin;
+          }
+          
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.setFont(titleFont, "bold");
+          doc.setFontSize(sectionTitleFontSize);
+          doc.text("Languages", margin, yPos);
+          yPos += lineHeight;
+          
+          doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+          doc.setFont(bodyFont, "normal");
+          doc.setFontSize(bodyFontSize);
+          
+          const languagesText = data.languages.map(lang => 
+            `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
+          ).join(", ");
+          
+          const languagesLines = doc.splitTextToSize(languagesText, contentWidth);
+          doc.text(languagesLines, margin, yPos);
+          yPos += (languagesLines.length * lineHeight);
+        }
+        
+        // Add consistent spacing after the entire Additional Information section
+        yPos += 7; // 7 units consistent spacing after section
         break;
         
       default:
         break;
     }
-  }
-  
-  // Languages section (always include this at the end)
-  if (data.languages && data.languages.length > 0) {
-    // Add consistent spacing before the languages section
-    yPos += 7;
-    
-    if (yPos > doc.internal.pageSize.height - 30) {
-      doc.addPage();
-      yPos = margin;
-    }
-    
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setFont(titleFont, "bold");
-    doc.setFontSize(subtitleFontSize);
-    doc.text("Languages", margin, yPos);
-    yPos += lineHeight;
-    
-    doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.setFont(bodyFont, "normal");
-    doc.setFontSize(bodyFontSize);
-    
-    const languagesText = data.languages.map(lang => 
-      `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
-    ).join(", ");
-    
-    const languagesLines = doc.splitTextToSize(languagesText, contentWidth);
-    doc.text(languagesLines, margin, yPos);
-    // Add consistent spacing after languages section
-    yPos += (languagesLines.length * lineHeight) + 7; // 7 units consistent spacing after section
   }
   
   // Convert to buffer
