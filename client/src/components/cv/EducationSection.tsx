@@ -56,6 +56,29 @@ const EducationSection = ({ form }: EducationSectionProps) => {
     }
   };
   
+  const handleAchievementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
+    const text = e.target.value;
+    
+    // Add bullet points when the user presses Enter
+    if (text.endsWith('\n')) {
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      // Only add a bullet if the last line doesn't start with one
+      const shouldAddBullet = lines.length > 0 && !lines[lines.length - 1].trimStart().startsWith('•');
+      if (shouldAddBullet) {
+        form.setValue(`education.${index}.achievements`, text + '• ');
+        return;
+      }
+    }
+    
+    // Ensure the first line starts with a bullet if it's not empty
+    if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
+      form.setValue(`education.${index}.achievements`, '• ' + text);
+      return;
+    }
+    
+    form.setValue(`education.${index}.achievements`, text);
+  };
+  
   return (
     <Card className="shadow-sm">
       <CardContent className="pt-5 sm:pt-6">
@@ -158,9 +181,12 @@ const EducationSection = ({ form }: EducationSectionProps) => {
                   <FormControl>
                     <Textarea 
                       rows={2} 
-                      placeholder="Awards, honors, relevant coursework..." 
+                      placeholder="• Type your achievements here (press Enter for a new bullet point)" 
                       className="resize-none"
                       {...field}
+                      onChange={(e) => {
+                        handleAchievementsChange(e, index);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useFieldArray } from "react-hook-form";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl, 
+  FormMessage 
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Wand2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type ExtracurricularSectionProps = {
   form: any;
@@ -96,6 +102,29 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
     
     setEnhancingIndex(index);
     enhanceMutation.mutate({ text: description, index });
+  };
+  
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
+    const text = e.target.value;
+    
+    // Add bullet points when the user presses Enter
+    if (text.endsWith('\n')) {
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      // Only add a bullet if the last line doesn't start with one
+      const shouldAddBullet = lines.length > 0 && !lines[lines.length - 1].trimStart().startsWith('•');
+      if (shouldAddBullet) {
+        form.setValue(`extracurricular.${index}.description`, text + '• ');
+        return;
+      }
+    }
+    
+    // Ensure the first line starts with a bullet if it's not empty
+    if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
+      form.setValue(`extracurricular.${index}.description`, '• ' + text);
+      return;
+    }
+    
+    form.setValue(`extracurricular.${index}.description`, text);
   };
   
   return (
@@ -234,9 +263,12 @@ const ExtracurricularSection = ({ form }: ExtracurricularSectionProps) => {
                     <div className="relative">
                       <Textarea 
                         rows={4} 
-                        placeholder="Describe your activities, responsibilities, and achievements..." 
+                        placeholder="• Type your description here (press Enter for a new bullet point)" 
                         className="resize-none pr-4 md:pr-32"
                         {...field}
+                        onChange={(e) => {
+                          handleDescriptionChange(e, index);
+                        }}
                       />
                       <div className="w-full flex justify-end mt-2 md:mt-0">
                         <Button

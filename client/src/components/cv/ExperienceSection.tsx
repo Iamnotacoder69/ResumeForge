@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useFieldArray } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useFieldArray } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   FormField, 
   FormItem, 
@@ -14,8 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Plus, Trash2, Wand2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Wand2, Plus, Trash2 } from "lucide-react";
 
 type ExperienceSectionProps = {
   form: any;
@@ -102,6 +102,29 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
         variant: "destructive",
       });
     }
+  };
+  
+  const handleResponsibilitiesChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
+    const text = e.target.value;
+    
+    // Add bullet points when the user presses Enter
+    if (text.endsWith('\n')) {
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      // Only add a bullet if the last line doesn't start with one
+      const shouldAddBullet = lines.length > 0 && !lines[lines.length - 1].trimStart().startsWith('•');
+      if (shouldAddBullet) {
+        form.setValue(`experience.${index}.responsibilities`, text + '• ');
+        return;
+      }
+    }
+    
+    // Ensure the first line starts with a bullet if it's not empty
+    if (text.trim() !== '' && !text.trimStart().startsWith('•')) {
+      form.setValue(`experience.${index}.responsibilities`, '• ' + text);
+      return;
+    }
+    
+    form.setValue(`experience.${index}.responsibilities`, text);
   };
   
   return (
@@ -234,9 +257,12 @@ const ExperienceSection = ({ form }: ExperienceSectionProps) => {
                     <div className="relative">
                       <Textarea 
                         rows={4} 
-                        placeholder="Describe your key responsibilities and achievements..." 
+                        placeholder="• Type your responsibilities here (press Enter for a new bullet point)" 
                         className="resize-none pr-4 md:pr-32"
                         {...field}
+                        onChange={(e) => {
+                          handleResponsibilitiesChange(e, index);
+                        }}
                       />
                       <div className="w-full flex justify-end mt-2 md:mt-0">
                         <Button
