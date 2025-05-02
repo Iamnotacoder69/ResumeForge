@@ -6,7 +6,7 @@ import { CompleteCV, TemplateType } from "@shared/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper function to get template-specific styles
-const getTemplateStyles = (template: TemplateType): string => {
+const getTemplateStyles = (template: string): string => {
   switch (template) {
     case 'minimalist':
       return 'text-gray-800 bg-gray-200 border border-gray-300';
@@ -16,8 +16,6 @@ const getTemplateStyles = (template: TemplateType): string => {
       return 'text-purple-800 bg-purple-100 border border-purple-300';
     case 'academic':
       return 'text-teal-800 bg-teal-100 border border-teal-300';
-    case 'modern-sidebar':
-      return 'text-gray-800 bg-yellow-100 border border-yellow-300';
     default:
       return 'text-gray-500 bg-gray-100';
   }
@@ -27,9 +25,10 @@ type PDFPreviewProps = {
   data: CompleteCV;
   onClose: () => void;
   onDownload: () => void;
+  onDownloadWord?: () => void; // Optional function to download Word document
 };
 
-const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
+const PDFPreview = ({ data, onClose, onDownload, onDownloadWord }: PDFPreviewProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -145,9 +144,20 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
               <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
             </Button>
             {!isMobile && (
-              <Button onClick={onDownload} disabled={isLoading || !pdfUrl}>
-                <Download className="mr-2 h-4 w-4" /> Download PDF
-              </Button>
+              <>
+                <Button onClick={onDownload} disabled={isLoading || !pdfUrl}>
+                  <Download className="mr-2 h-4 w-4" /> Download PDF
+                </Button>
+                {onDownloadWord && (
+                  <Button 
+                    onClick={onDownloadWord} 
+                    disabled={isLoading || !pdfUrl}
+                    variant="outline"
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Download Word
+                  </Button>
+                )}
+              </>
             )}
             <Button variant="ghost" size="sm" onClick={onClose} className="hidden sm:flex">
               <X className="h-4 w-4" />
@@ -206,6 +216,15 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
                     >
                       <Download className="mr-2 h-4 w-4" /> Download PDF
                     </Button>
+                    {onDownloadWord && (
+                      <Button 
+                        variant="ghost" 
+                        onClick={onDownloadWord}
+                        className="w-full py-3"
+                      >
+                        <Download className="mr-2 h-4 w-4" /> Download Word
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
