@@ -917,13 +917,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += 5; // Balanced spacing between education entries
           }
           
-          // No extra spacing here as it will be added before the next section
+          // Add consistent spacing after the education section
+          yPos += 7; // 7 units consistent spacing
         }
         break;
         
       case 'certificates':
-        // Add consistent spacing before the section
-        yPos += 7;
         // Certificates section
         if (data.certificates && data.certificates.length > 0) {
           doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -972,9 +971,6 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         break;
         
       case 'extracurricular':
-        // Add consistent spacing before the section
-        yPos += 7;
-        
         // Extracurricular Activities section
         if (data.extracurricular && data.extracurricular.length > 0) {
           doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -1018,9 +1014,6 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         break;
         
       case 'additional':
-        // Add consistent spacing before the section to match spacing after key competencies
-        yPos += 7;
-        
         // Additional Info section (skills and languages)
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.setFont(titleFont, "bold");
