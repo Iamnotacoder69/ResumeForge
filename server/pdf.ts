@@ -52,10 +52,10 @@ const templateStyles = {
   'minimalist': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
-    titleFontSize: 16,
-    subtitleFontSize: 13,
-    sectionTitleFontSize: 11,
-    bodyFontSize: 10,
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
     lineHeight: 3.5,  // Reduced further from 4
     primaryColor: [50, 50, 50],
     secondaryColor: [100, 100, 100],
@@ -65,42 +65,42 @@ const templateStyles = {
   'professional': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
-    titleFontSize: 18,
-    subtitleFontSize: 14,
-    sectionTitleFontSize: 12,
-    bodyFontSize: 10,
-    lineHeight: 4, // Reduced further from 4.5
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 4,
     primaryColor: [0, 62, 116],
     secondaryColor: [70, 70, 70],
     accentColor: [0, 103, 164],
-    margin: 15      // Reduced from 20
+    margin: 15
   },
   'creative': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
-    titleFontSize: 22,
-    subtitleFontSize: 16,
-    sectionTitleFontSize: 14,
-    bodyFontSize: 10,
-    lineHeight: 4, // Reduced further from 4.5
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 4,
     primaryColor: [142, 68, 173],
     secondaryColor: [80, 80, 80],
     accentColor: [187, 143, 206],
-    margin: 15      // Reduced from 22
+    margin: 15
   },
   'academic': {
     titleFont: "times",
     bodyFont: "times",
-    titleFontSize: 18,
-    subtitleFontSize: 14,
-    sectionTitleFontSize: 12,
-    bodyFontSize: 10,
-    lineHeight: 4, // Reduced further from 4.5
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 4,
     primaryColor: [15, 82, 87],
     secondaryColor: [70, 70, 70],
     accentColor: [36, 128, 116],
-    margin: 15      // Reduced from 25
-  },
+    margin: 15
+  }
   // modern-sidebar template removed
 };
 
