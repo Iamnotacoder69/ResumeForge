@@ -363,23 +363,17 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
-              const startDate = exp.startDate && typeof exp.startDate === 'string' ? 
-                                new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               const endDateDisplay = exp.isCurrent ? 'Present' : 
-                                 (exp.endDate && typeof exp.endDate === 'string') ? 
-                                 new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                                 exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               doc.setFont(bodyFont, "normal");
-              if (exp.responsibilities && typeof exp.responsibilities === 'string') {
-                const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
-                doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-                mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
-              } else {
-                mainYPos += lineHeight + 7; // Add a line of space even if no responsibilities plus spacing
-              }
+              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+              doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
+              mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
             }
           }
           
@@ -422,15 +416,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
-              const startDate = edu.startDate && typeof edu.startDate === 'string' ? 
-                                new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const endDate = edu.endDate && typeof edu.endDate === 'string' ? 
-                              new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present';
+              const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              if (edu.achievements && typeof edu.achievements === 'string') {
+              if (edu.achievements) {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -480,15 +472,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format date
-              const dateAcquired = cert.dateAcquired && typeof cert.dateAcquired === 'string' ? 
-                                  new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const expirationText = cert.expirationDate && typeof cert.expirationDate === 'string' ? 
+              const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const expirationText = cert.expirationDate ? 
                                  ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
               
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              if (cert.achievements && typeof cert.achievements === 'string') {
+              if (cert.achievements) {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -538,22 +529,17 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
-              const startDate = activity.startDate && typeof activity.startDate === 'string' ? 
-                                new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               const endDateDisplay = activity.isCurrent ? 'Present' : 
-                (activity.endDate && typeof activity.endDate === 'string') ? 
-                new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               doc.setFont(bodyFont, "normal");
-              if (activity.description && typeof activity.description === 'string') {
-                const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
-                doc.text(descriptionLines, mainContentX + 8, mainYPos);
-                mainYPos += (descriptionLines.length * lineHeight);
-              }
-              mainYPos += 5; // Balanced spacing between extracurricular entries
+              const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+              doc.text(descriptionLines, mainContentX + 8, mainYPos);
+              mainYPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
             }
           }
           
@@ -799,13 +785,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         // Split text to handle line breaks
         const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
         doc.text(summaryLines, margin, yPos);
-        
-        // Space AFTER the section (not before next section)
-        yPos += (summaryLines.length * lineHeight);
-        
-        // Add a blank line after this section that's copiable from the PDF
-        doc.text(" ", margin, yPos);
-        yPos += lineHeight;
+        // Add consistent spacing after this section
+        yPos += (summaryLines.length * lineHeight) + 7; // 7 units consistent spacing after section
         break;
         
       case 'keyCompetencies':
@@ -830,12 +811,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
           const techSkillsLines = doc.splitTextToSize(techSkillsText, contentWidth);
           doc.text(techSkillsLines, margin, yPos);
-          
-          // Add spacing after this subsection, only if there are soft skills
-          yPos += (techSkillsLines.length * lineHeight);
-          if (data.keyCompetencies?.softSkills?.length > 0) {
-            yPos += 3; // Small spacing between subsections
-          }
+          yPos += (techSkillsLines.length * lineHeight) + 2; // Reduced from 3
         }
         
         // Soft Skills
@@ -850,12 +826,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight);
+          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
         }
-        
-        // Add a blank line after this section that's copiable from the PDF
-        doc.text(" ", margin, yPos);
-        yPos += lineHeight;
         break;
         
       case 'experience':
@@ -869,10 +841,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (let i = 0; i < data.experience.length; i++) {
-            const exp = data.experience[i];
-            const isLastExperience = i === data.experience.length - 1;
-            
+          for (const exp of data.experience) {
             // Check if we need a new page
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
@@ -890,7 +859,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format dates
             const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDateDisplay = exp.isCurrent ? 'Present' : 
-                               (exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+                               exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
@@ -898,17 +867,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
             doc.text(responsibilitiesLines, margin, yPos);
-            yPos += (responsibilitiesLines.length * lineHeight);
-            
-            // Add spacing between entries, but not after the last one
-            if (!isLastExperience) {
-              yPos += 5; // Small spacing between experience entries
-            }
+            yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
           }
           
-          // Add a blank line after this section that's copiable from the PDF
-          doc.text(" ", margin, yPos);
-          yPos += lineHeight;
+          // Add extra spacing after the entire experience section
+          yPos += 7;
         }
         break;
         
@@ -923,10 +886,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (let i = 0; i < data.education.length; i++) {
-            const edu = data.education[i];
-            const isLastEducation = i === data.education.length - 1;
-            
+          for (const edu of data.education) {
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
               yPos = margin;
@@ -942,27 +902,23 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Format dates
             const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present';
+            const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             
             doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, margin, yPos);
             yPos += lineHeight;
             
-            if (edu.achievements && typeof edu.achievements === 'string') {
+            if (edu.achievements) {
               doc.setFont(bodyFont, "normal");
               const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            // Add spacing between entries, but not after the last one
-            if (!isLastEducation) {
-              yPos += 5; // Small spacing between education entries
-            }
+            yPos += 5; // Balanced spacing between education entries
           }
           
-          // Add a blank line after this section that's copiable from the PDF
-          doc.text(" ", margin, yPos);
-          yPos += lineHeight;
+          // Add consistent spacing after the education section
+          yPos += 7; // 7 units consistent spacing
         }
         break;
         
@@ -977,10 +933,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (let i = 0; i < data.certificates.length; i++) {
-            const cert = data.certificates[i];
-            const isLastCertificate = i === data.certificates.length - 1;
-            
+          for (const cert of data.certificates) {
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
               yPos = margin;
@@ -996,28 +949,24 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Format date
             const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const expirationText = cert.expirationDate && typeof cert.expirationDate === 'string' ? 
+            const expirationText = cert.expirationDate ? 
                                ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
             
             doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, margin, yPos);
             yPos += lineHeight;
             
-            if (cert.achievements && typeof cert.achievements === 'string') {
+            if (cert.achievements) {
               doc.setFont(bodyFont, "normal");
               const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            // Add spacing between entries, but not after the last one
-            if (!isLastCertificate) {
-              yPos += 5; // Small spacing between certificate entries
-            }
+            yPos += 5; // Balanced spacing between certificate entries
           }
           
-          // Add a blank line after this section that's copiable from the PDF
-          doc.text(" ", margin, yPos);
-          yPos += lineHeight;
+          // Add extra spacing after the entire certificates section
+          yPos += 7;
         }
         break;
         
@@ -1032,10 +981,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
-          for (let i = 0; i < data.extracurricular.length; i++) {
-            const activity = data.extracurricular[i];
-            const isLastActivity = i === data.extracurricular.length - 1;
-            
+          for (const activity of data.extracurricular) {
             if (yPos > doc.internal.pageSize.height - 30) {
               doc.addPage();
               yPos = margin;
@@ -1052,29 +998,19 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format dates
             const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             const endDateDisplay = activity.isCurrent ? 'Present' : 
-                               (activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+                               activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            if (activity.description && typeof activity.description === 'string') {
-              const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
-              doc.text(descriptionLines, margin, yPos);
-              yPos += (descriptionLines.length * lineHeight);
-            } else {
-              yPos += lineHeight; // Add a line of space even if no description
-            }
-            
-            // Add spacing between entries, but not after the last one
-            if (!isLastActivity) {
-              yPos += 5; // Small spacing between extracurricular entries
-            }
+            const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+            doc.text(descriptionLines, margin, yPos);
+            yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
           }
           
-          // Add a blank line after this section that's copiable from the PDF
-          doc.text(" ", margin, yPos);
-          yPos += lineHeight;
+          // Add consistent spacing after the extracurricular section
+          yPos += 7; // 7 units consistent spacing
         }
         break;
         
@@ -1100,12 +1036,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          
-          // Add spacing after skills only if languages section exists
-          yPos += (skillsLines.length * lineHeight);
-          if (data.languages && data.languages.length > 0) {
-            yPos += 3; // Small spacing between subsections
-          }
+          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
         }
         
         // Languages subsection
@@ -1134,16 +1065,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           yPos += (languagesLines.length * lineHeight);
         }
         
-        // Only add blank line if this isn't the last section
-        // This is typically the last section, but we check the order to be sure
-        const isLastSection = sectionOrder.findIndex(s => s.visible && s.id === 'additional') === 
-                             sectionOrder.filter(s => s.visible).length - 1;
-        
-        if (!isLastSection) {
-          // Add a blank line after this section that's copiable from the PDF
-          doc.text(" ", margin, yPos);
-          yPos += lineHeight;
-        }
+        // Add consistent spacing after the entire Additional Information section
+        yPos += 7; // 7 units consistent spacing after section
         break;
         
       default:
