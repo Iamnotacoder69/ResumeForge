@@ -511,10 +511,17 @@ export async function generateWord(data: CompleteCV): Promise<Buffer> {
     }
   }
 
-  // Add the children to the first section of the document
-  doc.sections[0].children = children;
+  // Instead of trying to directly modify doc.sections[0].children,
+  // we'll use the proper document API
+  const updatedDoc = new Document({
+    sections: [{
+      properties: {},
+      children: children
+    }],
+    styles: doc.styles
+  });
 
   // Create a buffer with the word document
-  const buffer = await Packer.toBuffer(doc);
+  const buffer = await Packer.toBuffer(updatedDoc);
   return buffer;
 }
