@@ -62,6 +62,24 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
     const textArea = e.target;
     const cursorPosition = textArea.selectionStart;
     
+    // Check if text was deleted (backspace/delete was pressed)
+    if (prevText.length > text.length) {
+      // Check if we're deleting the last bullet point or part of it
+      const prevLines = prevText.split('\n');
+      const currentLines = text.split('\n');
+      
+      // If we have fewer lines now, or the last line changed and contained a bullet
+      if (currentLines.length < prevLines.length || 
+          (prevLines[prevLines.length - 1].includes('•') && 
+           currentLines.length === prevLines.length && 
+           currentLines[currentLines.length - 1] !== prevLines[prevLines.length - 1])) {
+        
+        // Just accept the user's edit without reformatting
+        form.setValue(`certificates.${index}.achievements`, text);
+        return;
+      }
+    }
+    
     // Check if Enter key was just pressed (current text has one more newline than previous text)
     if (text.endsWith('\n') || (text.split('\n').length > prevText.split('\n').length)) {
       // Get cursor position before the Enter was pressed
