@@ -324,7 +324,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           // Split text to handle line breaks
           const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
           doc.text(summaryLines, mainContentX, mainYPos);
-          mainYPos += (summaryLines.length * lineHeight) + 15; // Increased for better section separation
+          mainYPos += (summaryLines.length * lineHeight);
+          mainYPos += 7; // Standard 7 units spacing after section
           break;
           
         case 'experience':
@@ -373,12 +374,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFont(bodyFont, "normal");
               const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
               doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-              mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
+              mainYPos += (responsibilitiesLines.length * lineHeight) + 5; // Standard spacing between experience entries (5 units)
             }
           }
           
-          // Add extra spacing after the entire experience section
-          mainYPos += 7;
+          // Add consistent spacing after the entire experience section
+          mainYPos += 7; // 7 units consistent spacing after section
           break;
           
         case 'education':
@@ -429,12 +430,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 mainYPos += (achievementsLines.length * lineHeight);
               }
               
-              mainYPos += 10; // Increased spacing between education entries
+              mainYPos += 5; // Standard spacing between education entries (5 units between entries)
             }
           }
           
-          // Add extra spacing after the entire education section
-          mainYPos += 7;
+          // Add consistent spacing after the entire education section
+          mainYPos += 7; // 7 units consistent spacing after section
           break;
           
         case 'certificates':
