@@ -573,10 +573,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format dates
-              const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              // Format dates with null check
+              const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
               const endDateDisplay = activity.isCurrent ? 'Present' : 
-                activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
@@ -952,9 +952,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "italic");
             doc.setFontSize(bodyFontSize);
             
-            // Format dates
-            const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            // Format dates with null check
+            const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
+            const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
             
             doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, margin, yPos);
             yPos += lineHeight;
@@ -1001,8 +1001,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "italic");
             doc.setFontSize(bodyFontSize);
             
-            // Format date
-            const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            // Format date with null check
+            const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
             const expirationText = cert.expirationDate ? 
                                ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
             
@@ -1051,10 +1051,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "italic");
             doc.setFontSize(bodyFontSize);
             
-            // Format dates
-            const startDate = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            // Format dates with null check
+            const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
             const endDateDisplay = activity.isCurrent ? 'Present' : 
-                               activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                               activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
             
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
