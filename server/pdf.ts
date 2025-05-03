@@ -456,16 +456,18 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format dates
-              const startDate = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-              const endDate = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              // Format dates with null check
+              const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
+              const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
               
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               if (edu.achievements) {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
+                // Improve text formatting to avoid awkward line breaks
+                const formattedAchievements = improveTextFormatting(edu.achievements, true);
+                const achievementsLines = doc.splitTextToSize(formattedAchievements, mainContentWidth - 10);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -512,8 +514,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format date
-              const dateAcquired = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              // Format date with null check
+              const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
               const expirationText = cert.expirationDate ? 
                                  ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
               
@@ -522,7 +524,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (cert.achievements) {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
+                // Improve text formatting to avoid awkward line breaks
+                const formattedAchievements = improveTextFormatting(cert.achievements, true);
+                const achievementsLines = doc.splitTextToSize(formattedAchievements, mainContentWidth - 10);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -957,7 +961,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (edu.achievements) {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
+              // Improve text formatting to avoid awkward line breaks
+              const formattedAchievements = improveTextFormatting(edu.achievements, true);
+              const achievementsLines = doc.splitTextToSize(formattedAchievements, contentWidth - 2);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1005,7 +1011,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (cert.achievements) {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
+              // Improve text formatting to avoid awkward line breaks
+              const formattedAchievements = improveTextFormatting(cert.achievements, true);
+              const achievementsLines = doc.splitTextToSize(formattedAchievements, contentWidth - 2);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1084,8 +1092,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           doc.setFont(bodyFont, "normal");
           doc.setFontSize(bodyFontSize);
+          // Format skills cleanly
           const skillsText = data.additional.skills.join(", ");
-          const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
+          const skillsLines = doc.splitTextToSize(skillsText, contentWidth - 2);
           doc.text(skillsLines, margin, yPos);
           yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
         }
@@ -1111,7 +1120,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
           ).join(", ");
           
-          const languagesLines = doc.splitTextToSize(languagesText, contentWidth);
+          // Format languages cleanly
+          const languagesLines = doc.splitTextToSize(languagesText, contentWidth - 2);
           doc.text(languagesLines, margin, yPos);
           yPos += (languagesLines.length * lineHeight);
         }
