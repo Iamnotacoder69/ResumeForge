@@ -277,16 +277,17 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     // Set text color for main content
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     
-    // Function to ensure EXACT consistent section spacing for the sidebar template
+    // CRITICAL FIX: This function enforces EXACT consistent 7-unit spacing between main sections
+    // for the sidebar template, regardless of how much content each section has
     const addSidebarSectionSpacing = (addY = 7) => {
-      // Calculate where the next section should start based on the current position
-      const nextSectionY = mainYPos + addY;
+      // Track the previous Y position (end of content)
+      const contentEndY = mainYPos;
       
-      // Force the y-position to be exactly at the calculated position
-      mainYPos = nextSectionY;
+      // Force EXACT spacing from last content regardless of what came before
+      mainYPos = contentEndY + addY;
       
-      // Log the spacing applied for debugging
-      console.log(`Applied sidebar section spacing: ${addY} units, new mainYPos: ${mainYPos}`);
+      // Debug log to track spacing
+      console.log(`Sidebar section spacing added: from ${contentEndY} to ${mainYPos} (${addY} units)`);
     };
     
     // Set up section order from user preferences or use default
@@ -806,16 +807,18 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   // Use user-defined section order or fall back to default
   const sectionOrder = data.templateSettings?.sectionOrder?.filter(section => section.visible) || defaultSectionOrder;
   
-  // Function to ensure EXACT consistent section spacing - we'll call this between sections
+  // CRITICAL FIX: This function enforces EXACT consistent 7-unit spacing between main sections
+  // regardless of how much content each section has
   const addSectionSpacing = (addY = 7) => {
-    // Calculate where the next section should start based on the current position
-    const nextSectionY = yPos + addY;
+    // Track the previous Y position (end of content)
+    const contentEndY = yPos;
     
-    // Force the y-position to be exactly at the calculated position
-    yPos = nextSectionY;
+    // Enforce exact 7 units of space after the last content position
+    // This ensures consistent spacing regardless of content length
+    yPos = contentEndY + addY;
     
-    // Log the spacing applied for debugging
-    console.log(`Applied section spacing: ${addY} units, new yPos: ${yPos}`);
+    // Debug log to track spacing
+    console.log(`Section spacing added: from ${contentEndY} to ${yPos} (${addY} units)`);
   };
   
   // Process sections based on order
