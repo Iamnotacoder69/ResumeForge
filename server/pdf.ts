@@ -321,10 +321,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(bodyFont, "normal");
           doc.setFontSize(bodyFontSize);
           
-          // Split text to handle line breaks
-          const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
-          doc.text(summaryLines, mainContentX, mainYPos);
-          mainYPos += (summaryLines.length * lineHeight);
+          // Split text to handle line breaks if summary exists
+          if (data.professional && data.professional.summary && typeof data.professional.summary === 'string') {
+            const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
+            doc.text(summaryLines, mainContentX, mainYPos);
+            mainYPos += (summaryLines.length * lineHeight);
+          }
+          
           mainYPos += 7; // Standard 7 units spacing after section
           break;
           
@@ -364,17 +367,26 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates
+              // Safely handle dates with null checks
               const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const endDateDisplay = exp.isCurrent ? 'Present' : 
-                                 (exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+              let endDateDisplay = '';
+              if (exp.isCurrent) {
+                endDateDisplay = 'Present';
+              } else if (exp.endDate) {
+                endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
               
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              doc.setFont(bodyFont, "normal");
-              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
-              doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-              mainYPos += (responsibilitiesLines.length * lineHeight) + 5; // Standard spacing between experience entries (5 units)
+              if (exp.responsibilities && typeof exp.responsibilities === 'string') {
+                doc.setFont(bodyFont, "normal");
+                const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+                doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
+                mainYPos += (responsibilitiesLines.length * lineHeight);
+              }
+              
+              mainYPos += 5; // Standard spacing between experience entries (5 units)
             }
           }
           
@@ -416,7 +428,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format dates
+              // Format dates with safe null checks
               const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               
@@ -787,11 +799,16 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(bodyFont, "normal");
         doc.setFontSize(bodyFontSize);
         
-        // Split text to handle line breaks
-        const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
-        doc.text(summaryLines, margin, yPos);
+        // Split text to handle line breaks if summary exists
+        if (data.professional && data.professional.summary && typeof data.professional.summary === 'string') {
+          const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
+          doc.text(summaryLines, margin, yPos);
+          // Add spacing based on content
+          yPos += (summaryLines.length * lineHeight);
+        }
+        
         // Add consistent spacing after this section
-        yPos += (summaryLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+        yPos += 7; // 7 units consistent spacing after section
         break;
         
       case 'keyCompetencies':
@@ -869,10 +886,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
             
-            doc.setFont(bodyFont, "normal");
-            const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
-            doc.text(responsibilitiesLines, margin, yPos);
-            yPos += (responsibilitiesLines.length * lineHeight) + 5; // Standard spacing between experience entries (5 units)
+            if (exp.responsibilities && typeof exp.responsibilities === 'string') {
+              doc.setFont(bodyFont, "normal");
+              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
+              doc.text(responsibilitiesLines, margin, yPos);
+              yPos += (responsibilitiesLines.length * lineHeight);
+            }
+            
+            yPos += 5; // Standard spacing between experience entries (5 units)
           }
           
           // Add consistent spacing after the entire experience section
