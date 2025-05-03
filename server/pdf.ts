@@ -514,8 +514,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             }
           }
           
-          // Add extra spacing after the entire certificates section
-          mainYPos += 7; // 7 units consistent spacing after section
+          // Add consistent spacing after the entire certificates section
+          mainYPos += 7; // Exactly 7 units spacing between sections
           break;
           
         case 'extracurricular':
@@ -866,8 +866,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+          yPos += (softSkillsLines.length * lineHeight);
         }
+        
+        // Add consistent spacing after the entire key competencies section
+        yPos += 7; // Exactly 7 units spacing between sections
         break;
         
       case 'experience':
@@ -1106,7 +1109,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
+          yPos += (skillsLines.length * lineHeight) + 2; // Reduced spacing between subsections
         }
         
         // Languages subsection
