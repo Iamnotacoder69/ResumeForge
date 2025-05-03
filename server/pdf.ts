@@ -277,11 +277,16 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     // Set text color for main content
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     
-    // Function to ensure consistent section spacing for the sidebar template
+    // Function to ensure EXACT consistent section spacing for the sidebar template
     const addSidebarSectionSpacing = (addY = 7) => {
-      let currentY = mainYPos;
-      // Reset to exactly 7 units from the last content position
-      mainYPos = currentY + addY;
+      // Calculate where the next section should start based on the current position
+      const nextSectionY = mainYPos + addY;
+      
+      // Force the y-position to be exactly at the calculated position
+      mainYPos = nextSectionY;
+      
+      // Log the spacing applied for debugging
+      console.log(`Applied sidebar section spacing: ${addY} units, new mainYPos: ${mainYPos}`);
     };
     
     // Set up section order from user preferences or use default
@@ -801,11 +806,16 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   // Use user-defined section order or fall back to default
   const sectionOrder = data.templateSettings?.sectionOrder?.filter(section => section.visible) || defaultSectionOrder;
   
-  // Function to ensure consistent section spacing - we'll call this between sections
+  // Function to ensure EXACT consistent section spacing - we'll call this between sections
   const addSectionSpacing = (addY = 7) => {
-    let currentY = yPos;
-    // Reset to exactly 7 units from the last content position
-    yPos = currentY + addY;
+    // Calculate where the next section should start based on the current position
+    const nextSectionY = yPos + addY;
+    
+    // Force the y-position to be exactly at the calculated position
+    yPos = nextSectionY;
+    
+    // Log the spacing applied for debugging
+    console.log(`Applied section spacing: ${addY} units, new yPos: ${yPos}`);
   };
   
   // Process sections based on order
