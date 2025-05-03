@@ -484,10 +484,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format date
+              // Format date with safe null checks
               const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const expirationText = cert.expirationDate ? 
-                                 ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
+              let expirationText = '';
+              if (cert.expirationDate) {
+                expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+              }
               
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
@@ -541,10 +543,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format dates
+              // Format dates with safe null checks
               const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const endDateDisplay = activity.isCurrent ? 'Present' : 
-                (activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+              let endDateDisplay = '';
+              if (activity.isCurrent) {
+                endDateDisplay = 'Present';
+              } else if (activity.endDate) {
+                endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
@@ -878,10 +884,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "italic");
             doc.setFontSize(bodyFontSize);
             
-            // Format dates
+            // Format dates with safe null checks
             const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-            const endDateDisplay = exp.isCurrent ? 'Present' : 
-                               (exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+            let endDateDisplay = '';
+            if (exp.isCurrent) {
+              endDateDisplay = 'Present';
+            } else if (exp.endDate) {
+              endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            }
             
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
@@ -973,10 +983,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "italic");
             doc.setFontSize(bodyFontSize);
             
-            // Format date
+            // Format date with safe null checks
             const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-            const expirationText = cert.expirationDate ? 
-                               ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
+            let expirationText = '';
+            if (cert.expirationDate) {
+              expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+            }
             
             doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, margin, yPos);
             yPos += lineHeight;
@@ -1021,10 +1033,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "italic");
             doc.setFontSize(bodyFontSize);
             
-            // Format dates
+            // Format dates with safe null checks
             const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-            const endDateDisplay = activity.isCurrent ? 'Present' : 
-                               (activity.endDate ? new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '');
+            let endDateDisplay = '';
+            if (activity.isCurrent) {
+              endDateDisplay = 'Present';
+            } else if (activity.endDate) {
+              endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            }
             
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
