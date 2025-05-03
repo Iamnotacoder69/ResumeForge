@@ -423,7 +423,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              if (edu.achievements) {
+              if (edu.achievements && typeof edu.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -480,7 +480,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              if (cert.achievements) {
+              if (cert.achievements && typeof cert.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -537,10 +537,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
-              doc.setFont(bodyFont, "normal");
-              const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
-              doc.text(descriptionLines, mainContentX + 8, mainYPos);
-              mainYPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
+              if (activity.description && typeof activity.description === 'string') {
+                doc.setFont(bodyFont, "normal");
+                const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+                doc.text(descriptionLines, mainContentX + 8, mainYPos);
+                mainYPos += (descriptionLines.length * lineHeight);
+              }
+              
+              mainYPos += 5; // Balanced spacing between extracurricular entries
             }
           }
           
@@ -908,7 +912,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, margin, yPos);
             yPos += lineHeight;
             
-            if (edu.achievements) {
+            if (edu.achievements && typeof edu.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
               const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
@@ -956,7 +960,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, margin, yPos);
             yPos += lineHeight;
             
-            if (cert.achievements) {
+            if (cert.achievements && typeof cert.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
               const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
@@ -1004,10 +1008,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
             
-            doc.setFont(bodyFont, "normal");
-            const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
-            doc.text(descriptionLines, margin, yPos);
-            yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
+            if (activity.description && typeof activity.description === 'string') {
+              doc.setFont(bodyFont, "normal");
+              const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+              doc.text(descriptionLines, margin, yPos);
+              yPos += (descriptionLines.length * lineHeight);
+            }
+            
+            yPos += 5; // Balanced spacing between extracurricular entries
           }
           
           // Add consistent spacing after the extracurricular section
