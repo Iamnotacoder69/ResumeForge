@@ -868,11 +868,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
             doc.text(responsibilitiesLines, margin, yPos);
-            yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
+            yPos += (responsibilitiesLines.length * lineHeight) + 5; // Standard spacing between experience entries (5 units)
           }
           
-          // Add extra spacing after the entire experience section
-          yPos += 7;
+          // Add consistent spacing after the entire experience section
+          yPos += 7; // 7 units consistent spacing after section
         }
         break;
         
@@ -966,8 +966,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += 5; // Balanced spacing between certificate entries
           }
           
-          // Add extra spacing after the entire certificates section
-          yPos += 7;
+          // Add consistent spacing after the entire certificates section
+          yPos += 7; // 7 units consistent spacing after section
         }
         break;
         
