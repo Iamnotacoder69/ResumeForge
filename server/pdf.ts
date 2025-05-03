@@ -386,7 +386,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 mainYPos += (responsibilitiesLines.length * lineHeight);
               }
               
-              mainYPos += 5; // Standard spacing between experience entries (5 units)
+              // Only add entry spacing if this is not the last entry
+              if (exp !== data.experience[data.experience.length - 1]) {
+                mainYPos += 5; // Spacing between experience entries
+              }
             }
           }
           
@@ -442,7 +445,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 mainYPos += (achievementsLines.length * lineHeight);
               }
               
-              mainYPos += 5; // Standard spacing between education entries (5 units between entries)
+              // Only add entry spacing if this is not the last entry
+              if (edu !== data.education[data.education.length - 1]) {
+                mainYPos += 5; // Spacing between education entries
+              }
             }
           }
           
@@ -501,7 +507,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 mainYPos += (achievementsLines.length * lineHeight);
               }
               
-              mainYPos += 5; // Balanced spacing between certificate entries
+              // Only add entry spacing if this is not the last entry
+              if (cert !== data.certificates[data.certificates.length - 1]) {
+                mainYPos += 5; // Spacing between certificate entries
+              }
             }
           }
           
@@ -562,7 +571,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 mainYPos += (descriptionLines.length * lineHeight);
               }
               
-              mainYPos += 5; // Balanced spacing between extracurricular entries
+              // Only add entry spacing if this is not the last entry
+              if (activity !== data.extracurricular[data.extracurricular.length - 1]) {
+                mainYPos += 5; // Spacing between extracurricular entries
+              }
             }
           }
           
@@ -903,7 +915,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (responsibilitiesLines.length * lineHeight);
             }
             
-            yPos += 5; // Standard spacing between experience entries (5 units)
+            // Only add entry spacing if this is not the last entry
+            if (exp !== data.experience[data.experience.length - 1]) {
+              yPos += 5; // Standard spacing between experience entries (5 units)
+            }
           }
           
           // Add consistent spacing after the entire experience section
@@ -950,7 +965,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 5; // Balanced spacing between education entries
+            // Only add entry spacing if this is not the last entry
+            if (edu !== data.education[data.education.length - 1]) {
+              yPos += 5; // Spacing between education entries
+            }
           }
           
           // Add consistent spacing after the education section
@@ -1000,7 +1018,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (achievementsLines.length * lineHeight);
             }
             
-            yPos += 5; // Balanced spacing between certificate entries
+            // Only add entry spacing if this is not the last entry
+            if (cert !== data.certificates[data.certificates.length - 1]) {
+              yPos += 5; // Spacing between certificate entries
+            }
           }
           
           // Add consistent spacing after the entire certificates section
@@ -1052,7 +1073,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               yPos += (descriptionLines.length * lineHeight);
             }
             
-            yPos += 5; // Balanced spacing between extracurricular entries
+            // Only add entry spacing if this is not the last entry
+            if (activity !== data.extracurricular[data.extracurricular.length - 1]) {
+              yPos += 5; // Spacing between extracurricular entries
+            }
           }
           
           // Add consistent spacing after the extracurricular section
