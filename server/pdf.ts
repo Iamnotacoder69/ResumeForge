@@ -793,6 +793,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   // Use user-defined section order or fall back to default
   const sectionOrder = data.templateSettings?.sectionOrder?.filter(section => section.visible) || defaultSectionOrder;
   
+  // Function to ensure consistent section spacing - we'll call this between sections
+  const addSectionSpacing = (addY = 7) => {
+    let currentY = yPos;
+    // Reset to exactly 7 units from the last content position
+    yPos = currentY + addY;
+  };
+  
   // Process sections based on order
   for (const section of sectionOrder) {
     // Skip hidden sections
@@ -826,7 +833,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         }
         
         // Add consistent spacing after this section
-        yPos += 7; // 7 units consistent spacing after section
+        addSectionSpacing();
         break;
         
       case 'keyCompetencies':
@@ -866,7 +873,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+          yPos += (softSkillsLines.length * lineHeight);
+          // Add consistent spacing after section
+          addSectionSpacing();
         }
         break;
         
@@ -922,7 +931,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the entire experience section
-          yPos += 7; // 7 units consistent spacing after section
+          addSectionSpacing();
         }
         break;
         
@@ -972,7 +981,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the education section
-          yPos += 7; // 7 units consistent spacing
+          addSectionSpacing();
         }
         break;
         
@@ -1025,7 +1034,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the entire certificates section
-          yPos += 7; // 7 units consistent spacing after section
+          addSectionSpacing();
         }
         break;
         
@@ -1080,7 +1089,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the extracurricular section
-          yPos += 7; // 7 units consistent spacing
+          addSectionSpacing();
         }
         break;
         
@@ -1136,7 +1145,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         }
         
         // Add consistent spacing after the entire Additional Information section
-        yPos += 7; // 7 units consistent spacing after section
+        addSectionSpacing();
         break;
         
       default:
