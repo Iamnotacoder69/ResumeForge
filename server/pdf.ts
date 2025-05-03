@@ -358,7 +358,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFontSize(bodyFontSize);
           
           // Split text to handle line breaks
-          const summaryLines = doc.splitTextToSize(data.professional.summary, mainContentWidth);
+          // Improve text formatting for better readability and line breaks
+          const formattedSummary = improveTextFormatting(data.professional.summary, false);
+          const summaryLines = doc.splitTextToSize(formattedSummary, mainContentWidth - 2);
           doc.text(summaryLines, mainContentX, mainYPos);
           mainYPos += (summaryLines.length * lineHeight) + 15; // Increased for better section separation
           break;
@@ -398,16 +400,19 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
-              // Format dates
-              const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              // Format dates with null check
+              const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
               const endDateDisplay = exp.isCurrent ? 'Present' : 
-                                 exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                                 (exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A');
               
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               doc.setFont(bodyFont, "normal");
-              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+              // Improve text formatting to avoid awkward line breaks
+              const formattedResponsibilities = improveTextFormatting(exp.responsibilities, true);
+              // Use slightly smaller width to improve text wrapping quality
+              const responsibilitiesLines = doc.splitTextToSize(formattedResponsibilities, mainContentWidth - 10);
               doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
               mainYPos += (responsibilitiesLines.length * lineHeight) + 7; // Balanced spacing between experience entries
             }
@@ -573,7 +578,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               mainYPos += lineHeight;
               
               doc.setFont(bodyFont, "normal");
-              const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+              // Improve text formatting to avoid awkward line breaks
+              const formattedDescription = improveTextFormatting(activity.description, true);
+              const descriptionLines = doc.splitTextToSize(formattedDescription, mainContentWidth - 10);
               doc.text(descriptionLines, mainContentX + 8, mainYPos);
               mainYPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
             }
@@ -819,7 +826,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFontSize(bodyFontSize);
         
         // Split text to handle line breaks
-        const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
+        // Improve text formatting for better readability
+        const formattedSummary = improveTextFormatting(data.professional.summary, false);
+        const summaryLines = doc.splitTextToSize(formattedSummary, contentWidth - 2);
         doc.text(summaryLines, margin, yPos);
         // Add consistent spacing after this section
         yPos += (summaryLines.length * lineHeight) + 7; // 7 units consistent spacing after section
@@ -901,7 +910,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
+            // Improve text formatting to avoid awkward line breaks
+            const formattedResponsibilities = improveTextFormatting(exp.responsibilities, true);
+            // Use slightly smaller width to improve text wrapping quality
+            const responsibilitiesLines = doc.splitTextToSize(formattedResponsibilities, contentWidth - 2);
             doc.text(responsibilitiesLines, margin, yPos);
             yPos += (responsibilitiesLines.length * lineHeight) + 6; // Balanced spacing between experience entries
           }
@@ -1040,7 +1052,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             yPos += lineHeight;
             
             doc.setFont(bodyFont, "normal");
-            const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+            // Improve text formatting to avoid awkward line breaks
+            const formattedDescription = improveTextFormatting(activity.description, true);
+            // Use slightly smaller width to improve text wrapping quality
+            const descriptionLines = doc.splitTextToSize(formattedDescription, contentWidth - 2);
             doc.text(descriptionLines, margin, yPos);
             yPos += (descriptionLines.length * lineHeight) + 5; // Balanced spacing between extracurricular entries
           }
