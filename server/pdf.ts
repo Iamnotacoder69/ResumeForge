@@ -277,6 +277,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     // Set text color for main content
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     
+    // Function to ensure consistent section spacing for the sidebar template
+    const addSidebarSectionSpacing = (addY = 7) => {
+      let currentY = mainYPos;
+      // Reset to exactly 7 units from the last content position
+      mainYPos = currentY + addY;
+    };
+    
     // Set up section order from user preferences or use default
     const defaultSectionOrder: SectionOrder[] = [
       { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
@@ -328,7 +335,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             mainYPos += (summaryLines.length * lineHeight);
           }
           
-          mainYPos += 7; // Standard 7 units spacing after section
+          // Add consistent spacing after this section
+          addSidebarSectionSpacing();
           break;
           
         case 'experience':
@@ -394,7 +402,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the entire experience section
-          mainYPos += 7; // 7 units consistent spacing after section
+          addSidebarSectionSpacing();
           break;
           
         case 'education':
@@ -453,7 +461,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the entire education section
-          mainYPos += 7; // 7 units consistent spacing after section
+          addSidebarSectionSpacing();
           break;
           
         case 'certificates':
@@ -515,7 +523,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add extra spacing after the entire certificates section
-          mainYPos += 7; // 7 units consistent spacing after section
+          addSidebarSectionSpacing();
           break;
           
         case 'extracurricular':
@@ -579,7 +587,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add extra spacing after the entire extracurricular section
-          mainYPos += 7; // 7 units consistent spacing after section
+          addSidebarSectionSpacing();
           break;
           
         case 'additional':
@@ -653,7 +661,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the entire Additional Information section
-          mainYPos += 7; // 7 units consistent spacing after section
+          addSidebarSectionSpacing();
           break;
       }
     }
