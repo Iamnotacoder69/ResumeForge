@@ -1,6 +1,42 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
+/**
+ * Improves text formatting for PDF output by properly handling bullet points and avoiding awkward line breaks
+ * @param text The original text to format
+ * @param preserveBullets Whether to preserve and standardize bullet points
+ * @returns Improved text with proper line breaks
+ */
+function improveTextFormatting(text: string, preserveBullets: boolean = true): string {
+  if (!text) return '';
+  
+  // Split by existing line breaks
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  let formattedText = '';
+  
+  // Process each line
+  lines.forEach((line, index) => {
+    let processedLine = line.trim();
+    
+    // Handle bullet points if needed
+    if (preserveBullets) {
+      if (!processedLine.startsWith('•') && !processedLine.startsWith('-') && !processedLine.startsWith('*')) {
+        processedLine = '• ' + processedLine;
+      } else if (processedLine.startsWith('-') || processedLine.startsWith('*')) {
+        // Standardize bullet types to '•'
+        processedLine = '• ' + processedLine.substring(1).trim();
+      }
+    }
+    
+    formattedText += processedLine;
+    if (index < lines.length - 1) {
+      formattedText += '\n';
+    }
+  });
+  
+  return formattedText;
+}
+
 // Helper function to handle photo URLs, converting base64 data URLs if needed
 function prepareImageForPDF(photoUrl: string): { imageData: string, format: string } {
   let format = 'JPEG';
