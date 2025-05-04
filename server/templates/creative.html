@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ cv.personal.firstName }} {{ cv.personal.lastName }} - CV</title>
+    <style>
+        /* Base styles for creative design */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+        
+        /* Main layout */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 29.7cm;
+        }
+        
+        /* Creative header */
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 1.5cm 1.5cm 1cm 1.5cm;
+            position: relative;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .photo-container {
+            float: right;
+            margin-left: 1cm;
+        }
+        
+        .photo {
+            width: 4cm;
+            height: 4cm;
+            object-fit: cover;
+            border: 5px solid white;
+            border-radius: 50%; /* Round image for creative style */
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            font-size: 18pt;
+            margin: 0;
+            padding: 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 0.2cm;
+        }
+        
+        .contact-info {
+            font-size: 10pt;
+            margin-bottom: 0.5cm;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        /* Main content area */
+        .content {
+            padding: 1.5cm;
+            flex: 1;
+        }
+        
+        h2 {
+            font-size: 14pt;
+            margin: 0 0 0.5cm 0;
+            padding: 0;
+            color: #3498db;
+            position: relative;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -0.2cm;
+            width: 2cm;
+            height: 3px;
+            background-color: #3498db;
+        }
+        
+        h3 {
+            font-size: 12pt;
+            margin: 0 0 0.2cm 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        p {
+            margin: 0 0 0.3cm 0;
+        }
+        
+        /* Sections and entries */
+        .section {
+            margin-bottom: 0.7cm; /* Standard section spacing */
+        }
+        
+        .entry {
+            margin-bottom: 0.5cm; /* Standard entry spacing */
+            position: relative;
+        }
+        
+        .entry:last-child {
+            margin-bottom: 0; /* No margin after last entry */
+        }
+        
+        .entry-title {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .entry-subtitle {
+            font-style: italic;
+            color: #555;
+        }
+        
+        .entry-date {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .entry-content {
+            text-align: justify;
+            margin-top: 0.2cm;
+        }
+        
+        /* Creative skills display */
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3cm;
+            margin-top: 0.3cm;
+        }
+        
+        .skill-item {
+            background-color: #f0f7fc;
+            padding: 0.1cm 0.3cm;
+            border-radius: 0.2cm;
+            font-size: 10pt;
+            color: #3498db;
+            border: 1px solid #d1e8fc;
+        }
+        
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5cm;
+            height: 5cm;
+            background-color: rgba(52, 152, 219, 0.8); /* Slightly transparent blue */
+            border-radius: 0 0 0 100%;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Creative header with decorative element -->
+        <div class="header">
+            <div class="decoration"></div>
+            
+            <div class="header-content">
+                {% if photo_url and cv.templateSettings.includePhoto %}
+                <div class="photo-container">
+                    <img class="photo" src="{{ photo_url }}" alt="Profile Photo">
+                </div>
+                {% endif %}
+                
+                <h1>{{ cv.personal.firstName }} {{ cv.personal.lastName }}</h1>
+                
+                <div class="contact-info">
+                    <p>{{ cv.personal.email }} | {{ cv.personal.phone }}
+                    {% if cv.personal.linkedin %}
+                     | linkedin.com/in/{{ cv.personal.linkedin }}
+                    {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Professional Summary in header for creative layout -->
+                {% if cv.professional and cv.professional.summary %}
+                <p>{{ cv.professional.summary }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Key Competencies -->
+            {% if cv.keyCompetencies %}
+            <div class="section">
+                <h2>Key Competencies</h2>
+                
+                {% if cv.keyCompetencies.technicalSkills %}
+                <div class="entry">
+                    <h3>Technical Skills</h3>
+                    <div class="skills-container">
+                        {% for skill in cv.keyCompetencies.technicalSkills %}
+                        <span class="skill-item">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if cv.keyCompetencies.softSkills %}
+                <div class="entry">
+                    <h3>Soft Skills</h3>
+                    <div class="skills-container">
+                        {% for skill in cv.keyCompetencies.softSkills %}
+                        <span class="skill-item">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Work Experience -->
+            {% if cv.experience and cv.experience|length > 0 %}
+            <div class="section">
+                <h2>Professional Experience</h2>
+                
+                {% for exp in cv.experience %}
+                <div class="entry">
+                    <h3 class="entry-title">{{ exp.jobTitle }}</h3>
+                    <div class="entry-subtitle">
+                        {{ exp.companyName }} | <span class="entry-date">{{ format_date(exp.startDate) }} - {{ format_date(exp.endDate, exp.isCurrent) }}</span>
+                    </div>
+                    
+                    {% if exp.responsibilities %}
+                    <div class="entry-content">
+                        {{ exp.responsibilities|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Education -->
+            {% if cv.education and cv.education|length > 0 %}
+            <div class="section">
+                <h2>Education</h2>
+                
+                {% for edu in cv.education %}
+                <div class="entry">
+                    <h3 class="entry-title">{{ edu.major }}</h3>
+                    <div class="entry-subtitle">
+                        {{ edu.schoolName }} | <span class="entry-date">{{ format_date(edu.startDate) }} - {{ format_date(edu.endDate) }}</span>
+                    </div>
+                    
+                    {% if edu.achievements %}
+                    <div class="entry-content">
+                        {{ edu.achievements|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Certificates -->
+            {% if cv.certificates and cv.certificates|length > 0 %}
+            <div class="section">
+                <h2>Certificates</h2>
+                
+                {% for cert in cv.certificates %}
+                <div class="entry">
+                    <h3 class="entry-title">{{ cert.name }}</h3>
+                    <div class="entry-subtitle">
+                        {{ cert.institution }} | <span class="entry-date">{{ format_date(cert.dateAcquired) }}
+                        {% if cert.expirationDate %}
+                        (Expires: {{ format_date(cert.expirationDate) }})
+                        {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if cert.achievements %}
+                    <div class="entry-content">
+                        {{ cert.achievements|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Extracurricular Activities -->
+            {% if cv.extracurricular and cv.extracurricular|length > 0 %}
+            <div class="section">
+                <h2>Extracurricular Activities</h2>
+                
+                {% for activity in cv.extracurricular %}
+                <div class="entry">
+                    <h3 class="entry-title">{{ activity.role }}</h3>
+                    <div class="entry-subtitle">
+                        {{ activity.organization }} | <span class="entry-date">{{ format_date(activity.startDate) }} - {{ format_date(activity.endDate, activity.isCurrent) }}</span>
+                    </div>
+                    
+                    {% if activity.description %}
+                    <div class="entry-content">
+                        {{ activity.description|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Additional Information -->
+            <div class="section">
+                <h2>Additional Information</h2>
+                
+                {% if cv.additional and cv.additional.skills %}
+                <div class="entry">
+                    <h3>Computer Skills</h3>
+                    <div class="skills-container">
+                        {% for skill in cv.additional.skills %}
+                        <span class="skill-item">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if cv.languages and cv.languages|length > 0 %}
+                <div class="entry">
+                    <h3>Languages</h3>
+                    <div class="skills-container">
+                        {% for lang in cv.languages %}
+                        <span class="skill-item">{{ lang.name }} ({{ lang.proficiency|title }})</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

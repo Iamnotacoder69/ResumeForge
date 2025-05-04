@@ -2,6 +2,8 @@
 WeasyPrint PDF generation module for CV builder
 """
 import os
+import sys
+import json
 import base64
 from pathlib import Path
 from datetime import datetime
@@ -94,3 +96,33 @@ def generate_pdf(data, template_name='professional'):
         pdf = html.write_pdf()
     
     return pdf
+
+# Command-line interface
+if __name__ == "__main__":
+    # Check if the correct number of arguments is provided
+    if len(sys.argv) < 3:
+        print("Usage: python weasy_pdf.py <input_json_file> <output_pdf_file> [template_name]")
+        sys.exit(1)
+    
+    # Parse command-line arguments
+    input_json_file = sys.argv[1]
+    output_pdf_file = sys.argv[2]
+    template_name = sys.argv[3] if len(sys.argv) > 3 else 'professional'
+    
+    try:
+        # Read JSON data from input file
+        with open(input_json_file, 'r') as f:
+            data = json.load(f)
+        
+        # Generate PDF
+        pdf_content = generate_pdf(data, template_name)
+        
+        # Write PDF content to output file
+        with open(output_pdf_file, 'wb') as f:
+            f.write(pdf_content)
+        
+        print(f"PDF generated successfully and saved to {output_pdf_file}")
+        sys.exit(0)
+    except Exception as e:
+        print(f"Error generating PDF: {str(e)}", file=sys.stderr)
+        sys.exit(1)

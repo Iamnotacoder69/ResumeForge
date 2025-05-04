@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { generatePDF } from "./pdf";
+import { generatePDFWithWeasyPrint } from "./weasyPrint";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -213,9 +214,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PDF Generation - Calling generatePDF function");
       
       try {
-        // Generate PDF buffer
-        const pdfBuffer = await generatePDF(data);
-        console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
+        console.log("PDF Generation - Using WeasyPrint implementation");
+        // Generate PDF buffer using WeasyPrint
+        const pdfBuffer = await generatePDFWithWeasyPrint(data);
+        console.log("PDF Generation - WeasyPrint PDF buffer created, size:", pdfBuffer.length);
         
         // Set headers
         res.setHeader('Content-Type', 'application/pdf');
@@ -225,8 +227,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(200).send(pdfBuffer);
         console.log("PDF Generation - Response sent successfully");
       } catch (pdfError) {
-        console.error("PDF Generation - Error generating PDF:", pdfError);
-        throw pdfError;
+        console.error("PDF Generation - Error generating PDF with WeasyPrint:", pdfError);
+        console.log("PDF Generation - Falling back to jsPDF implementation");
+        
+        try {
+          // Fallback to original PDF generation
+          const pdfBuffer = await generatePDF(data);
+          console.log("PDF Generation - jsPDF buffer created, size:", pdfBuffer.length);
+          
+          // Set headers
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', 'attachment; filename=cv.pdf');
+          
+          // Send PDF buffer
+          res.status(200).send(pdfBuffer);
+          console.log("PDF Generation - Response sent successfully (fallback)");
+        } catch (fallbackError) {
+          console.error("PDF Generation - Error in fallback PDF generation:", fallbackError);
+          throw fallbackError;
+        }
       }
     } catch (error) {
       console.error("PDF Generation - Error caught:", error);
