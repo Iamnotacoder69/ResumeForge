@@ -1,6 +1,49 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
+// Standardized spacing constants
+const SPACING = {
+  SECTION: 7,          // Space after each major section
+  ENTRY: 5,            // Space between entries within a section
+  SECTION_TITLE: 2,    // Extra space after section titles (in addition to line height)
+  LINE_BELOW_TITLE: 2, // Space after visual separators
+  TEXT_BLOCK: 0,       // No additional spacing after text blocks (line height handles this)
+  SUB_SECTION: 5       // Space between sub-sections
+};
+
+/**
+ * Helper function for wrapped text with consistent spacing
+ * @param doc PDF document
+ * @param text Text to wrap
+ * @param x X-coordinate
+ * @param y Y-coordinate
+ * @param maxWidth Maximum width for text wrapping
+ * @param lineHeight Line height to use
+ * @returns Updated Y position after text
+ */
+function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: number, maxWidth: number, lineHeight: number): number {
+  if (!text || typeof text !== 'string') return y;
+  
+  const lines = doc.splitTextToSize(text, maxWidth);
+  doc.text(lines, x, y);
+  return y + (lines.length * lineHeight);
+}
+
+/**
+ * Adds a visual separator line under a section title
+ * @param doc PDF document
+ * @param x Starting X-coordinate
+ * @param y Y-coordinate
+ * @param width Width of the line
+ * @param color RGB color array
+ * @returns Updated Y position after separator
+ */
+function addSectionSeparator(doc: jsPDF, x: number, y: number, width: number, color: [number, number, number]): number {
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.line(x, y, x + width, y);
+  return y + SPACING.LINE_BELOW_TITLE;
+}
+
 // Helper function to handle photo URLs, converting base64 data URLs if needed
 function prepareImageForPDF(photoUrl: string): { imageData: string, format: string } {
   let format = 'JPEG';
