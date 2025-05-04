@@ -540,13 +540,18 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format date with safe null checks
-              const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              let expirationText = '';
-              if (cert.expirationDate) {
-                expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+              let dateAcquiredStr = '';
+              if (cert.dateAcquired) {
+                dateAcquiredStr = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
-              doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
+              let expirationText = '';
+              if (cert.expirationDate) {
+                const expirationDate = new Date(cert.expirationDate);
+                expirationText = ` (Expires: ${expirationDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+              }
+              
+              doc.text(`${cert.institution} | ${dateAcquiredStr}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               if (cert.achievements && typeof cert.achievements === 'string') {
@@ -602,15 +607,20 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates with safe null checks
-              const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              let startDateStr = '';
+              if (activity.startDate) {
+                startDateStr = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
+              
               let endDateDisplay = '';
               if (activity.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (activity.endDate) {
-                endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const endDate = new Date(activity.endDate);
+                endDateDisplay = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
-              doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
+              doc.text(`${activity.organization} | ${startDateStr} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               if (activity.description && typeof activity.description === 'string') {
