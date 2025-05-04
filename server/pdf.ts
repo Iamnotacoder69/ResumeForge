@@ -406,7 +406,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               // Format dates
               // Safely handle dates with null checks
-              const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              let startDateStr = '';
+              if (exp.startDate) {
+                startDateStr = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
+              
               let endDateDisplay = '';
               if (exp.isCurrent) {
                 endDateDisplay = 'Present';
@@ -414,7 +418,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
-              doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
+              doc.text(`${exp.companyName} | ${startDateStr} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               if (exp.responsibilities && typeof exp.responsibilities === 'string') {
@@ -470,10 +474,17 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
               
               // Format dates with safe null checks
-              const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              let startDateStr = '';
+              if (edu.startDate) {
+                startDateStr = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
               
-              doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
+              let endDateStr = '';
+              if (edu.endDate) {
+                endDateStr = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
+              
+              doc.text(`${edu.schoolName} | ${startDateStr} - ${endDateStr}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
               
               if (edu.achievements && typeof edu.achievements === 'string') {
@@ -1143,7 +1154,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(bodyFontSize);
             
             // Format dates with safe null checks
-            const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+            let startDateStr = '';
+            if (activity.startDate) {
+              startDateStr = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            }
+            
             let endDateDisplay = '';
             if (activity.isCurrent) {
               endDateDisplay = 'Present';
@@ -1151,7 +1166,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             }
             
-            doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
+            doc.text(`${activity.organization} | ${startDateStr} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
             
             if (activity.description && typeof activity.description === 'string') {
