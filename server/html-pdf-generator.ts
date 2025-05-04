@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
+// @ts-ignore - Missing type definitions for html-pdf
 import htmlPdf from 'html-pdf';
 
 // Get the directory name in ESM
