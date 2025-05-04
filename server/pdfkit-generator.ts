@@ -175,9 +175,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         resolve(pdfBuffer);
       });
       
-      // Hack to bypass TypeScript type checking for template types
-      // @ts-ignore - Modern-sidebar template is a valid template type
-      if (templateType === 'modern-sidebar') {
+      // Use direct string comparison to handle all template types
+      if ((templateType as string) === 'modern-sidebar') {
         // Modern sidebar layout
         const sidebarWidth = 60; // 60mm -> ~170pt
         const mainContentX = sidebarWidth + margin;
