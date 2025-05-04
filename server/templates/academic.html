@@ -51,14 +51,14 @@
             text-align: center;
             margin-bottom: 0.7cm;
         }
-        .cv-section {
-            margin-bottom: 30px; /* Consistent section spacing across all templates */
+        .section {
+            margin-bottom: 0.7cm; /* Standard section spacing */
         }
         .entry {
-            margin-bottom: 15px; /* Consistent entry spacing */
+            margin-bottom: 0.5cm; /* Standard entry spacing */
         }
         .entry:last-child {
-            margin-bottom: 0; /* No margin after last entry to prevent duplicate spacing */
+            margin-bottom: 0; /* No margin after last entry */
         }
         .entry-header {
             display: flex;
@@ -88,7 +88,7 @@
             border: 1px solid #000;
         }
         .header {
-            margin-bottom: 30px; /* Consistent with section spacing */
+            margin-bottom: 0.7cm;
             text-align: center;
         }
         .publications {
@@ -128,7 +128,7 @@
     
     <!-- Professional Summary -->
     {% if cv.professional and cv.professional.summary %}
-    <div class="cv-section">
+    <div class="section">
         <h2>Research Interests</h2>
         <p>{{ cv.professional.summary }}</p>
     </div>
@@ -136,7 +136,7 @@
     
     <!-- Education (prioritized in academic CV) -->
     {% if cv.education and cv.education|length > 0 %}
-    <div class="cv-section">
+    <div class="section">
         <h2>Education</h2>
         
         {% for edu in cv.education %}
@@ -159,7 +159,7 @@
     
     <!-- Work Experience (renamed to Research Experience for academic CV) -->
     {% if cv.experience and cv.experience|length > 0 %}
-    <div class="cv-section">
+    <div class="section">
         <h2>Research Experience</h2>
         
         {% for exp in cv.experience %}
@@ -182,7 +182,7 @@
     
     <!-- Certificates (renamed to Publications for academic CV) -->
     {% if cv.certificates and cv.certificates|length > 0 %}
-    <div class="cv-section">
+    <div class="section">
         <h2>Publications and Presentations</h2>
         
         <ol class="publications">
@@ -205,7 +205,7 @@
     
     <!-- Key Competencies (renamed for academic context) -->
     {% if cv.keyCompetencies %}
-    <div class="cv-section">
+    <div class="section">
         <h2>Research Skills</h2>
         
         {% if cv.keyCompetencies.technicalSkills %}
@@ -226,7 +226,7 @@
     
     <!-- Extracurricular Activities (renamed for academic context) -->
     {% if cv.extracurricular and cv.extracurricular|length > 0 %}
-    <div class="cv-section">
+    <div class="section">
         <h2>Academic Service & Leadership</h2>
         
         {% for activity in cv.extracurricular %}
@@ -248,7 +248,7 @@
     {% endif %}
     
     <!-- Additional Information -->
-    <div class="cv-section">
+    <div class="section">
         <h2>Additional Information</h2>
         
         {% if cv.additional and cv.additional.skills %}
