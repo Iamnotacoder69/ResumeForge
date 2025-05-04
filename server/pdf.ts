@@ -854,22 +854,23 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Professional Summary", margin, yPos);
-        yPos += lineHeight + 2; // Standard spacing after section title
+        
+        // Add visual separator line under the title
+        yPos += SPACING.LINE_BELOW_TITLE; 
+        yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+        yPos += lineHeight;
         
         doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         doc.setFont(bodyFont, "normal");
         doc.setFontSize(bodyFontSize);
         
-        // Split text to handle line breaks if summary exists
-        if (data.professional && data.professional.summary && typeof data.professional.summary === 'string') {
-          const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
-          doc.text(summaryLines, margin, yPos);
-          // Add spacing based on content
-          yPos += (summaryLines.length * lineHeight);
+        // Use our helper function for wrapped text if summary exists
+        if (data.professional && data.professional.summary) {
+          yPos = addWrappedText(doc, data.professional.summary, margin, yPos, contentWidth, lineHeight);
         }
         
         // Add consistent spacing after this section
-        yPos += 7; // 7 units consistent spacing after section
+        yPos += SPACING.SECTION;
         break;
         
       case 'keyCompetencies':
@@ -878,7 +879,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Key Competencies", margin, yPos);
-        yPos += lineHeight + 2; // Standard spacing after section title
+        
+        // Add visual separator line under the title
+        yPos += SPACING.LINE_BELOW_TITLE;
+        yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+        yPos += lineHeight;
         
         doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         
@@ -892,9 +897,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(bodyFont, "normal");
           doc.setFontSize(bodyFontSize);
           const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
-          const techSkillsLines = doc.splitTextToSize(techSkillsText, contentWidth);
-          doc.text(techSkillsLines, margin, yPos);
-          yPos += (techSkillsLines.length * lineHeight) + 2; // Reduced from 3
+          yPos = addWrappedText(doc, techSkillsText, margin, yPos, contentWidth, lineHeight);
+          yPos += SPACING.SUB_SECTION; // Space between sub-sections
         }
         
         // Soft Skills
@@ -907,10 +911,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(bodyFont, "normal");
           doc.setFontSize(bodyFontSize);
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
-          const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
-          doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+          yPos = addWrappedText(doc, softSkillsText, margin, yPos, contentWidth, lineHeight);
         }
+        
+        // Add consistent spacing after this section
+        yPos += SPACING.SECTION;
         break;
         
       case 'experience':
@@ -920,7 +925,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Professional Experience", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          
+          // Add visual separator line under the title
+          yPos += SPACING.LINE_BELOW_TITLE; 
+          yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+          yPos += lineHeight;
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -951,21 +960,19 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, margin, yPos);
             yPos += lineHeight;
             
-            if (exp.responsibilities && typeof exp.responsibilities === 'string') {
+            if (exp.responsibilities) {
               doc.setFont(bodyFont, "normal");
-              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
-              doc.text(responsibilitiesLines, margin, yPos);
-              yPos += (responsibilitiesLines.length * lineHeight);
+              yPos = addWrappedText(doc, exp.responsibilities, margin, yPos, contentWidth, lineHeight);
             }
             
             // Only add entry spacing if this is not the last entry
             if (exp !== data.experience[data.experience.length - 1]) {
-              yPos += 5; // Standard spacing between experience entries (5 units)
+              yPos += SPACING.ENTRY; // Standard spacing between entries
             }
           }
           
           // Add consistent spacing after the entire experience section
-          yPos += 7; // 7 units consistent spacing after section
+          yPos += SPACING.SECTION; // Consistent spacing after section
         }
         break;
         
