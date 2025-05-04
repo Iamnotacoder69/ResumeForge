@@ -70,7 +70,7 @@ function prepareImage(photoUrl: string): Buffer | null {
 export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
-      const templateType = data.templateSettings?.template || 'professional';
+      const templateType: TemplateType = data.templateSettings?.template || 'professional';
       const includePhoto = data.templateSettings?.includePhoto || false;
       
       // Use user-defined section order or default
@@ -176,6 +176,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       });
       
       // Apply template-specific styling and layout
+      // Handle sidebar template separately
       if (templateType === 'modern-sidebar') {
         // Modern sidebar layout
         const sidebarWidth = 60; // 60mm -> ~170pt
