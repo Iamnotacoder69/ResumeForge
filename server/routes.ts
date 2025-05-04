@@ -2,8 +2,8 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-// Import the new HTML PDF generator instead of the old one
-import { generatePDF } from "./html-pdf-generator";
+// Import the PDFKit generator
+import { generatePDF } from "./pdfkit-generator";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
