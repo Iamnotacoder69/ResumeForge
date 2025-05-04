@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { completeCvSchema } from "./schema";
 
-// Template types supported by the application
-export type TemplateType = 'minimalist' | 'professional' | 'creative' | 'academic' | 'modern-sidebar';
+export type TemplateType = 'minimalist' | 'professional' | 'creative' | 'academic';
 
 export type SectionType = 'personal' | 'summary' | 'keyCompetencies' | 'experience' | 'education' | 'certificates' | 'extracurricular' | 'additional';
 

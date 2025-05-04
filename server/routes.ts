@@ -2,8 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-// Import the PDFKit generator
-import { generatePDF } from "./pdfkit-generator";
+import { generatePDF } from "./pdf";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -11,8 +10,6 @@ import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import fs from "fs";
-import path from "path";
 
 // Configure multer for memory storage (files stored in buffer)
 const upload = multer({
