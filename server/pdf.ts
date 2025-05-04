@@ -866,8 +866,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const softSkillsText = data.keyCompetencies.softSkills.join(", ");
           const softSkillsLines = doc.splitTextToSize(softSkillsText, contentWidth);
           doc.text(softSkillsLines, margin, yPos);
-          yPos += (softSkillsLines.length * lineHeight) + 7; // 7 units consistent spacing after section
+          yPos += (softSkillsLines.length * lineHeight);
         }
+        
+        // Add consistent spacing after this section
+        yPos += 7; // 7 units consistent spacing after section
         break;
         
       case 'experience':
@@ -1106,7 +1109,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
+          yPos += (skillsLines.length * lineHeight) + 5; // Standard 5 units spacing between subsections
         }
         
         // Languages subsection
