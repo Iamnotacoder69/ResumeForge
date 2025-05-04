@@ -25,10 +25,12 @@ def format_date(date_str, is_current=False):
     if not date_str:
         return ''
     try:
+        date_str = date_str.strip() if isinstance(date_str, str) else date_str
         date_obj = datetime.strptime(date_str, '%Y-%m-%d')
         return date_obj.strftime('%b %Y')  # Format as 'Mar 2023'
     except (ValueError, TypeError):
-        return date_str
+        # Return a cleaned string if parsing fails
+        return date_str.strip() if isinstance(date_str, str) else date_str
 
 def prepare_image_for_template(photo_url):
     """Convert image URL/base64 to a format usable in templates"""
