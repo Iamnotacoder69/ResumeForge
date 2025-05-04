@@ -96,6 +96,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       const doc = new PDFDocument({ 
         size: 'A4',
         margin: 0,
+        bufferPages: true,  // Enable buffer pages for page numbers
+        autoFirstPage: true,
         info: {
           Title: `CV - ${data.personal.firstName} ${data.personal.lastName}`,
           Author: `${data.personal.firstName} ${data.personal.lastName}`,
@@ -158,7 +160,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       // Use minimalist as professional if selected
       const style = templateStyles[templateType === 'minimalist' ? 'professional' : templateType];
       
-      const margin = 20; // 20mm -> ~57pt
+      // Convert mm to points (1mm ≈ 2.83465pt)
+      const mmToPt = 2.83465;
+      const marginMm = 20; 
+      const margin = marginMm * mmToPt; // Convert to points for PDFKit
       const contentWidth = doc.page.width - (margin * 2);
       
       // Buffers to collect PDF content
@@ -512,11 +517,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         currentY += 6;
         
         // Contact info
+        // Calculate width for contact info (leave space for photo if included)
+        const effectiveWidth = includePhoto ? (contentWidth - 50) : contentWidth;
+        
         doc.font(style.bodyFont)
            .fontSize(11)
            .fillColor('#555555')
            .text(`Email: ${data.personal.email} | Phone: ${data.personal.phone}${data.personal.linkedin ? ` | LinkedIn: linkedin.com/in/${data.personal.linkedin}` : ''}`, 
-                 margin, currentY, { width: contentWidth });
+                 margin, currentY, { width: effectiveWidth, align: 'left', lineBreak: true });
         currentY += 8;
         
         // Profile photo
@@ -562,7 +570,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.font(style.bodyFont)
                .fontSize(11)
                .fill(style.textColor)
-               .text(data.professional.summary, margin, currentY, { width: contentWidth });
+               .text(data.professional.summary, margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
             const textHeight = doc.heightOfString(data.professional.summary, { width: contentWidth });
             currentY += textHeight + 7; // 7mm section spacing
           }
@@ -654,7 +662,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 doc.font(style.bodyFont)
                    .fontSize(11)
                    .fillColor(style.textColor)
-                   .text(exp.responsibilities, margin, currentY, { width: contentWidth });
+                   .text(exp.responsibilities, margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
                 const textHeight = doc.heightOfString(exp.responsibilities, { width: contentWidth });
                 currentY += textHeight + 2;
               }
@@ -705,7 +713,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 doc.font(style.bodyFont)
                    .fontSize(11)
                    .fillColor(style.textColor)
-                   .text(edu.achievements, margin, currentY, { width: contentWidth });
+                   .text(edu.achievements, margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
                 const textHeight = doc.heightOfString(edu.achievements, { width: contentWidth });
                 currentY += textHeight + 2;
               }
