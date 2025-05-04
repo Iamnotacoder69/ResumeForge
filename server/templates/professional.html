@@ -47,13 +47,17 @@
             margin-bottom: 0.5cm;
         }
         .section {
-            margin-bottom: 0.7cm; /* Standard section spacing */
+            margin-bottom: 0.7cm; /* Standard section spacing (7 units) */
         }
         .entry {
-            margin-bottom: 0.5cm; /* Standard entry spacing */
+            margin-bottom: 0.5cm; /* Standard entry spacing (5 units) */
         }
         .entry:last-child {
             margin-bottom: 0; /* No margin after last entry */
+        }
+        /* Fix for ensuring proper spacing */
+        .section:last-of-type {
+            margin-bottom: 0; /* Remove bottom margin from last section */
         }
         .entry-header {
             display: flex;
