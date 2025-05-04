@@ -383,7 +383,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (exp.responsibilities && typeof exp.responsibilities === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+                // Force string conversion to handle any non-string values
+                const responsibilities = String(exp.responsibilities).trim();
+                const responsibilitiesLines = doc.splitTextToSize(responsibilities, mainContentWidth - 8);
                 doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
                 mainYPos += (responsibilitiesLines.length * lineHeight);
               }
@@ -442,7 +444,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (edu.achievements && typeof edu.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
+                // Force string conversion to handle any non-string values
+                const achievements = String(edu.achievements).trim();
+                const achievementsLines = doc.splitTextToSize(achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -506,7 +510,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (cert.achievements && typeof cert.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
+                // Force string conversion to handle any non-string values
+                const achievements = String(cert.achievements).trim();
+                const achievementsLines = doc.splitTextToSize(achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -562,7 +568,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               if (activity.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (activity.endDate) {
-                endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                // Add null check and default value
+                const endDate = activity.endDate || '';
+                endDateDisplay = endDate ? new Date(endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               }
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
@@ -570,7 +578,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (activity.description && typeof activity.description === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+                // Force string conversion to handle any non-string values
+                const description = String(activity.description).trim();
+                const descriptionLines = doc.splitTextToSize(description, mainContentWidth - 8);
                 doc.text(descriptionLines, mainContentX + 8, mainYPos);
                 mainYPos += (descriptionLines.length * lineHeight);
               }
@@ -823,7 +833,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         
         // Split text to handle line breaks if summary exists
         if (data.professional && data.professional.summary && typeof data.professional.summary === 'string') {
-          const summaryLines = doc.splitTextToSize(data.professional.summary, contentWidth);
+          // Force string conversion to handle any non-string values
+          const summary = String(data.professional.summary).trim();
+          const summaryLines = doc.splitTextToSize(summary, contentWidth);
           doc.text(summaryLines, margin, yPos);
           // Add spacing based on content
           yPos += (summaryLines.length * lineHeight);
@@ -914,7 +926,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (exp.responsibilities && typeof exp.responsibilities === 'string') {
               doc.setFont(bodyFont, "normal");
-              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
+              // Force string conversion to handle any non-string values
+              const responsibilities = String(exp.responsibilities).trim();
+              const responsibilitiesLines = doc.splitTextToSize(responsibilities, contentWidth);
               doc.text(responsibilitiesLines, margin, yPos);
               yPos += (responsibilitiesLines.length * lineHeight);
             }
@@ -964,7 +978,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (edu.achievements && typeof edu.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
+              // Force string conversion to handle any non-string values
+              const achievements = String(edu.achievements).trim();
+              const achievementsLines = doc.splitTextToSize(achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1017,7 +1033,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (cert.achievements && typeof cert.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
+              // Force string conversion to handle any non-string values
+              const achievements = String(cert.achievements).trim();
+              const achievementsLines = doc.splitTextToSize(achievements, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1072,7 +1090,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (activity.description && typeof activity.description === 'string') {
               doc.setFont(bodyFont, "normal");
-              const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+              // Force string conversion to handle any non-string values
+              const description = String(activity.description).trim();
+              const descriptionLines = doc.splitTextToSize(description, contentWidth);
               doc.text(descriptionLines, margin, yPos);
               yPos += (descriptionLines.length * lineHeight);
             }
