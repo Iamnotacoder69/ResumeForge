@@ -1,14 +1,18 @@
-import puppeteer from 'puppeteer';
 import Handlebars from 'handlebars';
 import { CompleteCV, TemplateType, SectionOrder } from '@shared/types';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
+import htmlPdf from 'html-pdf';
+import { promisify } from 'util';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Promisify html-pdf create function
+const createPdf = promisify(htmlPdf.create);
 
 // Register Handlebars helpers
 Handlebars.registerHelper('formatDate', function(dateString: string) {
@@ -1138,68 +1142,42 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     sections: sectionOrder
   });
   
-  // Generate PDF with Puppeteer
-  const tempHtmlPath = path.join('/tmp', `cv-${randomUUID()}.html`);
-  fs.writeFileSync(tempHtmlPath, htmlContent);
-  
-  // Create a temporary directory for puppeteer to use
-  const tmpDir = path.join('/tmp', `puppeteer-${randomUUID()}`);
-  if (!fs.existsSync(tmpDir)) {
-    fs.mkdirSync(tmpDir, { recursive: true });
-  }
-  
+  // Generate PDF with html-pdf
   try {
-    console.log('PDF Generation - Launching Puppeteer');
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        `--user-data-dir=${tmpDir}`
-      ]
-    });
+    console.log('PDF Generation - Creating PDF with html-pdf');
     
-    const page = await browser.newPage();
-    
-    await page.goto(`file://${tempHtmlPath}`, { waitUntil: 'networkidle0' });
-    
-    // Set A4 paper size
-    await page.emulateMediaType('print');
-    
-    const pdfBuffer = await page.pdf({
+    // PDF options
+    const options = {
       format: 'A4',
-      printBackground: true,
-      margin: {
+      border: {
         top: '0',
         right: '0',
         bottom: '0',
         left: '0'
+      },
+      timeout: 30000,
+      // Use phantom's header and footer options
+      header: {
+        height: '0mm'
+      },
+      footer: {
+        height: '0mm'
       }
-    });
+    };
     
-    await browser.close();
+    // Create PDF
+    const pdf = await createPdf(htmlContent, options) as { toBuffer: () => Promise<Buffer> };
+    
+    // Get PDF buffer
+    const pdfBuffer = await promisify(pdf.toBuffer.bind(pdf))();
+    
     console.log('PDF Generation - PDF created successfully');
-    
-    // Clean up temporary files
-    if (fs.existsSync(tempHtmlPath)) {
-      fs.unlinkSync(tempHtmlPath);
-    }
-    
     console.log(`PDF Generation - PDF buffer created, size: ${pdfBuffer.length}`);
-    return Buffer.from(pdfBuffer);
+    
+    return pdfBuffer;
   } catch (error: unknown) {
     console.error('Error generating PDF:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`Failed to generate PDF: ${errorMessage}`);
-  } finally {
-    // Clean up temp files
-    try {
-      if (fs.existsSync(tempHtmlPath)) {
-        fs.unlinkSync(tempHtmlPath);
-      }
-    } catch (e) {
-      console.error('Error cleaning up temporary files:', e);
-    }
   }
 }
