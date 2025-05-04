@@ -50,14 +50,14 @@
             color: #666;
             margin-bottom: 0.5cm;
         }
-        .section {
-            margin-bottom: 0.7cm; /* Standard section spacing */
+        .cv-section {
+            margin-bottom: 30px; /* Consistent section spacing across all templates */
         }
         .entry {
-            margin-bottom: 0.5cm; /* Standard entry spacing */
+            margin-bottom: 15px; /* Consistent entry spacing */
         }
         .entry:last-child {
-            margin-bottom: 0; /* No margin after last entry */
+            margin-bottom: 0; /* No margin after last entry to prevent duplicate spacing */
         }
         .entry-header {
             display: flex;
@@ -87,7 +87,7 @@
             border: none; /* No border for minimalist style */
         }
         .header {
-            margin-bottom: 0.9cm;
+            margin-bottom: 30px; /* Consistent with section spacing */
         }
         .skills-list {
             display: flex;
@@ -126,7 +126,7 @@
     
     <!-- Professional Summary -->
     {% if cv.professional and cv.professional.summary %}
-    <div class="section">
+    <div class="cv-section">
         <h2>Summary</h2>
         <p class="entry-content">{{ cv.professional.summary }}</p>
     </div>
@@ -134,7 +134,7 @@
     
     <!-- Key Competencies -->
     {% if cv.keyCompetencies %}
-    <div class="section">
+    <div class="cv-section">
         <h2>Skills</h2>
         
         {% if cv.keyCompetencies.technicalSkills %}
@@ -163,7 +163,7 @@
     
     <!-- Work Experience -->
     {% if cv.experience and cv.experience|length > 0 %}
-    <div class="section">
+    <div class="cv-section">
         <h2>Experience</h2>
         
         {% for exp in cv.experience %}
@@ -186,7 +186,7 @@
     
     <!-- Education -->
     {% if cv.education and cv.education|length > 0 %}
-    <div class="section">
+    <div class="cv-section">
         <h2>Education</h2>
         
         {% for edu in cv.education %}
@@ -209,7 +209,7 @@
     
     <!-- Certificates -->
     {% if cv.certificates and cv.certificates|length > 0 %}
-    <div class="section">
+    <div class="cv-section">
         <h2>Certifications</h2>
         
         {% for cert in cv.certificates %}
@@ -236,7 +236,7 @@
     
     <!-- Extracurricular Activities -->
     {% if cv.extracurricular and cv.extracurricular|length > 0 %}
-    <div class="section">
+    <div class="cv-section">
         <h2>Activities</h2>
         
         {% for activity in cv.extracurricular %}
@@ -258,7 +258,7 @@
     {% endif %}
     
     <!-- Additional Information -->
-    <div class="section">
+    <div class="cv-section">
         <h2>Additional Information</h2>
         
         {% if cv.additional and cv.additional.skills %}
