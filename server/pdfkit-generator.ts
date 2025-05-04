@@ -107,7 +107,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       });
       
       // Set up document styling based on template
-      const templateStyles: Record<string, {
+      const templateStyles: Record<TemplateType, {
         titleFont: string;
         bodyFont: string;
         titleColor: string;
@@ -175,9 +175,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         resolve(pdfBuffer);
       });
       
-      // Apply template-specific styling and layout
-      // Handle sidebar template separately
-      if (templateType === 'modern-sidebar') {
+      // Apply template-specific styling and layout based on template type
+      const templateTypeString = templateType as string;
+      if (templateTypeString === 'modern-sidebar') {
         // Modern sidebar layout
         const sidebarWidth = 60; // 60mm -> ~170pt
         const mainContentX = sidebarWidth + margin;
