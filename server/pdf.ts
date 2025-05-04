@@ -2,6 +2,44 @@ import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
 // Helper function to handle photo URLs, converting base64 data URLs if needed
+// Spacing constants (in mm)
+const SECTION_SPACING = 7;        // Space between major sections
+const ENTRY_SPACING = 5;          // Space between entries within a section
+const SECTION_TITLE_SPACING = 2;  // Extra space after section titles
+
+// Debug mode - set to true to enable visual debugging lines and logs
+const DEBUG_MODE = true;
+
+// Debug function to visualize spacing issues with colored lines
+function debugSpacing(doc: jsPDF, y: number, color: [number, number, number], label: string, margin: number, pageWidth: number) {
+  if (!DEBUG_MODE) return;
+  
+  // Save original styles
+  const originalDrawColor = doc.getDrawColor();
+  const originalTextColor = doc.getTextColor();
+  const originalFontSize = doc.getFontSize();
+  
+  // Draw debug line
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.line(margin, y, pageWidth - margin, y);
+  
+  // Add label
+  doc.setTextColor(color[0], color[1], color[2]);
+  doc.setFontSize(8);
+  doc.text(`${label}: ${y.toFixed(1)}`, margin + 2, y - 1);
+  
+  // Restore styles
+  doc.setDrawColor(originalDrawColor);
+  doc.setTextColor(originalTextColor);
+  doc.setFontSize(originalFontSize);
+}
+
+// Debug logging function
+function logSpacing(section: string, position: string, y: number) {
+  if (!DEBUG_MODE) return;
+  console.log(`[SPACING] ${section} - ${position} at y=${y.toFixed(1)}`);
+}
+
 function prepareImageForPDF(photoUrl: string): { imageData: string, format: string } {
   let format = 'JPEG';
   let imageData = photoUrl;
@@ -804,6 +842,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       yPos = margin;
     }
     
+    // Debug section start position
+    logSpacing(section.id, "Start", yPos);
+    debugSpacing(doc, yPos, [255, 0, 0], `${section.id} start`, margin, pageWidth);
+    
     switch (section.id) {
       case 'summary':
         // Professional Summary section
@@ -917,23 +959,33 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (exp !== data.experience[data.experience.length - 1]) {
-              yPos += 5; // Standard spacing between experience entries (5 units)
+              debugSpacing(doc, yPos, [0, 0, 255], `exp entry end`, margin, pageWidth);
+              yPos += ENTRY_SPACING; // Use constant for consistency
+              logSpacing("experience", `entry ${exp.jobTitle} end`, yPos);
             }
           }
           
           // Add consistent spacing after the entire experience section
-          yPos += 7; // 7 units consistent spacing after section
+          debugSpacing(doc, yPos, [255, 0, 255], `experience section end`, margin, pageWidth);
+          yPos += SECTION_SPACING; // Use constant for consistency
+          logSpacing("experience", "section end", yPos);
         }
         break;
         
       case 'education':
         // Education section
         if (data.education && data.education.length > 0) {
+          logSpacing("education", "start", yPos);
+          debugSpacing(doc, yPos, [255, 0, 0], `education section start`, margin, pageWidth);
+            
           doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Education", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          yPos += lineHeight + SECTION_TITLE_SPACING; // Use constant for consistency
+            
+          logSpacing("education", "after title", yPos);
+          debugSpacing(doc, yPos, [0, 255, 0], `education after title`, margin, pageWidth);
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -967,23 +1019,33 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (edu !== data.education[data.education.length - 1]) {
-              yPos += 5; // Spacing between education entries
+              debugSpacing(doc, yPos, [0, 0, 255], `edu entry end`, margin, pageWidth);
+              yPos += ENTRY_SPACING; // Use constant for consistency
+              logSpacing("education", `entry ${edu.major} end`, yPos);
             }
           }
           
           // Add consistent spacing after the education section
-          yPos += 7; // 7 units consistent spacing
+          debugSpacing(doc, yPos, [255, 0, 255], `education section end`, margin, pageWidth);
+          yPos += SECTION_SPACING; // Use constant for consistency
+          logSpacing("education", "section end", yPos);
         }
         break;
         
       case 'certificates':
         // Certificates section
         if (data.certificates && data.certificates.length > 0) {
+          logSpacing("certificates", "start", yPos);
+          debugSpacing(doc, yPos, [255, 0, 0], `certificates section start`, margin, pageWidth);
+            
           doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Certificates", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          yPos += lineHeight + SECTION_TITLE_SPACING; // Use constant for consistency
+            
+          logSpacing("certificates", "after title", yPos);
+          debugSpacing(doc, yPos, [0, 255, 0], `certificates after title`, margin, pageWidth);
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -1020,12 +1082,16 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (cert !== data.certificates[data.certificates.length - 1]) {
-              yPos += 5; // Spacing between certificate entries
+              debugSpacing(doc, yPos, [0, 0, 255], `cert entry end`, margin, pageWidth);
+              yPos += ENTRY_SPACING; // Use constant for consistency
+              logSpacing("certificates", `entry ${cert.name} end`, yPos);
             }
           }
           
           // Add consistent spacing after the entire certificates section
-          yPos += 7; // 7 units consistent spacing after section
+          debugSpacing(doc, yPos, [255, 0, 255], `certificates section end`, margin, pageWidth);
+          yPos += SECTION_SPACING; // Use constant for consistency
+          logSpacing("certificates", "section end", yPos);
         }
         break;
         
