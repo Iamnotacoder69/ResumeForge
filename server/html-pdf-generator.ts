@@ -5,14 +5,20 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
 import htmlPdf from 'html-pdf';
-import { promisify } from 'util';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Promisify html-pdf create function
-const createPdf = promisify(htmlPdf.create);
+// Promisified version of htmlPdf.create
+function createPdf(html: string, options: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    htmlPdf.create(html, options).toBuffer((err: Error | null, buffer: Buffer) => {
+      if (err) reject(err);
+      else resolve(buffer);
+    });
+  });
+}
 
 // Register Handlebars helpers
 Handlebars.registerHelper('formatDate', function(dateString: string) {
@@ -1082,7 +1088,7 @@ fs.writeFileSync(path.join(templatesDir, 'academic.hbs'), academicTemplate);
 fs.writeFileSync(path.join(templatesDir, 'creative.hbs'), creativeTemplate);
 
 /**
- * Generates a PDF document from CV data using HTML templates and Puppeteer
+ * Generates a PDF document from CV data using HTML templates and html-pdf
  * @param data Complete CV data
  * @returns PDF document as Buffer
  */
@@ -1165,11 +1171,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       }
     };
     
-    // Create PDF
-    const pdf = await createPdf(htmlContent, options) as { toBuffer: () => Promise<Buffer> };
-    
-    // Get PDF buffer
-    const pdfBuffer = await promisify(pdf.toBuffer.bind(pdf))();
+    // Create PDF with our promisified function
+    const pdfBuffer = await createPdf(htmlContent, options) as Buffer;
     
     console.log('PDF Generation - PDF created successfully');
     console.log(`PDF Generation - PDF buffer created, size: ${pdfBuffer.length}`);

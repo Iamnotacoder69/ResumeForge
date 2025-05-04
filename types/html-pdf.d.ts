@@ -67,15 +67,16 @@ declare module 'html-pdf' {
   }
 
   interface PDF {
-    toBuffer(callback: (err: Error, buffer: Buffer) => void): void;
-    toStream(callback: (err: Error, stream: NodeJS.ReadableStream) => void): void;
-    toFile(filename: string, callback: (err: Error, filename: string) => void): void;
+    toBuffer(callback: (err: Error | null, buffer: Buffer) => void): void;
+    toStream(callback: (err: Error | null, stream: NodeJS.ReadableStream) => void): void;
+    toFile(filename: string, callback: (err: Error | null, filename: string) => void): void;
   }
 
-  function create(html: string, options?: PdfOptions): PDF;
-  function create(html: string, options: PdfOptions, callback: (err: Error, pdf: PDF) => void): void;
+  interface HtmlPdf {
+    create(html: string, options?: PdfOptions): PDF;
+    create(html: string, options: PdfOptions, callback: (err: Error | null, pdf: PDF) => void): void;
+  }
 
-  export = {
-    create
-  };
+  const pdf: HtmlPdf;
+  export = pdf;
 }
