@@ -415,7 +415,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               if (exp.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (exp.endDate) {
-                endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const endDate = new Date(exp.endDate);
+                endDateDisplay = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               doc.text(`${exp.companyName} | ${startDateStr} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
@@ -476,12 +477,14 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               // Format dates with safe null checks
               let startDateStr = '';
               if (edu.startDate) {
-                startDateStr = new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const startDate = new Date(edu.startDate);
+                startDateStr = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               let endDateStr = '';
               if (edu.endDate) {
-                endDateStr = new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const endDate = new Date(edu.endDate);
+                endDateStr = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               doc.text(`${edu.schoolName} | ${startDateStr} - ${endDateStr}`, mainContentX + 8, mainYPos);
@@ -489,7 +492,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (edu.achievements && typeof edu.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
+                const achievementsText = edu.achievements;
+                const achievementsLines = doc.splitTextToSize(achievementsText, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -542,7 +546,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               // Format date with safe null checks
               let dateAcquiredStr = '';
               if (cert.dateAcquired) {
-                dateAcquiredStr = new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const dateAcquired = new Date(cert.dateAcquired);
+                dateAcquiredStr = dateAcquired.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               let expirationText = '';
@@ -556,7 +561,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (cert.achievements && typeof cert.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
+                const achievementsText = cert.achievements;
+                const achievementsLines = doc.splitTextToSize(achievementsText, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -609,7 +615,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               // Format dates with safe null checks
               let startDateStr = '';
               if (activity.startDate) {
-                startDateStr = new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const startDate = new Date(activity.startDate);
+                startDateStr = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               let endDateDisplay = '';
@@ -625,7 +632,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (activity.description && typeof activity.description === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
+                const descriptionText = activity.description;
+                const descriptionLines = doc.splitTextToSize(descriptionText, mainContentWidth - 8);
                 doc.text(descriptionLines, mainContentX + 8, mainYPos);
                 mainYPos += (descriptionLines.length * lineHeight);
               }
