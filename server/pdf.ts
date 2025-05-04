@@ -408,7 +408,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               // Safely handle dates with null checks
               let startDateStr = '';
               if (exp.startDate) {
-                startDateStr = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const startDate = new Date(exp.startDate);
+                startDateStr = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               let endDateDisplay = '';
@@ -424,7 +425,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (exp.responsibilities && typeof exp.responsibilities === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
+                const responsibilitiesText = exp.responsibilities;
+                const responsibilitiesLines = doc.splitTextToSize(responsibilitiesText, mainContentWidth - 8);
                 doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
                 mainYPos += (responsibilitiesLines.length * lineHeight);
               }
@@ -970,14 +972,16 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             // Format dates with safe null checks
             let startDateStr = '';
             if (exp.startDate) {
-              startDateStr = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const startDate = new Date(exp.startDate);
+              startDateStr = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             }
             
             let endDateDisplay = '';
             if (exp.isCurrent) {
               endDateDisplay = 'Present';
             } else if (exp.endDate) {
-              endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const endDate = new Date(exp.endDate);
+              endDateDisplay = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
             }
             
             doc.text(`${exp.companyName} | ${startDateStr} - ${endDateDisplay}`, margin, yPos);
@@ -985,7 +989,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (exp.responsibilities && typeof exp.responsibilities === 'string') {
               doc.setFont(bodyFont, "normal");
-              const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, contentWidth);
+              const responsibilitiesText = exp.responsibilities;
+              const responsibilitiesLines = doc.splitTextToSize(responsibilitiesText, contentWidth);
               doc.text(responsibilitiesLines, margin, yPos);
               yPos += (responsibilitiesLines.length * lineHeight);
             }
@@ -1052,7 +1057,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (edu.achievements && typeof edu.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
+              const achievementsText = edu.achievements;
+              const achievementsLines = doc.splitTextToSize(achievementsText, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1120,7 +1126,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (cert.achievements && typeof cert.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
+              const achievementsText = cert.achievements;
+              const achievementsLines = doc.splitTextToSize(achievementsText, contentWidth);
               doc.text(achievementsLines, margin, yPos);
               yPos += (achievementsLines.length * lineHeight);
             }
@@ -1189,7 +1196,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             if (activity.description && typeof activity.description === 'string') {
               doc.setFont(bodyFont, "normal");
-              const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
+              const descriptionText = activity.description;
+              const descriptionLines = doc.splitTextToSize(descriptionText, contentWidth);
               doc.text(descriptionLines, margin, yPos);
               yPos += (descriptionLines.length * lineHeight);
             }
