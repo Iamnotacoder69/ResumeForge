@@ -1025,7 +1025,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             let expirationText = '';
             if (cert.expirationDate) {
-              expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+              // Add null check and default value
+              const expirationDate = cert.expirationDate || '';
+              expirationText = expirationDate ? ` (Expires: ${new Date(expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` : '';
             }
             
             doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, margin, yPos);
@@ -1082,7 +1084,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             if (activity.isCurrent) {
               endDateDisplay = 'Present';
             } else if (activity.endDate) {
-              endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              // Add null check and default value
+              const endDate = activity.endDate || '';
+              endDateDisplay = endDate ? new Date(endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
             }
             
             doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, margin, yPos);
