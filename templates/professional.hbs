@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CV - {{personal.firstName}} {{personal.lastName}}</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      font-size: 11pt;
+      color: #333;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+    }
+    .cv-container {
+      padding: 20mm;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .header {
+      margin-bottom: 5mm;
+    }
+    .name {
+      font-size: 14pt;
+      font-weight: bold;
+      margin-bottom: 2mm;
+    }
+    .contact-info {
+      font-size: 11pt;
+      color: #555;
+      margin-bottom: 3mm;
+    }
+    .section {
+      margin-bottom: 7mm; /* 7 units spacing between sections */
+    }
+    .section-title {
+      font-size: 12pt;
+      font-weight: bold;
+      color: #304878;
+      margin-bottom: 3mm;
+      padding-bottom: 1mm;
+      border-bottom: 1px solid #ddd;
+    }
+    .entry {
+      margin-bottom: 5mm; /* 5 units spacing between entries */
+    }
+    .entry:last-child {
+      margin-bottom: 0; /* No margin after last entry */
+    }
+    .entry-header {
+      font-weight: bold;
+      margin-bottom: 1mm;
+    }
+    .entry-subheader {
+      font-weight: normal;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 2mm;
+    }
+    .entry-content {
+      margin-top: 1mm;
+    }
+    .skills-list, .languages-list {
+      margin-top: 1mm;
+      margin-bottom: 0;
+    }
+    .with-photo .contact-info {
+      max-width: 70%;
+    }
+    .photo {
+      position: absolute;
+      top: 20mm;
+      right: 20mm;
+      width: 40mm;
+      height: 40mm;
+      object-fit: cover;
+    }
+    .divider {
+      height: 1px;
+      background-color: #ddd;
+      margin: 2mm 0 5mm 0;
+    }
+    .subsection {
+      margin-top: 3mm;
+      margin-bottom: 3mm;
+    }
+    .subsection-title {
+      font-weight: bold;
+      margin-bottom: 1mm;
+    }
+  </style>
+</head>
+<body>
+  <div class="cv-container {{#if personal.photoUrl}}with-photo{{/if}}">
+    <!-- Header -->
+    <div class="header">
+      <div class="name">{{personal.firstName}} {{personal.lastName}}</div>
+      <div class="contact-info">
+        Email: {{personal.email}} | Phone: {{personal.phone}}
+        {{#if personal.linkedin}}<br>LinkedIn: linkedin.com/in/{{personal.linkedin}}{{/if}}
+      </div>
+      {{#if personal.photoUrl}}
+      <img class="photo" src="{{personal.photoUrl}}" alt="Profile Photo">
+      {{/if}}
+    </div>
+    
+    <div class="divider"></div>
+    
+    <!-- Sections based on order -->
+    {{#each sections}}
+      {{#ifCond id "===" "summary"}}
+        {{#if ../professional.summary}}
+        <div class="section">
+          <div class="section-title">Professional Summary</div>
+          <div class="entry-content">{{../professional.summary}}</div>
+        </div>
+        {{/if}}
+      {{/ifCond}}
+      
+      {{#ifCond id "===" "keyCompetencies"}}
+        {{#if ../keyCompetencies}}
+        <div class="section">
+          <div class="section-title">Key Competencies</div>
+          {{#if ../keyCompetencies.technicalSkills}}
+          <div class="subsection">
+            <div class="subsection-title">Technical Skills</div>
+            <div class="skills-list">{{../keyCompetencies.technicalSkills}}</div>
+          </div>
+          {{/if}}
+          {{#if ../keyCompetencies.softSkills}}
+          <div class="subsection">
+            <div class="subsection-title">Soft Skills</div>
+            <div class="skills-list">{{../keyCompetencies.softSkills}}</div>
+          </div>
+          {{/if}}
+        </div>
+        {{/if}}
+      {{/ifCond}}
+      
+      {{#ifCond id "===" "experience"}}
+        {{#if ../experience.length}}
+        <div class="section">
+          <div class="section-title">Professional Experience</div>
+          {{#each ../experience}}
+          <div class="entry">
+            <div class="entry-header">{{jobTitle}}</div>
+            <div class="entry-subheader">
+              {{companyName}} | {{formatDate startDate}} - {{#if isCurrent}}Present{{else}}{{formatDate endDate}}{{/if}}
+            </div>
+            {{#if responsibilities}}
+            <div class="entry-content">{{responsibilities}}</div>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
+        {{/if}}
+      {{/ifCond}}
+      
+      {{#ifCond id "===" "education"}}
+        {{#if ../education.length}}
+        <div class="section">
+          <div class="section-title">Education</div>
+          {{#each ../education}}
+          <div class="entry">
+            <div class="entry-header">{{major}}</div>
+            <div class="entry-subheader">
+              {{schoolName}} | {{formatDate startDate}} - {{formatDate endDate}}
+            </div>
+            {{#if achievements}}
+            <div class="entry-content">{{achievements}}</div>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
+        {{/if}}
+      {{/ifCond}}
+      
+      {{#ifCond id "===" "certificates"}}
+        {{#if ../certificates.length}}
+        <div class="section">
+          <div class="section-title">Certificates</div>
+          {{#each ../certificates}}
+          <div class="entry">
+            <div class="entry-header">{{name}}</div>
+            <div class="entry-subheader">
+              {{institution}} | {{formatDate dateAcquired}}{{#if expirationDate}} (Expires: {{formatDate expirationDate}}){{/if}}
+            </div>
+            {{#if achievements}}
+            <div class="entry-content">{{achievements}}</div>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
+        {{/if}}
+      {{/ifCond}}
+      
+      {{#ifCond id "===" "extracurricular"}}
+        {{#if ../extracurricular.length}}
+        <div class="section">
+          <div class="section-title">Extracurricular Activities</div>
+          {{#each ../extracurricular}}
+          <div class="entry">
+            <div class="entry-header">{{role}}</div>
+            <div class="entry-subheader">
+              {{organization}} | {{formatDate startDate}} - {{#if isCurrent}}Present{{else}}{{formatDate endDate}}{{/if}}
+            </div>
+            {{#if description}}
+            <div class="entry-content">{{description}}</div>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
+        {{/if}}
+      {{/ifCond}}
+      
+      {{#ifCond id "===" "additional"}}
+        <div class="section">
+          <div class="section-title">Additional Information</div>
+          {{#if ../additional.skills.length}}
+          <div class="subsection">
+            <div class="subsection-title">Computer Skills</div>
+            <div class="skills-list">{{../additional.skills}}</div>
+          </div>
+          {{/if}}
+          
+          {{#if ../languages.length}}
+          <div class="subsection">
+            <div class="subsection-title">Languages</div>
+            <div class="languages-list">
+              {{#each ../languages}}
+                {{name}} ({{capitalize proficiency}}){{#unless @last}}, {{/unless}}
+              {{/each}}
+            </div>
+          </div>
+          {{/if}}
+        </div>
+      {{/ifCond}}
+    {{/each}}
+  </div>
+</body>
+</html>

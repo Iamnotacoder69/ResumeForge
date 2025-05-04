@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CV - {{personal.firstName}} {{personal.lastName}}</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      font-size: 11pt;
+      color: #333;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+    }
+    .cv-container {
+      display: flex;
+      min-height: 100%;
+    }
+    .sidebar {
+      width: 60mm;
+      background-color: #f0c869;
+      padding: 20mm 10mm;
+      color: #333;
+    }
+    .main-content {
+      flex: 1;
+      padding: 20mm;
+    }
+    .profile-photo {
+      width: 40mm;
+      height: 40mm;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 5mm;
+    }
+    .name {
+      font-size: 14pt;
+      font-weight: bold;
+      margin-bottom: 2mm;
+    }
+    .sidebar-section {
+      margin-bottom: 5mm;
+    }
+    .sidebar-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 2mm;
+      font-size: 10pt;
+    }
+    .sidebar-content {
+      font-size: 10pt;
+    }
+    .section {
+      margin-bottom: 7mm; /* 7 units spacing between sections */
+    }
+    .section-title {
+      font-size: 12pt;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 3mm;
+      text-transform: uppercase;
+    }
+    .entry {
+      margin-bottom: 5mm; /* 5 units spacing between entries */
+    }
+    .entry:last-child {
+      margin-bottom: 0; /* No margin after last entry */
+    }
+    .entry-header {
+      font-weight: bold;
+      margin-bottom: 1mm;
+    }
+    .entry-subheader {
+      font-weight: normal;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 2mm;
+    }
+    .entry-content {
+      margin-top: 1mm;
+    }
+    .dot-accent {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #f0c869;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .skills-list, .languages-list {
+      margin-top: 1mm;
+      margin-bottom: 0;
+    }
+    .subsection {
+      margin-top: 3mm;
+      margin-bottom: 3mm;
+    }
+    .subsection-title {
+      font-weight: bold;
+      margin-bottom: 1mm;
+    }
+  </style>
+</head>
+<body>
+  <div class="cv-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      {{#if personal.photoUrl}}
+      <img class="profile-photo" src="{{personal.photoUrl}}" alt="Profile Photo">
+      {{/if}}
+      
+      <div class="name">{{personal.firstName}} {{personal.lastName}}</div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-title">Contact</div>
+        <div class="sidebar-content">
+          Email: {{personal.email}}<br>
+          Phone: {{personal.phone}}<br>
+          {{#if personal.linkedin}}LinkedIn: linkedin.com/in/{{personal.linkedin}}{{/if}}
+        </div>
+      </div>
+      
+      {{#if languages.length}}
+      <div class="sidebar-section">
+        <div class="sidebar-title">Languages</div>
+        <div class="sidebar-content">
+          {{#each languages}}
+          {{name}} ({{capitalize proficiency}}){{#unless @last}}<br>{{/unless}}
+          {{/each}}
+        </div>
+      </div>
+      {{/if}}
+      
+      {{#if additional.skills.length}}
+      <div class="sidebar-section">
+        <div class="sidebar-title">Computer Skills</div>
+        <div class="sidebar-content">{{additional.skills}}</div>
+      </div>
+      {{/if}}
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Sections based on order -->
+      {{#each sections}}
+        {{#ifCond id "===" "summary"}}
+          {{#if ../professional.summary}}
+          <div class="section">
+            <div class="section-title">Professional Summary</div>
+            <div class="entry-content">{{../professional.summary}}</div>
+          </div>
+          {{/if}}
+        {{/ifCond}}
+        
+        {{#ifCond id "===" "keyCompetencies"}}
+          {{#if ../keyCompetencies}}
+          <div class="section">
+            <div class="section-title">Key Competencies</div>
+            {{#if ../keyCompetencies.technicalSkills}}
+            <div class="subsection">
+              <div class="entry-header"><span class="dot-accent"></span>Technical Skills</div>
+              <div class="skills-list">{{../keyCompetencies.technicalSkills}}</div>
+            </div>
+            {{/if}}
+            {{#if ../keyCompetencies.softSkills}}
+            <div class="subsection">
+              <div class="entry-header"><span class="dot-accent"></span>Soft Skills</div>
+              <div class="skills-list">{{../keyCompetencies.softSkills}}</div>
+            </div>
+            {{/if}}
+          </div>
+          {{/if}}
+        {{/ifCond}}
+        
+        {{#ifCond id "===" "experience"}}
+          {{#if ../experience.length}}
+          <div class="section">
+            <div class="section-title">Work Experience</div>
+            {{#each ../experience}}
+            <div class="entry">
+              <div class="entry-header"><span class="dot-accent"></span>{{jobTitle}}</div>
+              <div class="entry-subheader">
+                {{companyName}} | {{formatDate startDate}} - {{#if isCurrent}}Present{{else}}{{formatDate endDate}}{{/if}}
+              </div>
+              {{#if responsibilities}}
+              <div class="entry-content">{{responsibilities}}</div>
+              {{/if}}
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+        {{/ifCond}}
+        
+        {{#ifCond id "===" "education"}}
+          {{#if ../education.length}}
+          <div class="section">
+            <div class="section-title">Education</div>
+            {{#each ../education}}
+            <div class="entry">
+              <div class="entry-header"><span class="dot-accent"></span>{{major}}</div>
+              <div class="entry-subheader">
+                {{schoolName}} | {{formatDate startDate}} - {{formatDate endDate}}
+              </div>
+              {{#if achievements}}
+              <div class="entry-content">{{achievements}}</div>
+              {{/if}}
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+        {{/ifCond}}
+        
+        {{#ifCond id "===" "certificates"}}
+          {{#if ../certificates.length}}
+          <div class="section">
+            <div class="section-title">Certificates</div>
+            {{#each ../certificates}}
+            <div class="entry">
+              <div class="entry-header"><span class="dot-accent"></span>{{name}}</div>
+              <div class="entry-subheader">
+                {{institution}} | {{formatDate dateAcquired}}{{#if expirationDate}} (Expires: {{formatDate expirationDate}}){{/if}}
+              </div>
+              {{#if achievements}}
+              <div class="entry-content">{{achievements}}</div>
+              {{/if}}
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+        {{/ifCond}}
+        
+        {{#ifCond id "===" "extracurricular"}}
+          {{#if ../extracurricular.length}}
+          <div class="section">
+            <div class="section-title">Extracurricular</div>
+            {{#each ../extracurricular}}
+            <div class="entry">
+              <div class="entry-header"><span class="dot-accent"></span>{{role}}</div>
+              <div class="entry-subheader">
+                {{organization}} | {{formatDate startDate}} - {{#if isCurrent}}Present{{else}}{{formatDate endDate}}{{/if}}
+              </div>
+              {{#if description}}
+              <div class="entry-content">{{description}}</div>
+              {{/if}}
+            </div>
+            {{/each}}
+          </div>
+          {{/if}}
+        {{/ifCond}}
+      {{/each}}
+    </div>
+  </div>
+</body>
+</html>
