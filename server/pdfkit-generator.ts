@@ -176,7 +176,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       });
       
       // Apply template-specific styling and layout
-      if (templateType && templateType === 'modern-sidebar') {
+      if (templateType === 'modern-sidebar') {
         // Modern sidebar layout
         const sidebarWidth = 60; // 60mm -> ~170pt
         const mainContentX = sidebarWidth + margin;
@@ -764,7 +764,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 doc.font(style.bodyFont)
                    .fontSize(11)
                    .fillColor(style.textColor)
-                   .text(cert.achievements, margin, currentY, { width: contentWidth });
+                   .text(cert.achievements, margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
                 const textHeight = doc.heightOfString(cert.achievements, { width: contentWidth });
                 currentY += textHeight + 2;
               }
@@ -815,7 +815,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 doc.font(style.bodyFont)
                    .fontSize(11)
                    .fillColor(style.textColor)
-                   .text(extra.description, margin, currentY, { width: contentWidth });
+                   .text(extra.description, margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
                 const textHeight = doc.heightOfString(extra.description, { width: contentWidth });
                 currentY += textHeight + 2;
               }
@@ -860,7 +860,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 doc.font(style.bodyFont)
                    .fontSize(11)
                    .text(data.additional.skills.join(', '), 
-                        margin, currentY, { width: contentWidth });
+                        margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
                 const skillsHeight = doc.heightOfString(data.additional.skills.join(', '), { width: contentWidth });
                 currentY += skillsHeight + 7;
               }
@@ -878,7 +878,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
                 
                 doc.font(style.bodyFont)
                    .fontSize(11)
-                   .text(languageText, margin, currentY, { width: contentWidth });
+                   .text(languageText, margin, currentY, { width: contentWidth, align: 'left', lineBreak: true });
                 const langHeight = doc.heightOfString(languageText, { width: contentWidth });
                 currentY += langHeight + 7;
               }
