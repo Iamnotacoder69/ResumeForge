@@ -8,7 +8,7 @@ const ENTRY_SPACING = 5;          // Space between entries within a section
 const SECTION_TITLE_SPACING = 2;  // Extra space after section titles
 
 // Debug mode - set to true to enable visual debugging lines and logs
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 // Debug function to visualize spacing issues with colored lines
 function debugSpacing(doc: jsPDF, y: number, color: [number, number, number], label: string, margin: number, pageWidth: number) {
