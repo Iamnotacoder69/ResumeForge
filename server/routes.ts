@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { generateCompactCV } from "./compact-cv";
+import { generateCVWithPDFKit } from "./pdfkit-generator";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -210,11 +210,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
-      console.log("PDF Generation - Calling generateCompactCV function");
+      console.log("PDF Generation - Calling generateCVWithPDFKit function");
       
       try {
         // Generate PDF buffer
-        const pdfBuffer = await generateCompactCV(data);
+        const pdfBuffer = await generateCVWithPDFKit(data);
         console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
         
         // Set headers
