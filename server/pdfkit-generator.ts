@@ -49,6 +49,15 @@ const PDF_CONFIG = {
     TEXT: "#333333",
     HEADING: "#333333",
     LINE: "#333333"
+  },
+  // Image settings
+  IMAGE: {
+    WIDTH: 100,
+    HEIGHT: 100,
+    POSITION: {
+      X: 480, // Right side of page
+      Y: 30   // Top of page
+    }
   }
 };
 
@@ -143,6 +152,38 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
       for (const section of sections) {
         switch (section.id) {
           case "header":
+            // Handle photo if included
+            if (data.templateSettings?.includePhoto && data.personal.photoUrl) {
+              try {
+                // Extract base64 data
+                const photoUrl = data.personal.photoUrl;
+                if (photoUrl.startsWith('data:image/')) {
+                  // Get the base64 data part
+                  const base64Data = photoUrl.split(',')[1];
+                  if (base64Data) {
+                    // Convert to buffer
+                    const imageBuffer = Buffer.from(base64Data, 'base64');
+                    
+                    // Add image to document at right side
+                    doc.image(
+                      imageBuffer, 
+                      PDF_CONFIG.IMAGE.POSITION.X, 
+                      PDF_CONFIG.IMAGE.POSITION.Y, 
+                      { 
+                        fit: [PDF_CONFIG.IMAGE.WIDTH, PDF_CONFIG.IMAGE.HEIGHT],
+                        align: 'right',
+                        valign: 'top'
+                      }
+                    );
+                    // No need to adjust y position as the image is positioned absolutely
+                  }
+                }
+              } catch (err) {
+                console.error("Error adding photo to PDF:", err);
+                // Continue without image if there's an error
+              }
+            }
+            
             // Name
             doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
                .fontSize(PDF_CONFIG.FONT_SIZE.NAME)
@@ -191,7 +232,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
             checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
             
             // Add section title
-            y = addSectionTitle("Profile", y);
+            y = addSectionTitle("Summary", y);
             
             // Add profile text
             doc.font(PDF_CONFIG.FONT.DEFAULT)
@@ -214,42 +255,25 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
             // Add section title
             y = addSectionTitle("Key Competencies", y);
             
-            // Technical skills
-            if (data.keyCompetencies?.technicalSkills?.length) {
-              doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.HEADING)
-                 .text("Technical Skills:", margin.LEFT, y, { continued: true })
-                 .font(PDF_CONFIG.FONT.DEFAULT)
-                 .fillColor(PDF_CONFIG.COLOR.TEXT)
-                 .text(" " + data.keyCompetencies.technicalSkills.join(", "), {
-                   width: contentWidth,
-                   align: "left"
-                 });
-                 
-              // Move position based on text height
-              const techSkillsText = data.keyCompetencies.technicalSkills.join(", ");
-              const techHeight = getTextHeight(techSkillsText, contentWidth - doc.widthOfString("Technical Skills: "), PDF_CONFIG.FONT_SIZE.NORMAL);
-              y += techHeight + PDF_CONFIG.SPACING.PARAGRAPH;
-            }
+            // Combined skills - just display all skills together without labels
+            const allSkills = [
+              ...(data.keyCompetencies?.technicalSkills || []),
+              ...(data.keyCompetencies?.softSkills || [])
+            ];
             
-            // Soft skills
-            if (data.keyCompetencies?.softSkills?.length) {
-              doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+            if (allSkills.length > 0) {
+              doc.font(PDF_CONFIG.FONT.DEFAULT)
                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.HEADING)
-                 .text("Soft Skills:", margin.LEFT, y, { continued: true })
-                 .font(PDF_CONFIG.FONT.DEFAULT)
                  .fillColor(PDF_CONFIG.COLOR.TEXT)
-                 .text(" " + data.keyCompetencies.softSkills.join(", "), {
+                 .text(allSkills.join(", "), margin.LEFT, y, {
                    width: contentWidth,
                    align: "left"
                  });
                  
               // Move position based on text height
-              const softSkillsText = data.keyCompetencies.softSkills.join(", ");
-              const softHeight = getTextHeight(softSkillsText, contentWidth - doc.widthOfString("Soft Skills: "), PDF_CONFIG.FONT_SIZE.NORMAL);
-              y += softHeight + PDF_CONFIG.SPACING.PARAGRAPH;
+              const skillsText = allSkills.join(", ");
+              const skillsHeight = getTextHeight(skillsText, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+              y += skillsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
             
             y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS - PDF_CONFIG.SPACING.PARAGRAPH;
@@ -687,7 +711,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
             checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
             
             // Add section title
-            y = addSectionTitle("Further Details", y);
+            y = addSectionTitle("Additional Information", y);
             
             // Computer skills
             if (data.additional?.skills?.length) {
