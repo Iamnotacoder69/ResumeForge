@@ -113,8 +113,8 @@ const templateStyles = {
  * @returns PDF document as Buffer
  */
 export async function generatePDF(data: CompleteCV): Promise<Buffer> {
-  // Get template style (only executive is available)
-  const templateType: TemplateType = data.templateSettings?.template || 'executive';
+  // Get template style (only executive is available now)
+  const templateType: TemplateType = 'executive'; // Default to executive regardless of what's stored
   // Ensure we're using a valid template type
   const style = templateStyles['executive'];
   const includePhoto = data.templateSettings?.includePhoto || false;
@@ -157,6 +157,20 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     yPos += SPACING.ENTRY;
   };
 
+  // Helper function to safely format a date string
+  function safeFormatDate(dateStr: string | undefined, options: Intl.DateTimeFormatOptions = { month: 'short', year: 'numeric' }): string {
+    if (!dateStr || typeof dateStr !== 'string' || dateStr.trim() === '') {
+      return '';
+    }
+    
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', options);
+    } catch (error) {
+      console.error("Error formatting date:", error, "Date string:", dateStr);
+      return '';
+    }
+  }
+  
   // Modern Sidebar layout is no longer used
   const isModernSidebar = false;
   if (false) { // This block will be skipped
@@ -386,14 +400,13 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
-              // Format dates
-              // Safely handle dates with null checks
-              const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              // Format dates using our safe formatter
+              const startDate = safeFormatDate(exp.startDate);
               let endDateDisplay = '';
               if (exp.isCurrent) {
                 endDateDisplay = 'Present';
-              } else if (exp.endDate && exp.endDate.trim() !== '') {
-                endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              } else if (exp.endDate) {
+                endDateDisplay = safeFormatDate(exp.endDate);
               }
 
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
@@ -454,9 +467,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
-              // Format dates with safe null checks
-              const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const endDate = edu.endDate && edu.endDate.trim() !== '' ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              // Format dates using our safe formatter
+              const startDate = safeFormatDate(edu.startDate);
+              const endDate = safeFormatDate(edu.endDate);
 
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
