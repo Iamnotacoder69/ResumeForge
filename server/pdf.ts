@@ -399,7 +399,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (exp.responsibilities && typeof exp.responsibilities === 'string') {
+              if (exp.responsibilities && typeof exp.responsibilities === 'string' && exp.responsibilities.trim() !== '') {
                 doc.setFont(bodyFont, "normal");
                 const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
                 doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
@@ -461,7 +461,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (edu.achievements && typeof edu.achievements === 'string') {
+              if (edu.achievements && typeof edu.achievements === 'string' && edu.achievements.trim() !== '') {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -526,7 +526,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (cert.achievements && typeof cert.achievements === 'string') {
+              if (cert.achievements && typeof cert.achievements === 'string' && cert.achievements.trim() !== '') {
                 doc.setFont(bodyFont, "normal");
                 const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
@@ -593,7 +593,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (activity.description && typeof activity.description === 'string') {
+              if (activity.description && typeof activity.description === 'string' && activity.description.trim() !== '') {
                 doc.setFont(bodyFont, "normal");
                 const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
                 doc.text(descriptionLines, mainContentX + 8, mainYPos);
