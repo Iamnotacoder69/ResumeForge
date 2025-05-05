@@ -1,14 +1,14 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
-// Standardized spacing constants
+// Standardized spacing constants - we'll apply these strictly
 const SPACING = {
-  SECTION: 7,          // Space after each major section
-  ENTRY: 5,            // Space between entries within a section
+  SECTION: 7,          // Space after each major section (7mm)
+  ENTRY: 5,            // Space between entries within a section (5mm)
   SECTION_TITLE: 2,    // Extra space after section titles (in addition to line height)
   LINE_BELOW_TITLE: 2, // Space after visual separators
   TEXT_BLOCK: 0,       // No additional spacing after text blocks (line height handles this)
-  SUB_SECTION: 5       // Space between sub-sections
+  SUB_SECTION: 5       // Space between sub-sections (5mm)
 };
 
 /**
@@ -977,12 +977,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (edu !== data.education[data.education.length - 1]) {
-              yPos += 5; // Spacing between education entries
+              yPos += SPACING.ENTRY; // Spacing between education entries
             }
           }
           
           // Add consistent spacing after the education section
-          yPos += 7; // 7 units consistent spacing
+          yPos += SPACING.SECTION; // Consistent section spacing
         }
         break;
         
@@ -1030,7 +1030,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (cert !== data.certificates[data.certificates.length - 1]) {
-              yPos += 5; // Spacing between certificate entries
+              yPos += SPACING.ENTRY; // Spacing between certificate entries
             }
           }
           
