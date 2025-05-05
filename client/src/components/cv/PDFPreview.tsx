@@ -6,7 +6,7 @@ import { CompleteCV, TemplateType } from "@shared/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper function to get style for Word document preview
-const getTemplateStyles = (_template: TemplateType): string => {
+const getTemplateStyles = (_template: 'default'): string => {
   // No template styles as we're now using a Word document approach
   return 'text-gray-800 bg-gray-200 border border-gray-300';
 };
@@ -24,7 +24,7 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
   const isMobile = useIsMobile();
   
   // Extract template settings from data or use defaults
-  const templateType = data.templateSettings?.template || 'default';
+  const templateType = (data.templateSettings?.template || 'default') as 'default';
   const includePhoto = data.templateSettings?.includePhoto || false;
   
   const generatePreview = async () => {

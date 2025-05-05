@@ -1046,7 +1046,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Extracurricular Activities", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -1100,7 +1100,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Additional Information", margin, yPos);
-        yPos += lineHeight + 2; // Standard spacing after section title
+        yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
         
         // Additional Skills subsection
         if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
