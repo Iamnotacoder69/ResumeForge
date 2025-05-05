@@ -23,10 +23,41 @@ const SPACING = {
  */
 function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: number, maxWidth: number, lineHeight: number): number {
   if (!text || typeof text !== 'string' || text.trim() === '') return y;
-
-  const lines = doc.splitTextToSize(text, maxWidth);
-  doc.text(lines, x, y);
-  return y + (lines.length * lineHeight);
+  
+  // Process text for bullet points
+  // Split by new lines first
+  const paragraphs = text.split('\n');
+  let currentY = y;
+  
+  paragraphs.forEach((paragraph, i) => {
+    if (paragraph.trim() === '') return; // Skip empty paragraphs
+    
+    // Format bullet points if line starts with - or •
+    const hasBullet = paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•');
+    let processedText = paragraph;
+    
+    if (hasBullet) {
+      // Create proper bullet point spacing
+      processedText = paragraph.trim().substring(1).trim();
+      const bulletX = x;
+      const textX = x + 4; // Indent text after bullet
+      
+      // Add bullet point
+      doc.text('•', bulletX, currentY);
+      
+      // Process remaining text with indentation
+      const bulletLines = doc.splitTextToSize(processedText, maxWidth - 4);
+      doc.text(bulletLines, textX, currentY);
+      currentY += (bulletLines.length * lineHeight);
+    } else {
+      // Regular paragraph
+      const lines = doc.splitTextToSize(paragraph, maxWidth);
+      doc.text(lines, x, currentY);
+      currentY += (lines.length * lineHeight);
+    }
+  });
+  
+  return currentY;
 }
 
 /**
@@ -655,9 +686,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(bodyFont, "normal");
             doc.setFontSize(bodyFontSize);
             const skillsText = data.additional.skills.join(", ");
-            const skillsLines = doc.splitTextToSize(skillsText, mainContentWidth - 8);
-            doc.text(skillsLines, mainContentX + 8, mainYPos);
-            mainYPos += (skillsLines.length * lineHeight) + SPACING.SUB_SECTION; // Standardized spacing between subsections
+            mainYPos = addWrappedText(doc, skillsText, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
+            mainYPos += SPACING.SUB_SECTION; // Standardized spacing between subsections
           }
 
           // Languages subsection
@@ -687,10 +717,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             const languagesText = data.languages.map(lang => 
               `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
             ).join(", ");
-
-            const languagesLines = doc.splitTextToSize(languagesText, mainContentWidth - 8);
-            doc.text(languagesLines, mainContentX + 8, mainYPos);
-            mainYPos += (languagesLines.length * lineHeight);
+            
+            mainYPos = addWrappedText(doc, languagesText, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
           }
 
           // Add consistent spacing after the entire Additional Information section
