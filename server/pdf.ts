@@ -376,7 +376,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               if (exp.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (exp.endDate) {
-                endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                endDateDisplay = new Date(exp.endDate || new Date()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
@@ -443,7 +443,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (edu.achievements && typeof edu.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
+                const achievementsLines = doc.splitTextToSize(edu.achievements || '', mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -497,7 +497,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               let expirationText = '';
               if (cert.expirationDate) {
-                expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+                expirationText = ` (Expires: ${new Date(cert.expirationDate || new Date()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
               }
               
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
@@ -505,7 +505,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (cert.achievements && typeof cert.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
+                const achievementsLines = doc.splitTextToSize(cert.achievements || '', mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -561,7 +561,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               if (activity.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (activity.endDate) {
-                endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                endDateDisplay = new Date(activity.endDate || new Date()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
