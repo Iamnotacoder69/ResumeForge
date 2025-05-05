@@ -16,7 +16,7 @@ import ExtracurricularSection from "@/components/cv/ExtracurricularSection";
 import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
 import SectionOrderer from "@/components/cv/SectionOrderer";
 import TemplateSelector from "@/components/cv/TemplateSelector";
-import DocPreview from "@/components/cv/DocPreview";
+import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
@@ -168,15 +168,15 @@ const CVBuilder = () => {
           }
         };
         
-        const response = await apiRequest("POST", "/api/generate-docx", dataWithDefaults);
+        const response = await apiRequest("POST", "/api/generate-pdf", dataWithDefaults);
         console.log("Submit mutation: Response received", response.status);
         
-        // Check response content type to ensure it's a DOCX
+        // Check response content type to ensure it's a PDF
         const contentType = response.headers.get('content-type');
         console.log("Submit mutation: Content-Type:", contentType);
         
-        if (contentType && contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
-          console.log("Submit mutation: DOCX content type confirmed");
+        if (contentType && contentType.includes('application/pdf')) {
+          console.log("Submit mutation: PDF content type confirmed");
           return response.blob();
         } else {
           console.warn("Submit mutation: Unexpected content type", contentType);
@@ -184,7 +184,7 @@ const CVBuilder = () => {
           return response.blob();
         }
       } catch (error) {
-        console.error("Submit mutation: Error in fetching DOCX", error);
+        console.error("Submit mutation: Error in fetching PDF", error);
         throw error;
       }
     },
@@ -197,7 +197,7 @@ const CVBuilder = () => {
         // Create a download link and trigger download
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${form.getValues().personal.firstName}_${form.getValues().personal.lastName}_CV.docx`;
+        a.download = `${form.getValues().personal.firstName}_${form.getValues().personal.lastName}_CV.pdf`;
         document.body.appendChild(a);
         a.click();
         
@@ -214,7 +214,7 @@ const CVBuilder = () => {
         console.error("Submit mutation: Error during download", downloadError);
         toast({
           title: "Error",
-          description: "DOCX was generated but there was an error downloading it",
+          description: "PDF was generated but there was an error downloading it",
           variant: "destructive",
         });
       }
@@ -223,7 +223,7 @@ const CVBuilder = () => {
       console.error("Submit mutation: Error handler called", error);
       toast({
         title: "Error",
-        description: `Failed to generate DOCX: ${error instanceof Error ? error.message : "Unknown error"}`,
+        description: `Failed to generate PDF: ${error instanceof Error ? error.message : "Unknown error"}`,
         variant: "destructive",
       });
     },
@@ -250,7 +250,7 @@ const CVBuilder = () => {
   });
 
   const handleSubmit = form.handleSubmit((data) => {
-    console.log("Submitting form data for DOCX generation");
+    console.log("Submitting form data for PDF generation");
     // Ensure templateSettings has the correct properties
     const dataToSubmit = {
       ...data,
@@ -284,11 +284,11 @@ const CVBuilder = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {showPreview ? (
-        <DocPreview 
+        <PDFPreview 
           data={form.getValues()} 
           onClose={() => setShowPreview(false)}
           onDownload={() => {
-            console.log("DocPreview download button clicked");
+            console.log("PDFPreview download button clicked");
             const dataWithTemplateSettings = {
               ...form.getValues(),
               templateSettings: {
