@@ -209,7 +209,7 @@ export const completeCvSchema = z.object({
     })
   ).default([]),
   templateSettings: z.object({
-    template: z.enum(['minimalist', 'professional', 'creative', 'academic']).default("professional"),
+    template: z.enum(['default', 'minimalist', 'professional', 'creative', 'academic']).default("default"),
     includePhoto: z.boolean().default(false),
     sectionOrder: z.array(
       z.object({
