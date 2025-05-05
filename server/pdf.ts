@@ -394,7 +394,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(titleFont, "bold");
             doc.setFontSize(subtitleFontSize);
             doc.text("EXPERIENCE", mainContentX, mainYPos);
-            mainYPos += lineHeight + 2;
+            mainYPos += SPACING.LINE_BELOW_TITLE;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -460,7 +460,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(titleFont, "bold");
             doc.setFontSize(subtitleFontSize);
             doc.text("EDUCATION", mainContentX, mainYPos);
-            mainYPos += lineHeight + 2;
+            mainYPos += SPACING.LINE_BELOW_TITLE;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -503,7 +503,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
               // Only add entry spacing if this is not the last entry
               if (edu !== data.education[data.education.length - 1]) {
-                mainYPos += 5; // Spacing between education entries
+                addEntrySpacing(); // Consistent spacing between entries
               }
             }
           }
@@ -519,7 +519,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(titleFont, "bold");
             doc.setFontSize(subtitleFontSize);
             doc.text("CERTIFICATES", mainContentX, mainYPos);
-            mainYPos += lineHeight + 2;
+            mainYPos += SPACING.LINE_BELOW_TITLE;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -565,7 +565,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
               // Only add entry spacing if this is not the last entry
               if (cert !== data.certificates[data.certificates.length - 1]) {
-                mainYPos += 5; // Spacing between certificate entries
+                addEntrySpacing(); // Consistent spacing between entries
               }
             }
           }
@@ -581,7 +581,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFont(titleFont, "bold");
             doc.setFontSize(subtitleFontSize);
             doc.text("EXTRACURRICULAR", mainContentX, mainYPos);
-            mainYPos += lineHeight + 2;
+            mainYPos += SPACING.LINE_BELOW_TITLE;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -629,7 +629,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
               // Only add entry spacing if this is not the last entry
               if (activity !== data.extracurricular[data.extracurricular.length - 1]) {
-                mainYPos += 5; // Spacing between extracurricular entries
+                addEntrySpacing(); // Consistent spacing between entries
               }
             }
           }
@@ -672,7 +672,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             const skillsText = data.additional.skills.join(", ");
             const skillsLines = doc.splitTextToSize(skillsText, mainContentWidth - 8);
             doc.text(skillsLines, mainContentX + 8, mainYPos);
-            mainYPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
+            mainYPos += (skillsLines.length * lineHeight) + SPACING.SUB_SECTION; // Standardized spacing between subsections
           }
 
           // Languages subsection
@@ -832,7 +832,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     yPos += 3;
     doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
     doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 5;
+    yPos += SPACING.ENTRY; // Standardized spacing after separator line
   }
 
   // Set up section order from user preferences or use default if not defined
