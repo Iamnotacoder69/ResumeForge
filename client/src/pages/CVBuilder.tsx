@@ -286,7 +286,7 @@ const CVBuilder = () => {
             const dataWithTemplateSettings = {
               ...form.getValues(),
               templateSettings: {
-                template: selectedTemplate,
+                template: 'default',
                 includePhoto: includePhoto,
                 sectionOrder: sectionOrder
               }
@@ -573,7 +573,7 @@ const CVBuilder = () => {
                                 const dataWithTemplateSettings = {
                                   ...form.getValues(),
                                   templateSettings: {
-                                    template: selectedTemplate,
+                                    template: 'default',
                                     includePhoto: includePhoto,
                                     sectionOrder: sectionOrder
                                   }

@@ -113,8 +113,8 @@ const templateStyles = {
  * @returns PDF document as Buffer
  */
 export async function generatePDF(data: CompleteCV): Promise<Buffer> {
-  // Get template style based on user selection or default to professional
-  const templateType = data.templateSettings?.template || 'professional';
+  // Get template style (now just a single default style)
+  const templateType = 'default';
   const style = templateStyles[templateType];
   const includePhoto = data.templateSettings?.includePhoto || false;
   
