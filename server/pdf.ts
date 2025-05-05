@@ -1,14 +1,14 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
-// Standardized spacing constants - we'll apply these strictly
+// Standardized spacing constants
 const SPACING = {
-  SECTION: 7,          // Space after each major section (7mm)
-  ENTRY: 5,            // Space between entries within a section (5mm)
+  SECTION: 7,          // Space after each major section
+  ENTRY: 5,            // Space between entries within a section
   SECTION_TITLE: 2,    // Extra space after section titles (in addition to line height)
   LINE_BELOW_TITLE: 2, // Space after visual separators
   TEXT_BLOCK: 0,       // No additional spacing after text blocks (line height handles this)
-  SUB_SECTION: 5       // Space between sub-sections (5mm)
+  SUB_SECTION: 5       // Space between sub-sections
 };
 
 /**
@@ -90,9 +90,22 @@ interface TemplateStyle {
   margin: number;
 }
 
-// Define simple default style for Word document approach
+// Define template styles for each template type
 const templateStyles = {
-  'default': {
+  'minimalist': {
+    titleFont: "helvetica",
+    bodyFont: "helvetica",
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 3.5,  // Reduced further from 4
+    primaryColor: [50, 50, 50],
+    secondaryColor: [100, 100, 100],
+    accentColor: [150, 150, 150],
+    margin: 15      // Reduced from 20
+  },
+  'professional': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
     titleFontSize: 14, // Name size only
@@ -100,11 +113,38 @@ const templateStyles = {
     sectionTitleFontSize: 11, // Subsection titles
     bodyFontSize: 11, // Body text
     lineHeight: 4,
-    primaryColor: [0, 0, 0],
-    secondaryColor: [50, 50, 50],
-    accentColor: [80, 80, 80],
+    primaryColor: [0, 62, 116],
+    secondaryColor: [70, 70, 70],
+    accentColor: [0, 103, 164],
+    margin: 15
+  },
+  'creative': {
+    titleFont: "helvetica",
+    bodyFont: "helvetica",
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 4,
+    primaryColor: [142, 68, 173],
+    secondaryColor: [80, 80, 80],
+    accentColor: [187, 143, 206],
+    margin: 15
+  },
+  'academic': {
+    titleFont: "times",
+    bodyFont: "times",
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 4,
+    primaryColor: [15, 82, 87],
+    secondaryColor: [70, 70, 70],
+    accentColor: [36, 128, 116],
     margin: 15
   }
+  // modern-sidebar template removed
 };
 
 /**
@@ -113,8 +153,8 @@ const templateStyles = {
  * @returns PDF document as Buffer
  */
 export async function generatePDF(data: CompleteCV): Promise<Buffer> {
-  // Get template style (now just a single default style)
-  const templateType = 'default';
+  // Get template style based on user selection or default to professional
+  const templateType = data.templateSettings?.template || 'professional';
   const style = templateStyles[templateType];
   const includePhoto = data.templateSettings?.includePhoto || false;
   
@@ -376,7 +416,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               if (exp.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (exp.endDate) {
-                endDateDisplay = new Date(exp.endDate || new Date()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
@@ -443,7 +483,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (edu.achievements && typeof edu.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(edu.achievements || '', mainContentWidth - 8);
+                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -497,7 +537,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               let expirationText = '';
               if (cert.expirationDate) {
-                expirationText = ` (Expires: ${new Date(cert.expirationDate || new Date()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+                expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
               }
               
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
@@ -505,7 +545,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               
               if (cert.achievements && typeof cert.achievements === 'string') {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(cert.achievements || '', mainContentWidth - 8);
+                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
                 doc.text(achievementsLines, mainContentX + 8, mainYPos);
                 mainYPos += (achievementsLines.length * lineHeight);
               }
@@ -561,7 +601,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               if (activity.isCurrent) {
                 endDateDisplay = 'Present';
               } else if (activity.endDate) {
-                endDateDisplay = new Date(activity.endDate || new Date()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
               
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
@@ -943,7 +983,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Education", margin, yPos);
-          yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
+          yPos += lineHeight + 2; // Standard spacing after section title
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -977,12 +1017,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (edu !== data.education[data.education.length - 1]) {
-              yPos += SPACING.ENTRY; // Spacing between education entries
+              yPos += 5; // Spacing between education entries
             }
           }
           
           // Add consistent spacing after the education section
-          yPos += SPACING.SECTION; // Consistent section spacing
+          yPos += 7; // 7 units consistent spacing
         }
         break;
         
@@ -993,7 +1033,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Certificates", margin, yPos);
-          yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
+          yPos += lineHeight + 2; // Standard spacing after section title
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -1030,12 +1070,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (cert !== data.certificates[data.certificates.length - 1]) {
-              yPos += SPACING.ENTRY; // Spacing between certificate entries
+              yPos += 5; // Spacing between certificate entries
             }
           }
           
           // Add consistent spacing after the entire certificates section
-          yPos += SPACING.SECTION; // Consistent section spacing
+          yPos += 7; // 7 units consistent spacing after section
         }
         break;
         
@@ -1046,7 +1086,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Extracurricular Activities", margin, yPos);
-          yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
+          yPos += lineHeight + 2; // Standard spacing after section title
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -1085,12 +1125,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (activity !== data.extracurricular[data.extracurricular.length - 1]) {
-              yPos += SPACING.ENTRY; // Spacing between extracurricular entries
+              yPos += 5; // Spacing between extracurricular entries
             }
           }
           
           // Add consistent spacing after the extracurricular section
-          yPos += SPACING.SECTION; // Consistent section spacing
+          yPos += 7; // 7 units consistent spacing
         }
         break;
         
@@ -1100,7 +1140,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Additional Information", margin, yPos);
-        yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
+        yPos += lineHeight + 2; // Standard spacing after section title
         
         // Additional Skills subsection
         if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
@@ -1116,7 +1156,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + SPACING.SUB_SECTION; // Spacing between subsections
+          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
         }
         
         // Languages subsection
@@ -1146,7 +1186,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         }
         
         // Add consistent spacing after the entire Additional Information section
-        yPos += SPACING.SECTION; // Consistent section spacing
+        yPos += 7; // 7 units consistent spacing after section
         break;
         
       default:

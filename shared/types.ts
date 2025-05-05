@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { completeCvSchema } from "./schema";
 
-// Template types will be removed as we're moving to a Word document approach
-export type TemplateType = 'default';
+export type TemplateType = 'minimalist' | 'professional' | 'creative' | 'academic';
 
 export type SectionType = 'personal' | 'summary' | 'keyCompetencies' | 'experience' | 'education' | 'certificates' | 'extracurricular' | 'additional';
 

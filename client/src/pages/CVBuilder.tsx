@@ -98,17 +98,18 @@ const CVBuilder = () => {
     { id: 'additional', name: 'Additional Information', visible: true, order: 6 },
   ];
   
-  // Document settings state 
+  // Template selection state
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
   );
   
-  // Update form with document settings
+  // Update form when template settings change
   useEffect(() => {
-    form.setValue('templateSettings.template', 'default');
+    form.setValue('templateSettings.template', selectedTemplate);
     form.setValue('templateSettings.includePhoto', includePhoto);
-  }, [includePhoto, form]);
+  }, [selectedTemplate, includePhoto, form]);
   
   // Update form when section order changes
   useEffect(() => {
@@ -126,6 +127,11 @@ const CVBuilder = () => {
     [CVTabs.EXTRACURRICULAR]: 70,
     [CVTabs.ADDITIONAL]: 80,
     [CVTabs.REORDER]: 100,
+  };
+  
+  // Handle template selection
+  const handleTemplateChange = (template: TemplateType) => {
+    setSelectedTemplate(template);
   };
   
   // Handle photo inclusion toggling
@@ -155,7 +161,7 @@ const CVBuilder = () => {
         const dataWithDefaults = {
           ...data,
           templateSettings: {
-            template: 'default',
+            template: selectedTemplate,
             includePhoto: includePhoto,
             sectionOrder: sectionOrder,
             ...(data.templateSettings || {})
@@ -249,7 +255,7 @@ const CVBuilder = () => {
     const dataToSubmit = {
       ...data,
       templateSettings: {
-        template: 'default',
+        template: selectedTemplate,
         includePhoto: includePhoto,
         sectionOrder: sectionOrder
       }
@@ -286,7 +292,7 @@ const CVBuilder = () => {
             const dataWithTemplateSettings = {
               ...form.getValues(),
               templateSettings: {
-                template: 'default',
+                template: selectedTemplate,
                 includePhoto: includePhoto,
                 sectionOrder: sectionOrder
               }
@@ -369,9 +375,9 @@ const CVBuilder = () => {
                     {/* Template Selection Tab */}
                     <TabsContent value={CVTabs.TEMPLATE} className="space-y-8">
                       <TemplateSelector 
-                        selectedTemplate="default"
+                        selectedTemplate={selectedTemplate}
                         includePhoto={includePhoto}
-                        onTemplateChange={() => {}}
+                        onTemplateChange={handleTemplateChange}
                         onPhotoInclusionChange={handlePhotoInclusionChange}
                       />
                       
@@ -573,7 +579,7 @@ const CVBuilder = () => {
                                 const dataWithTemplateSettings = {
                                   ...form.getValues(),
                                   templateSettings: {
-                                    template: 'default',
+                                    template: selectedTemplate,
                                     includePhoto: includePhoto,
                                     sectionOrder: sectionOrder
                                   }

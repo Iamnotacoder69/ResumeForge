@@ -5,10 +5,22 @@ import { X, Download, ArrowLeft, RefreshCw, FileText, ExternalLink } from "lucid
 import { CompleteCV, TemplateType } from "@shared/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Helper function to get style for Word document preview
-const getTemplateStyles = (_template: 'default'): string => {
-  // No template styles as we're now using a Word document approach
-  return 'text-gray-800 bg-gray-200 border border-gray-300';
+// Helper function to get template-specific styles
+const getTemplateStyles = (template: TemplateType): string => {
+  switch (template) {
+    case 'minimalist':
+      return 'text-gray-800 bg-gray-200 border border-gray-300';
+    case 'professional':
+      return 'text-blue-800 bg-blue-100 border border-blue-300';
+    case 'creative':
+      return 'text-purple-800 bg-purple-100 border border-purple-300';
+    case 'academic':
+      return 'text-teal-800 bg-teal-100 border border-teal-300';
+    case 'modern-sidebar':
+      return 'text-gray-800 bg-yellow-100 border border-yellow-300';
+    default:
+      return 'text-gray-500 bg-gray-100';
+  }
 };
 
 type PDFPreviewProps = {
@@ -24,7 +36,7 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
   const isMobile = useIsMobile();
   
   // Extract template settings from data or use defaults
-  const templateType = (data.templateSettings?.template || 'default') as 'default';
+  const templateType = data.templateSettings?.template || 'professional';
   const includePhoto = data.templateSettings?.includePhoto || false;
   
   const generatePreview = async () => {
