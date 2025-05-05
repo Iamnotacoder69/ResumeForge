@@ -3,12 +3,12 @@ import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
 // Standardized spacing constants
 const SPACING = {
-  SECTION: 7,          // Space after each major section
-  ENTRY: 5,            // Space between entries within a section
-  SECTION_TITLE: 2,    // Extra space after section titles (in addition to line height)
-  LINE_BELOW_TITLE: 2, // Space after visual separators
+  SECTION: 12,         // Increased space after each major section
+  ENTRY: 7,            // Increased space between entries within a section
+  SECTION_TITLE: 4,    // Increased extra space after section titles (in addition to line height)
+  LINE_BELOW_TITLE: 4, // Increased space after visual separators
   TEXT_BLOCK: 0,       // No additional spacing after text blocks (line height handles this)
-  SUB_SECTION: 5       // Space between sub-sections
+  SUB_SECTION: 7       // Increased space between sub-sections
 };
 
 /**
@@ -71,9 +71,11 @@ function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: numb
  */
 function addSectionSeparator(doc: jsPDF, x: number, y: number, width: number, color: [number, number, number]): number {
   // Set thickness of separator line for better visibility
-  doc.setLineWidth(0.5);
+  doc.setLineWidth(0.8);
   doc.setDrawColor(color[0], color[1], color[2]);
   doc.line(x, y, x + width, y);
+  // Repeat line slightly offset to create thicker effect
+  doc.line(x, y+0.2, x + width, y+0.2);
   // Reset to normal line width
   doc.setLineWidth(0.1);
   return y + SPACING.LINE_BELOW_TITLE;
@@ -848,8 +850,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
   if (!isModernSidebar) {
     yPos += 3;
     doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
+    // Add a thicker, more visible header separator line
+    doc.setLineWidth(0.8);
     doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += SPACING.ENTRY; // Standardized spacing after separator line
+    doc.line(margin, yPos+0.3, pageWidth - margin, yPos+0.3);
+    doc.setLineWidth(0.1);
+    yPos += SPACING.ENTRY + 2; // Increased spacing after separator line
   }
 
   // Set up section order from user preferences or use default if not defined
