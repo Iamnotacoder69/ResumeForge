@@ -52,7 +52,7 @@ const PDF_CONFIG = {
   },
   // Image settings
   IMAGE: {
-    WIDTH: 100,
+    WIDTH: 80,  // Smaller width to maintain aspect ratio
     HEIGHT: 100,
     POSITION: {
       X: 480, // Right side of page
@@ -171,8 +171,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                       PDF_CONFIG.IMAGE.POSITION.Y, 
                       { 
                         fit: [PDF_CONFIG.IMAGE.WIDTH, PDF_CONFIG.IMAGE.HEIGHT],
-                        align: 'right',
-                        valign: 'top'
+                        align: 'right'
                       }
                     );
                     // No need to adjust y position as the image is positioned absolutely
@@ -276,7 +275,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
               y += skillsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
             
-            y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS - PDF_CONFIG.SPACING.PARAGRAPH;
+            // Use smaller spacing after competencies section to match example
+            y += 5; // Reduced spacing to make it closer to Experience section
             break;
             
           case "experience":
