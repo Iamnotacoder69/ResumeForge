@@ -1,14 +1,14 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
-// Standardized spacing constants
+// Standardized spacing constants with dramatically increased values
 const SPACING = {
-  SECTION: 12,         // Increased space after each major section
-  ENTRY: 7,            // Increased space between entries within a section
-  SECTION_TITLE: 4,    // Increased extra space after section titles (in addition to line height)
-  LINE_BELOW_TITLE: 4, // Increased space after visual separators
-  TEXT_BLOCK: 0,       // No additional spacing after text blocks (line height handles this)
-  SUB_SECTION: 7       // Increased space between sub-sections
+  SECTION: 20,         // Dramatically increased space after each major section (was 12)
+  ENTRY: 12,           // Dramatically increased space between entries (was 7)
+  SECTION_TITLE: 6,    // Increased space after section titles (was 4)
+  LINE_BELOW_TITLE: 8, // Dramatically increased space after separators (was 4)
+  TEXT_BLOCK: 2,       // Added small space after text blocks (was 0)
+  SUB_SECTION: 10      // Increased space between sub-sections (was 7)
 };
 
 /**
@@ -57,7 +57,8 @@ function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: numb
     }
   });
   
-  return currentY;
+  // Always add extra space after text blocks
+  return currentY + SPACING.TEXT_BLOCK;
 }
 
 /**
@@ -1050,9 +1051,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
             if (edu.achievements && typeof edu.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(edu.achievements, contentWidth);
-              doc.text(achievementsLines, margin, yPos);
-              yPos += (achievementsLines.length * lineHeight);
+              // Use the enhanced addWrappedText function which adds consistent spacing
+              yPos = addWrappedText(doc, edu.achievements, margin, yPos, contentWidth, lineHeight);
             }
 
             // Only add entry spacing if this is not the last entry
@@ -1107,9 +1107,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
             if (cert.achievements && typeof cert.achievements === 'string') {
               doc.setFont(bodyFont, "normal");
-              const achievementsLines = doc.splitTextToSize(cert.achievements, contentWidth);
-              doc.text(achievementsLines, margin, yPos);
-              yPos += (achievementsLines.length * lineHeight);
+              // Use the enhanced addWrappedText function which adds consistent spacing
+              yPos = addWrappedText(doc, cert.achievements, margin, yPos, contentWidth, lineHeight);
             }
 
             // Only add entry spacing if this is not the last entry
@@ -1166,9 +1165,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
             if (activity.description && typeof activity.description === 'string') {
               doc.setFont(bodyFont, "normal");
-              const descriptionLines = doc.splitTextToSize(activity.description, contentWidth);
-              doc.text(descriptionLines, margin, yPos);
-              yPos += (descriptionLines.length * lineHeight);
+              // Use the enhanced addWrappedText function which adds consistent spacing
+              yPos = addWrappedText(doc, activity.description, margin, yPos, contentWidth, lineHeight);
             }
 
             // Only add entry spacing if this is not the last entry
@@ -1206,9 +1204,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(bodyFont, "normal");
           doc.setFontSize(bodyFontSize);
           const skillsText = data.additional.skills.join(", ");
-          const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
-          doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + SPACING.SUB_SECTION; // Consistent spacing between subsections
+          // Use addWrappedText for Computer Skills
+          yPos = addWrappedText(doc, skillsText, margin, yPos, contentWidth, lineHeight);
+          yPos += SPACING.SUB_SECTION; // Add extra spacing between subsections
         }
 
         // Languages subsection
@@ -1232,9 +1230,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
           ).join(", ");
 
-          const languagesLines = doc.splitTextToSize(languagesText, contentWidth);
-          doc.text(languagesLines, margin, yPos);
-          yPos += (languagesLines.length * lineHeight);
+          // Use addWrappedText for Languages for consistency
+          yPos = addWrappedText(doc, languagesText, margin, yPos, contentWidth, lineHeight);
         }
 
         // Add consistent spacing after the entire Additional Information section
