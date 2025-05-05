@@ -943,7 +943,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Education", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -993,7 +993,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Certificates", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          yPos += lineHeight + SPACING.SECTION_TITLE; // Standard spacing after section title
           
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
           
@@ -1035,7 +1035,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           }
           
           // Add consistent spacing after the entire certificates section
-          yPos += 7; // 7 units consistent spacing after section
+          yPos += SPACING.SECTION; // Consistent section spacing
         }
         break;
         
@@ -1085,12 +1085,12 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             
             // Only add entry spacing if this is not the last entry
             if (activity !== data.extracurricular[data.extracurricular.length - 1]) {
-              yPos += 5; // Spacing between extracurricular entries
+              yPos += SPACING.ENTRY; // Spacing between extracurricular entries
             }
           }
           
           // Add consistent spacing after the extracurricular section
-          yPos += 7; // 7 units consistent spacing
+          yPos += SPACING.SECTION; // Consistent section spacing
         }
         break;
         
@@ -1116,7 +1116,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
+          yPos += (skillsLines.length * lineHeight) + SPACING.SUB_SECTION; // Spacing between subsections
         }
         
         // Languages subsection
@@ -1146,7 +1146,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         }
         
         // Add consistent spacing after the entire Additional Information section
-        yPos += 7; // 7 units consistent spacing after section
+        yPos += SPACING.SECTION; // Consistent section spacing
         break;
         
       default:
