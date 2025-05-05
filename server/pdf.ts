@@ -22,7 +22,7 @@ const SPACING = {
  * @returns Updated Y position after text
  */
 function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: number, maxWidth: number, lineHeight: number): number {
-  if (!text || typeof text !== 'string') return y;
+  if (!text || typeof text !== 'string' || text.trim() === '') return y;
 
   const lines = doc.splitTextToSize(text, maxWidth);
   doc.text(lines, x, y);
@@ -412,11 +412,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${exp.companyName} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (exp.responsibilities && typeof exp.responsibilities === 'string' && exp.responsibilities.trim() !== '') {
+              // Use our helper function for wrapped text if responsibilities exists  
+              if (exp.responsibilities) {
                 doc.setFont(bodyFont, "normal");
-                const responsibilitiesLines = doc.splitTextToSize(exp.responsibilities, mainContentWidth - 8);
-                doc.text(responsibilitiesLines, mainContentX + 8, mainYPos);
-                mainYPos += (responsibilitiesLines.length * lineHeight);
+                mainYPos = addWrappedText(doc, exp.responsibilities, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
               }
 
               // Only add entry spacing if this is not the last entry
@@ -474,11 +473,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (edu.achievements && typeof edu.achievements === 'string' && edu.achievements.trim() !== '') {
+              // Use our helper function for wrapped text if achievements exists
+              if (edu.achievements) {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(edu.achievements, mainContentWidth - 8);
-                doc.text(achievementsLines, mainContentX + 8, mainYPos);
-                mainYPos += (achievementsLines.length * lineHeight);
+                mainYPos = addWrappedText(doc, edu.achievements, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
               }
 
               // Only add entry spacing if this is not the last entry
@@ -529,21 +527,20 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
-              // Format date with safe null checks
-              const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              // Format date using our safe formatter
+              const dateAcquired = safeFormatDate(cert.dateAcquired);
               let expirationText = '';
-              if (cert.expirationDate && cert.expirationDate.trim() !== '') {
-                expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
+              if (cert.expirationDate) {
+                expirationText = ` (Expires: ${safeFormatDate(cert.expirationDate)})`;
               }
 
               doc.text(`${cert.institution} | ${dateAcquired}${expirationText}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (cert.achievements && typeof cert.achievements === 'string' && cert.achievements.trim() !== '') {
+              // Use our helper function for wrapped text if achievements exists
+              if (cert.achievements) {
                 doc.setFont(bodyFont, "normal");
-                const achievementsLines = doc.splitTextToSize(cert.achievements, mainContentWidth - 8);
-                doc.text(achievementsLines, mainContentX + 8, mainYPos);
-                mainYPos += (achievementsLines.length * lineHeight);
+                mainYPos = addWrappedText(doc, cert.achievements, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
               }
 
               // Only add entry spacing if this is not the last entry
@@ -594,23 +591,22 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               doc.setFontSize(bodyFontSize);
               doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
-              // Format dates with safe null checks
-              const startDate = activity.startDate ? new Date(activity.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              // Format dates using our safe formatter
+              const startDate = safeFormatDate(activity.startDate);
               let endDateDisplay = '';
               if (activity.isCurrent) {
                 endDateDisplay = 'Present';
-              } else if (activity.endDate && activity.endDate.trim() !== '') {
-                endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              } else if (activity.endDate) {
+                endDateDisplay = safeFormatDate(activity.endDate);
               }
 
               doc.text(`${activity.organization} | ${startDate} - ${endDateDisplay}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
 
-              if (activity.description && typeof activity.description === 'string' && activity.description.trim() !== '') {
+              // Use our helper function for wrapped text if description exists
+              if (activity.description) {
                 doc.setFont(bodyFont, "normal");
-                const descriptionLines = doc.splitTextToSize(activity.description, mainContentWidth - 8);
-                doc.text(descriptionLines, mainContentX + 8, mainYPos);
-                mainYPos += (descriptionLines.length * lineHeight);
+                mainYPos = addWrappedText(doc, activity.description, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
               }
 
               // Only add entry spacing if this is not the last entry
