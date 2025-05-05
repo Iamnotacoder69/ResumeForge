@@ -997,7 +997,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Education", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          
+          // Add visual separator line under the title for consistency with other sections
+          yPos += SPACING.LINE_BELOW_TITLE;
+          yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+          yPos += lineHeight;
 
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -1047,7 +1051,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Certificates", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          
+          // Add visual separator line under the title for consistency with other sections
+          yPos += SPACING.LINE_BELOW_TITLE;
+          yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+          yPos += lineHeight;
 
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -1100,7 +1108,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Extracurricular Activities", margin, yPos);
-          yPos += lineHeight + 2; // Standard spacing after section title
+          
+          // Add visual separator line under the title for consistency with other sections
+          yPos += SPACING.LINE_BELOW_TITLE;
+          yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+          yPos += lineHeight;
 
           doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -1154,7 +1166,11 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Additional Information", margin, yPos);
-        yPos += lineHeight + 2; // Standard spacing after section title
+        
+        // Add visual separator line under the title for consistency with other sections
+        yPos += SPACING.LINE_BELOW_TITLE;
+        yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+        yPos += lineHeight;
 
         // Additional Skills subsection
         if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
@@ -1170,7 +1186,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           const skillsText = data.additional.skills.join(", ");
           const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
           doc.text(skillsLines, margin, yPos);
-          yPos += (skillsLines.length * lineHeight) + 5; // Spacing between subsections
+          yPos += (skillsLines.length * lineHeight) + SPACING.SUB_SECTION; // Consistent spacing between subsections
         }
 
         // Languages subsection
