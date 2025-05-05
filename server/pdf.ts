@@ -395,6 +395,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(subtitleFontSize);
             doc.text("EXPERIENCE", mainContentX, mainYPos);
             mainYPos += SPACING.LINE_BELOW_TITLE;
+            // Add visual separator line under the title
+            mainYPos = addSectionSeparator(doc, mainContentX, mainYPos, mainContentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+            mainYPos += lineHeight;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -461,6 +464,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(subtitleFontSize);
             doc.text("EDUCATION", mainContentX, mainYPos);
             mainYPos += SPACING.LINE_BELOW_TITLE;
+            // Add visual separator line under the title
+            mainYPos = addSectionSeparator(doc, mainContentX, mainYPos, mainContentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+            mainYPos += lineHeight;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -520,6 +526,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(subtitleFontSize);
             doc.text("CERTIFICATES", mainContentX, mainYPos);
             mainYPos += SPACING.LINE_BELOW_TITLE;
+            // Add visual separator line under the title
+            mainYPos = addSectionSeparator(doc, mainContentX, mainYPos, mainContentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+            mainYPos += lineHeight;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -582,6 +591,9 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             doc.setFontSize(subtitleFontSize);
             doc.text("EXTRACURRICULAR", mainContentX, mainYPos);
             mainYPos += SPACING.LINE_BELOW_TITLE;
+            // Add visual separator line under the title
+            mainYPos = addSectionSeparator(doc, mainContentX, mainYPos, mainContentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+            mainYPos += lineHeight;
 
             doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
 
@@ -644,7 +656,10 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("ADDITIONAL INFORMATION", mainContentX, mainYPos);
-          mainYPos += lineHeight + 2;
+          mainYPos += SPACING.LINE_BELOW_TITLE;
+          // Add visual separator line under the title
+          mainYPos = addSectionSeparator(doc, mainContentX, mainYPos, mainContentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
+          mainYPos += lineHeight;
 
           // Computer Skills subsection
           if (data.additional && data.additional.skills && data.additional.skills.length > 0) {
@@ -812,7 +827,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     doc.setFont(titleFont, "bold");
     doc.setFontSize(titleFontSize);
     doc.text(`${data.personal.firstName} ${data.personal.lastName}`, margin, yPos);
-    yPos += lineHeight + 2;
+    yPos += SPACING.LINE_BELOW_TITLE;
 
     // Add contact information
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
