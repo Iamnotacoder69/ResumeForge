@@ -16,21 +16,19 @@ const getTemplateStyles = (template: TemplateType): string => {
       return 'text-purple-800 bg-purple-100 border border-purple-300';
     case 'academic':
       return 'text-teal-800 bg-teal-100 border border-teal-300';
-    case 'modern-sidebar':
-      return 'text-gray-800 bg-yellow-100 border border-yellow-300';
     default:
       return 'text-gray-500 bg-gray-100';
   }
 };
 
-type PDFPreviewProps = {
+type DocPreviewProps = {
   data: CompleteCV;
   onClose: () => void;
   onDownload: () => void;
 };
 
-const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+const DocPreview = ({ data, onClose, onDownload }: DocPreviewProps) => {
+  const [docUrl, setDocUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isMobile = useIsMobile();
@@ -44,13 +42,13 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
       setIsLoading(true);
       setErrorMessage(null);
       
-      // Clear previous PDF URL if it exists
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-        setPdfUrl(null);
+      // Clear previous document URL if it exists
+      if (docUrl) {
+        URL.revokeObjectURL(docUrl);
+        setDocUrl(null);
       }
       
-      console.log("PDFPreview: Preparing to fetch PDF...");
+      console.log("DocPreview: Preparing to fetch DOCX document...");
       
       // Create a copy of the data to send to avoid any circular references
       const dataToSend = {
@@ -63,10 +61,10 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
         }
       };
       
-      console.log("PDFPreview: Template settings:", templateType, includePhoto);
+      console.log("DocPreview: Template settings:", templateType, includePhoto);
       
       try {
-        const response = await fetch("/api/generate-pdf", {
+        const response = await fetch("/api/generate-docx", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -74,29 +72,29 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
           body: JSON.stringify(dataToSend),
         });
         
-        console.log("PDFPreview: Response received:", response.status, response.statusText);
+        console.log("DocPreview: Response received:", response.status, response.statusText);
         
         if (!response.ok) {
           try {
             const errorData = await response.json();
-            throw new Error(errorData.message || `Failed to generate PDF: ${response.statusText}`);
+            throw new Error(errorData.message || `Failed to generate document: ${response.statusText}`);
           } catch (jsonError) {
             // If response.json() fails, use the status text
-            throw new Error(`Failed to generate PDF: ${response.statusText}`);
+            throw new Error(`Failed to generate document: ${response.statusText}`);
           }
         }
         
         const blob = await response.blob();
-        console.log("PDFPreview: Blob received, size:", blob.size);
+        console.log("DocPreview: Blob received, size:", blob.size);
         
         const url = URL.createObjectURL(blob);
-        setPdfUrl(url);
+        setDocUrl(url);
       } catch (fetchError) {
-        console.error("PDFPreview: Fetch error:", fetchError);
+        console.error("DocPreview: Fetch error:", fetchError);
         throw fetchError;
       }
     } catch (error) {
-      console.error("PDFPreview: Error generating PDF preview:", error);
+      console.error("DocPreview: Error generating document preview:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setIsLoading(false);
@@ -108,8 +106,8 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
     
     // Cleanup function
     return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
+      if (docUrl) {
+        URL.revokeObjectURL(docUrl);
       }
     };
   }, []);
@@ -145,8 +143,8 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
               <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
             </Button>
             {!isMobile && (
-              <Button onClick={onDownload} disabled={isLoading || !pdfUrl}>
-                <Download className="mr-2 h-4 w-4" /> Download PDF
+              <Button onClick={onDownload} disabled={isLoading || !docUrl}>
+                <Download className="mr-2 h-4 w-4" /> Download DOCX
               </Button>
             )}
             <Button variant="ghost" size="sm" onClick={onClose} className="hidden sm:flex">
@@ -159,11 +157,11 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
           {isLoading ? (
             <div className="h-full flex flex-col items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <p className="mt-4 text-gray-600">Generating your CV preview...</p>
+              <p className="mt-4 text-gray-600">Generating your CV document...</p>
             </div>
           ) : errorMessage ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-4">
-              <p className="text-red-500 mb-2">Error generating PDF preview</p>
+              <p className="text-red-500 mb-2">Error generating document</p>
               <p className="text-sm text-gray-600">{errorMessage}</p>
               <Button 
                 variant="outline" 
@@ -173,38 +171,55 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
                 Try Again
               </Button>
             </div>
-          ) : pdfUrl ? (
+          ) : docUrl ? (
             <div className="w-full h-full flex flex-col">
               {!isMobile ? (
-                // Desktop PDF viewer
-                <iframe 
-                  src={pdfUrl} 
-                  className="w-full h-full rounded border"
-                  title="CV Preview"
-                />
+                // Desktop preview message (DOCX can't be directly displayed in iframe)
+                <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded border p-8">
+                  <FileText className="w-24 h-24 mb-6 text-primary opacity-80" />
+                  <h3 className="text-xl font-semibold mb-2">DOCX Document Ready</h3>
+                  <p className="text-base text-gray-600 mb-6 text-center max-w-md">
+                    Your CV has been generated as a DOCX file that maintains perfect formatting and spacing.
+                  </p>
+                  <div className="flex flex-col gap-4 w-full max-w-sm">
+                    <a 
+                      href={docUrl} 
+                      download="my_cv.docx"
+                      className="flex items-center justify-center gap-2 bg-primary text-white py-3 px-6 rounded-md font-medium hover:bg-opacity-90 text-center"
+                    >
+                      <Download className="h-5 w-5" /> Download DOCX
+                    </a>
+                    <Button 
+                      variant="outline" 
+                      onClick={onClose}
+                      className="w-full py-3"
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" /> Return to Editor
+                    </Button>
+                  </div>
+                </div>
               ) : (
-                // Mobile-friendly PDF viewer alternative
+                // Mobile-friendly document download
                 <div className="flex flex-col items-center justify-center h-full">
                   <FileText className="w-20 h-20 mb-4 text-primary opacity-80" />
-                  <h3 className="text-lg font-semibold mb-1">PDF Preview Ready</h3>
+                  <h3 className="text-lg font-semibold mb-1">DOCX Document Ready</h3>
                   <p className="text-sm text-gray-600 mb-4 text-center px-4">
-                    Your CV has been generated and is ready to view or download
+                    Your CV has been generated and is ready to download
                   </p>
                   <div className="flex flex-col gap-3 w-full max-w-xs">
                     <a 
-                      href={pdfUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                      href={docUrl}
+                      download="my_cv.docx" 
                       className="flex items-center justify-center gap-2 bg-primary text-white py-3 px-6 rounded-md font-medium hover:bg-opacity-90 text-center"
                     >
-                      <ExternalLink className="h-4 w-4" /> Open PDF
+                      <Download className="h-4 w-4" /> Download DOCX
                     </a>
                     <Button 
                       variant="outline" 
                       onClick={onDownload}
                       className="w-full py-3"
                     >
-                      <Download className="mr-2 h-4 w-4" /> Download PDF
+                      <Download className="mr-2 h-4 w-4" /> Save to Device
                     </Button>
                   </div>
                 </div>
@@ -212,7 +227,7 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">
-              <p className="text-red-500">Failed to generate PDF preview</p>
+              <p className="text-red-500">Failed to generate document</p>
             </div>
           )}
         </div>
@@ -221,4 +236,4 @@ const PDFPreview = ({ data, onClose, onDownload }: PDFPreviewProps) => {
   );
 };
 
-export default PDFPreview;
+export default DocPreview;

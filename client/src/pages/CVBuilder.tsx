@@ -16,7 +16,7 @@ import ExtracurricularSection from "@/components/cv/ExtracurricularSection";
 import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
 import SectionOrderer from "@/components/cv/SectionOrderer";
 import TemplateSelector from "@/components/cv/TemplateSelector";
-import PDFPreview from "@/components/cv/PDFPreview";
+import DocPreview from "@/components/cv/DocPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";

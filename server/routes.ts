@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Generate DOCX
-  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+  app.post("/api/generate-docx", async (req: Request, res: Response) => {
     try {
       console.log("DOCX Generation - Request received");
       
