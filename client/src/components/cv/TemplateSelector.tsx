@@ -22,24 +22,9 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: { id: TemplateType; name: string; description: string }[] = [
     {
-      id: 'minimalist',
-      name: 'Minimalist',
-      description: 'Clean and simple design with essential information only'
-    },
-    {
-      id: 'professional',
-      name: 'Professional',
-      description: 'Traditional business style with a formal structure'
-    },
-    {
-      id: 'creative',
-      name: 'Creative',
-      description: 'Modern design with colorful accents for creative fields'
-    },
-    {
-      id: 'academic',
-      name: 'Academic',
-      description: 'Detailed format for academic and research positions'
+      id: 'executive',
+      name: 'Executive',
+      description: 'Elegant professional design with consistent spacing and formatting'
     }
   ];
 
@@ -73,61 +58,30 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             >
               <div className="h-32 mb-3 bg-gray-100 rounded flex items-center justify-center">
                 <div className={`w-20 h-24 border ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-300'} rounded relative overflow-hidden`}>
-                  {/* Template-specific preview */}
-                  {template.id === 'minimalist' && (
+                  {/* Executive template preview */}
+                  {template.id === 'executive' && (
                     <>
-                      <div className="absolute top-2 left-2 right-2 h-3 bg-gray-400 rounded"></div>
-                      <div className="absolute top-7 left-2 right-2 h-1.5 bg-gray-300 rounded"></div>
-                      <div className="absolute top-10 left-2 right-2 h-1.5 bg-gray-300 rounded"></div>
-                      <div className="absolute top-13 left-2 right-2 h-1.5 bg-gray-300 rounded"></div>
-                      <div className="absolute top-17 left-2 right-2 h-1 bg-gray-200 rounded"></div>
-                      <div className="absolute top-19 left-2 right-2 h-1 bg-gray-200 rounded"></div>
-                      <div className="absolute top-21 left-2 right-2 h-1 bg-gray-200 rounded"></div>
+                      {/* Header/Name area */}
+                      <div className="absolute top-1 left-2 right-2 h-3 bg-slate-800 rounded"></div>
+                      
+                      {/* Section title with separator line */}
+                      <div className="absolute top-6 left-2 w-12 h-1.5 bg-slate-700 rounded"></div>
+                      <div className="absolute top-8 left-2 w-8 h-0.5 bg-amber-500 rounded"></div>
+                      
+                      {/* Content section 1 */}
+                      <div className="absolute top-10 left-2 right-2 h-1 bg-gray-600 rounded"></div>
+                      <div className="absolute top-12 left-2 right-4 h-1 bg-gray-500 rounded"></div>
+                      <div className="absolute top-14 left-2 right-6 h-1 bg-gray-500 rounded"></div>
+                      
+                      {/* Section title with separator line */}
+                      <div className="absolute top-17 left-2 w-10 h-1.5 bg-slate-700 rounded"></div>
+                      <div className="absolute top-19 left-2 w-6 h-0.5 bg-amber-500 rounded"></div>
+                      
+                      {/* Content section 2 */}
+                      <div className="absolute top-21 left-2 w-8 h-1 bg-gray-600 rounded"></div>
+                      <div className="absolute top-21 left-11 right-2 h-0.5 bg-gray-400 rounded"></div>
                     </>
                   )}
-                  
-                  {template.id === 'professional' && (
-                    <>
-                      <div className="absolute top-0 left-0 w-full h-5 bg-blue-700"></div>
-                      <div className="absolute top-7 left-2 right-2 h-2 bg-blue-600 rounded"></div>
-                      <div className="absolute top-11 left-2 w-8 h-1.5 bg-gray-400 rounded"></div>
-                      <div className="absolute top-11 left-11 right-2 h-1 bg-gray-300 rounded"></div>
-                      <div className="absolute top-13 left-2 w-8 h-1.5 bg-gray-400 rounded"></div>
-                      <div className="absolute top-13 left-11 right-2 h-1 bg-gray-300 rounded"></div>
-                      <div className="absolute top-17 left-2 right-2 h-2 bg-blue-600 rounded"></div>
-                      <div className="absolute top-20 left-2 right-2 h-1 bg-gray-300 rounded"></div>
-                      <div className="absolute top-22 left-2 right-2 h-1 bg-gray-300 rounded"></div>
-                    </>
-                  )}
-                  
-                  {template.id === 'creative' && (
-                    <>
-                      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-purple-100 to-white"></div>
-                      <div className="absolute top-2 left-2 right-2 h-3 bg-purple-600 rounded-full"></div>
-                      <div className="absolute top-7 left-2 w-4 h-4 bg-purple-500 rounded-full"></div>
-                      <div className="absolute top-7 left-7 right-2 h-1.5 bg-gray-600 rounded"></div>
-                      <div className="absolute top-9 left-7 right-2 h-1 bg-gray-400 rounded"></div>
-                      <div className="absolute top-12 left-2 right-2 h-2 bg-purple-400 rounded-full"></div>
-                      <div className="absolute top-16 left-2 right-6 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-18 left-2 right-8 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-20 left-2 right-4 h-1 bg-gray-500 rounded"></div>
-                    </>
-                  )}
-                  
-                  {template.id === 'academic' && (
-                    <>
-                      <div className="absolute top-0 left-0 w-full h-5 bg-teal-800"></div>
-                      <div className="absolute top-6 left-2 right-2 h-2 bg-teal-700 rounded"></div>
-                      <div className="absolute top-9 left-2 right-2 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-11 left-2 right-2 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-13 left-2 right-2 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-16 left-2 right-2 h-2 bg-teal-700 rounded"></div>
-                      <div className="absolute top-19 left-2 right-7 h-1 bg-gray-500 rounded"></div>
-                      <div className="absolute top-21 left-2 right-9 h-1 bg-gray-500 rounded"></div>
-                    </>
-                  )}
-                  
-                  {/* Modern sidebar template has been removed */}
                 </div>
               </div>
               <h3 className="font-medium text-gray-900">{template.name}</h3>

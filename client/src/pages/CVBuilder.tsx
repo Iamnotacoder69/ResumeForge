@@ -99,7 +99,7 @@ const CVBuilder = () => {
   ];
   
   // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('executive');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder

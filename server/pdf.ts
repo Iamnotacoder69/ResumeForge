@@ -113,9 +113,10 @@ const templateStyles = {
  * @returns PDF document as Buffer
  */
 export async function generatePDF(data: CompleteCV): Promise<Buffer> {
-  // Get template style based on user selection or default to executive
-  const templateType = data.templateSettings?.template || 'executive';
-  const style = templateStyles[templateType];
+  // Get template style (only executive is available)
+  const templateType: TemplateType = data.templateSettings?.template || 'executive';
+  // Ensure we're using a valid template type
+  const style = templateStyles['executive'];
   const includePhoto = data.templateSettings?.includePhoto || false;
 
   // Create a new PDF document
@@ -391,7 +392,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               let endDateDisplay = '';
               if (exp.isCurrent) {
                 endDateDisplay = 'Present';
-              } else if (exp.endDate) {
+              } else if (exp.endDate && exp.endDate.trim() !== '') {
                 endDateDisplay = new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
 
@@ -455,7 +456,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
 
               // Format dates with safe null checks
               const startDate = edu.startDate ? new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
-              const endDate = edu.endDate ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+              const endDate = edu.endDate && edu.endDate.trim() !== '' ? new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
 
               doc.text(`${edu.schoolName} | ${startDate} - ${endDate}`, mainContentX + 8, mainYPos);
               mainYPos += lineHeight;
@@ -518,7 +519,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               // Format date with safe null checks
               const dateAcquired = cert.dateAcquired ? new Date(cert.dateAcquired).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
               let expirationText = '';
-              if (cert.expirationDate) {
+              if (cert.expirationDate && cert.expirationDate.trim() !== '') {
                 expirationText = ` (Expires: ${new Date(cert.expirationDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`;
               }
 
@@ -585,7 +586,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
               let endDateDisplay = '';
               if (activity.isCurrent) {
                 endDateDisplay = 'Present';
-              } else if (activity.endDate) {
+              } else if (activity.endDate && activity.endDate.trim() !== '') {
                 endDateDisplay = new Date(activity.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
               }
 
