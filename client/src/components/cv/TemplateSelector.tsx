@@ -22,24 +22,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: { id: TemplateType; name: string; description: string }[] = [
     {
-      id: 'minimalist',
-      name: 'Minimalist',
-      description: 'Clean and simple design with essential information only'
+      id: 'word-classic',
+      name: 'Word Classic',
+      description: 'Traditional Microsoft Word document format with standard layout'
     },
     {
-      id: 'professional',
-      name: 'Professional',
-      description: 'Traditional business style with a formal structure'
-    },
-    {
-      id: 'creative',
-      name: 'Creative',
-      description: 'Modern design with colorful accents for creative fields'
-    },
-    {
-      id: 'academic',
-      name: 'Academic',
-      description: 'Detailed format for academic and research positions'
+      id: 'word-modern',
+      name: 'Word Modern',
+      description: 'Contemporary Microsoft Word template with modern styling'
     }
   ];
 
