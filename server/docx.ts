@@ -1,7 +1,7 @@
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, 
   ExternalHyperlink, PageBreak, Table, TableRow, TableCell, WidthType, 
   BorderStyle, Tab, SectionType, Header, Footer, HorizontalPositionRelativeFrom,
-  VerticalPositionRelativeFrom, ImageRun } from "docx";
+  VerticalPositionRelativeFrom, ImageRun, Packer } from "docx";
 import { CompleteCV, SectionOrder } from "@shared/types";
 import * as fs from "fs";
 
@@ -150,8 +150,8 @@ function createSection(sectionId: string, sectionName: string, data: CompleteCV)
   // Only add the section if it has content
   switch(sectionId) {
     case 'summary':
-      // Check both summary and professional data structures for backward compatibility
-      const summaryText = data.summary?.summary || data.professional?.summary;
+      // Use the professional summary field
+      const summaryText = data.professional?.summary;
       if (summaryText) {
         // Section title
         paragraphs.push(createSectionHeading(sectionName));

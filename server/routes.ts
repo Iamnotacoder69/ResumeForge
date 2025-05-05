@@ -153,8 +153,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             linkedin: req.body.personal?.linkedin || "",
             photoUrl: req.body.personal?.photoUrl || ""
           },
-          summary: { 
-            summary: req.body.summary?.summary || req.body.professional?.summary || ""
+          professional: { 
+            summary: req.body.professional?.summary || req.body.summary?.summary || ""
           },
           keyCompetencies: {
             technicalSkills: req.body.keyCompetencies?.technicalSkills || [],
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           languages: req.body.languages || [],
           templateSettings: {
-            template: "minimalist", // We're not using templates with DOCX
+            template: "minimalist" as any, // We're not using templates with DOCX
             includePhoto: req.body.templateSettings?.includePhoto || false,
             sectionOrder: req.body.templateSettings?.sectionOrder || [
               { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
