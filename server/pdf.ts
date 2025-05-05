@@ -70,8 +70,12 @@ function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: numb
  * @returns Updated Y position after separator
  */
 function addSectionSeparator(doc: jsPDF, x: number, y: number, width: number, color: [number, number, number]): number {
+  // Set thickness of separator line for better visibility
+  doc.setLineWidth(0.5);
   doc.setDrawColor(color[0], color[1], color[2]);
   doc.line(x, y, x + width, y);
+  // Reset to normal line width
+  doc.setLineWidth(0.1);
   return y + SPACING.LINE_BELOW_TITLE;
 }
 
