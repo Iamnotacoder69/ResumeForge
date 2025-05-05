@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { generatePDF } from "./pdf";
+import { generateDOCX } from "./docx";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -121,42 +121,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Generate PDF
+  // Generate DOCX
   app.post("/api/generate-pdf", async (req: Request, res: Response) => {
     try {
-      console.log("PDF Generation - Request received");
+      console.log("DOCX Generation - Request received");
       
       // Add debugging logs
-      console.log("PDF Generation - Template:", req.body.templateSettings?.template);
-      console.log("PDF Generation - Has Key Competencies:", !!req.body.keyCompetencies);
-      console.log("PDF Generation - Has Extracurricular:", !!req.body.extracurricular);
-      console.log("PDF Generation - Sections:", req.body.templateSettings?.sectionOrder?.map((s: any) => s.id));
-      console.log("PDF Generation - Include Photo:", req.body.templateSettings?.includePhoto);
-      
-      // If photo is included, log photo info
-      if (req.body.templateSettings?.includePhoto && req.body.personal?.photoUrl) {
-        console.log("PDF Generation - Photo URL provided:", 
-          typeof req.body.personal.photoUrl === 'string' ? 
-          `URL length: ${req.body.personal.photoUrl.length}, starts with: ${req.body.personal.photoUrl.substring(0, 30)}...` : 'Not a string');
-          
-        // More detailed debugging for the image
-        if (typeof req.body.personal.photoUrl === 'string') {
-          const photoUrl = req.body.personal.photoUrl;
-          let formatInfo = "Unknown format";
-          
-          if (photoUrl.startsWith('data:image/png;base64,')) {
-            formatInfo = "PNG base64";
-          } else if (photoUrl.startsWith('data:image/jpeg;base64,')) {
-            formatInfo = "JPEG base64";
-          } else if (photoUrl.startsWith('data:image/')) {
-            formatInfo = "Other image base64";
-          } else if (photoUrl.startsWith('http')) {
-            formatInfo = "HTTP URL";
-          }
-          
-          console.log("PDF Generation - Image format appears to be:", formatInfo);
-        }
-      }
+      console.log("DOCX Generation - Has Key Competencies:", !!req.body.keyCompetencies);
+      console.log("DOCX Generation - Has Extracurricular:", !!req.body.extracurricular);
+      console.log("DOCX Generation - Sections:", req.body.templateSettings?.sectionOrder?.map((s: any) => s.id));
+      console.log("DOCX Generation - Include Photo:", req.body.templateSettings?.includePhoto);
       
       // For preview mode, use a relaxed parsing that allows empty fields
       // instead of rejecting the entire request
@@ -165,9 +139,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Try to validate with the regular schema
         data = completeCvSchema.parse(req.body);
-        console.log("PDF Generation - CV data passed validation");
+        console.log("DOCX Generation - CV data passed validation");
       } catch (validationError) {
-        console.log("PDF validation issues detected, using relaxed mode for preview");
+        console.log("DOCX validation issues detected, using relaxed mode for preview");
         
         // Create default data structure with empty values
         data = {
@@ -179,8 +153,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             linkedin: req.body.personal?.linkedin || "",
             photoUrl: req.body.personal?.photoUrl || ""
           },
-          professional: { 
-            summary: req.body.professional?.summary || ""
+          summary: { 
+            summary: req.body.summary?.summary || req.body.professional?.summary || ""
           },
           keyCompetencies: {
             technicalSkills: req.body.keyCompetencies?.technicalSkills || [],
@@ -195,44 +169,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           languages: req.body.languages || [],
           templateSettings: {
-            template: req.body.templateSettings?.template || "professional",
+            template: "minimalist", // We're not using templates with DOCX
             includePhoto: req.body.templateSettings?.includePhoto || false,
             sectionOrder: req.body.templateSettings?.sectionOrder || [
-              { id: 'summary', name: 'Professional Summary', visible: true, order: 0 },
-              { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 1 },
-              { id: 'experience', name: 'Work Experience', visible: true, order: 2 },
-              { id: 'education', name: 'Education', visible: true, order: 3 },
-              { id: 'certificates', name: 'Certificates', visible: true, order: 4 },
-              { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 5 },
-              { id: 'additional', name: 'Additional Information', visible: true, order: 6 },
+              { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
+              { id: 'summary', name: 'Professional Summary', visible: true, order: 1 },
+              { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 2 },
+              { id: 'experience', name: 'Work Experience', visible: true, order: 3 },
+              { id: 'education', name: 'Education', visible: true, order: 4 },
+              { id: 'certificates', name: 'Certificates', visible: true, order: 5 },
+              { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 6 },
+              { id: 'additional', name: 'Additional Information', visible: true, order: 7 },
             ]
           }
         };
       }
       
-      console.log("PDF Generation - Calling generatePDF function");
+      console.log("DOCX Generation - Calling generateDOCX function");
       
       try {
-        // Generate PDF buffer
-        const pdfBuffer = await generatePDF(data);
-        console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
+        // Generate DOCX buffer
+        const docxBuffer = await generateDOCX(data);
+        console.log("DOCX Generation - DOCX buffer created, size:", docxBuffer.length);
         
-        // Set headers
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=cv.pdf');
+        // Set headers for DOCX file
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', 'attachment; filename=cv.docx');
         
-        // Send PDF buffer
-        res.status(200).send(pdfBuffer);
-        console.log("PDF Generation - Response sent successfully");
-      } catch (pdfError) {
-        console.error("PDF Generation - Error generating PDF:", pdfError);
-        throw pdfError;
+        // Send DOCX buffer
+        res.status(200).send(docxBuffer);
+        console.log("DOCX Generation - Response sent successfully");
+      } catch (docxError) {
+        console.error("DOCX Generation - Error generating DOCX:", docxError);
+        throw docxError;
       }
     } catch (error) {
-      console.error("PDF Generation - Error caught:", error);
+      console.error("DOCX Generation - Error caught:", error);
       
       if (error instanceof z.ZodError) {
-        console.log("PDF Generation - Validation error");
+        console.log("DOCX Generation - Validation error");
         return res.status(400).json({ 
           success: false, 
           message: "Validation error", 
@@ -242,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(500).json({ 
         success: false, 
-        message: "Failed to generate PDF", 
+        message: "Failed to generate DOCX", 
         error: error instanceof Error ? error.message : "Unknown error" 
       });
     }

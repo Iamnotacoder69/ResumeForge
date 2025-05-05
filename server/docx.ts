@@ -39,11 +39,11 @@ export async function generateDOCX(data: CompleteCV): Promise<Buffer> {
   const sectionOrder = [...visibleSections].sort((a, b) => a.order - b.order);
 
   // Create document sections
-  const sections = [];
+  const docSections = [];
 
   // Create personal information section (header)
   const personalInfoSection = createPersonalInfoSection(data);
-  sections.push(personalInfoSection);
+  docSections.push(...personalInfoSection);
 
   // Create main content sections
   for (const section of sectionOrder) {
@@ -52,7 +52,7 @@ export async function generateDOCX(data: CompleteCV): Promise<Buffer> {
     
     const sectionContent = createSection(section.id, section.name, data);
     if (sectionContent.length > 0) {
-      sections.push(...sectionContent);
+      docSections.push(...sectionContent);
     }
   }
 
@@ -70,13 +70,14 @@ export async function generateDOCX(data: CompleteCV): Promise<Buffer> {
             },
           },
         },
-        children: sections,
+        children: docSections,
       },
     ],
   });
 
   // Create a buffer from the document
-  return await Buffer.from(await doc.save());
+  const buffer = await Packer.toBuffer(doc);
+  return buffer;
 }
 
 /**
@@ -149,7 +150,9 @@ function createSection(sectionId: string, sectionName: string, data: CompleteCV)
   // Only add the section if it has content
   switch(sectionId) {
     case 'summary':
-      if (data.summary?.summary) {
+      // Check both summary and professional data structures for backward compatibility
+      const summaryText = data.summary?.summary || data.professional?.summary;
+      if (summaryText) {
         // Section title
         paragraphs.push(createSectionHeading(sectionName));
         
@@ -161,7 +164,7 @@ function createSection(sectionId: string, sectionName: string, data: CompleteCV)
             },
             children: [
               new TextRun({
-                text: data.summary.summary,
+                text: summaryText,
                 size: 22, // 11pt
               }),
             ],
