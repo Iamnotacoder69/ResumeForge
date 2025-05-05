@@ -1,14 +1,14 @@
 import { jsPDF } from "jspdf";
 import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
-// Standardized spacing constants with dramatically increased values
+// Standardized spacing constants with more balanced values
 const SPACING = {
-  SECTION: 20,         // Dramatically increased space after each major section (was 12)
-  ENTRY: 12,           // Dramatically increased space between entries (was 7)
-  SECTION_TITLE: 6,    // Increased space after section titles (was 4)
-  LINE_BELOW_TITLE: 8, // Dramatically increased space after separators (was 4)
-  TEXT_BLOCK: 2,       // Added small space after text blocks (was 0)
-  SUB_SECTION: 10      // Increased space between sub-sections (was 7)
+  SECTION: 10,         // Balanced spacing between sections
+  ENTRY: 8,            // Moderate spacing between entries
+  SECTION_TITLE: 4,    // Standard space after section titles
+  LINE_BELOW_TITLE: 3, // Reduced space after separators for better consistency
+  TEXT_BLOCK: 0,       // No extra spacing after text blocks
+  SUB_SECTION: 6       // Moderate spacing between sub-sections
 };
 
 /**
@@ -832,31 +832,31 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     doc.setFont(titleFont, "bold");
     doc.setFontSize(titleFontSize);
     doc.text(`${data.personal.firstName} ${data.personal.lastName}`, margin, yPos);
-    yPos += SPACING.LINE_BELOW_TITLE;
+    yPos += 2; // Minimal spacing after name
 
     // Add contact information
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
     doc.setFont(bodyFont, "normal");
     doc.setFontSize(bodyFontSize);
     doc.text(`Email: ${data.personal.email} | Phone: ${data.personal.phone}`, margin, yPos);
-    yPos += lineHeight;
+    yPos += bodyFontSize * 0.35; // Minimal spacing after contact info
 
     if (data.personal.linkedin) {
       doc.text(`LinkedIn: linkedin.com/in/${data.personal.linkedin}`, margin, yPos);
-      yPos += lineHeight;
+      yPos += bodyFontSize * 0.35; // Minimal spacing after LinkedIn
     }
   }
 
   // Add horizontal line for non-sidebar templates
   if (!isModernSidebar) {
-    yPos += 3;
+    yPos += 1; // Reduced space before header line
     doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
     // Add a thicker, more visible header separator line
     doc.setLineWidth(0.8);
     doc.line(margin, yPos, pageWidth - margin, yPos);
     doc.line(margin, yPos+0.3, pageWidth - margin, yPos+0.3);
     doc.setLineWidth(0.1);
-    yPos += SPACING.ENTRY + 2; // Increased spacing after separator line
+    yPos += 4; // Reduced spacing after separator line
   }
 
   // Set up section order from user preferences or use default if not defined
@@ -906,8 +906,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           yPos = addWrappedText(doc, data.professional.summary, margin, yPos, contentWidth, lineHeight);
         }
 
-        // Add consistent spacing after this section
-        addSectionSpacing();
+        // Add fixed amount of spacing after Professional Summary (less than default)
+        yPos += 7; // Exact custom spacing for Professional Summary
         break;
 
       case 'keyCompetencies':
@@ -1175,8 +1175,8 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             }
           }
 
-          // Add consistent spacing after the extracurricular section
-          addSectionSpacing(); // 7 units consistent spacing
+          // Add fixed amount of spacing after Extracurricular Activities (less than default)
+          yPos += 7; // Exact custom spacing for Extracurricular section
         }
         break;
 
