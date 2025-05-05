@@ -71,7 +71,7 @@ export function useCVForm(initialData?: Partial<CompleteCV>) {
       },
     ],
     templateSettings: {
-      template: "word-classic",
+      template: "professional",
       includePhoto: false,
       sectionOrder: defaultSectionOrder,
     },

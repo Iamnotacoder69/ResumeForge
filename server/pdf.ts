@@ -92,7 +92,20 @@ interface TemplateStyle {
 
 // Define template styles for each template type
 const templateStyles = {
-  'word-classic': {
+  'minimalist': {
+    titleFont: "helvetica",
+    bodyFont: "helvetica",
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 3.5,  // Reduced further from 4
+    primaryColor: [50, 50, 50],
+    secondaryColor: [100, 100, 100],
+    accentColor: [150, 150, 150],
+    margin: 15      // Reduced from 20
+  },
+  'professional': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
     titleFontSize: 14, // Name size only
@@ -100,12 +113,12 @@ const templateStyles = {
     sectionTitleFontSize: 11, // Subsection titles
     bodyFontSize: 11, // Body text
     lineHeight: 4,
-    primaryColor: [0, 62, 116], // Blue tone like MS Word
+    primaryColor: [0, 62, 116],
     secondaryColor: [70, 70, 70],
-    accentColor: [0, 120, 215], // Word blue accent color
+    accentColor: [0, 103, 164],
     margin: 15
   },
-  'word-modern': {
+  'creative': {
     titleFont: "helvetica",
     bodyFont: "helvetica",
     titleFontSize: 14, // Name size only
@@ -113,11 +126,25 @@ const templateStyles = {
     sectionTitleFontSize: 11, // Subsection titles
     bodyFontSize: 11, // Body text
     lineHeight: 4,
-    primaryColor: [70, 70, 70], // Modern gray
-    secondaryColor: [90, 90, 90],
-    accentColor: [0, 120, 212], // Word Modern accent color
+    primaryColor: [142, 68, 173],
+    secondaryColor: [80, 80, 80],
+    accentColor: [187, 143, 206],
+    margin: 15
+  },
+  'academic': {
+    titleFont: "times",
+    bodyFont: "times",
+    titleFontSize: 14, // Name size only
+    subtitleFontSize: 11, // Section titles
+    sectionTitleFontSize: 11, // Subsection titles
+    bodyFontSize: 11, // Body text
+    lineHeight: 4,
+    primaryColor: [15, 82, 87],
+    secondaryColor: [70, 70, 70],
+    accentColor: [36, 128, 116],
     margin: 15
   }
+  // modern-sidebar template removed
 };
 
 /**
@@ -126,9 +153,9 @@ const templateStyles = {
  * @returns PDF document as Buffer
  */
 export async function generatePDF(data: CompleteCV): Promise<Buffer> {
-  // Get template style based on user selection or default to word-classic
-  const templateType = data.templateSettings?.template || 'word-classic';
-  const style = templateStyles[templateType as keyof typeof templateStyles];
+  // Get template style based on user selection or default to professional
+  const templateType = data.templateSettings?.template || 'professional';
+  const style = templateStyles[templateType];
   const includePhoto = data.templateSettings?.includePhoto || false;
   
   // Create a new PDF document
