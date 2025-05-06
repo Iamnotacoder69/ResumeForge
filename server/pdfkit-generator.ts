@@ -28,11 +28,11 @@ const PDF_CONFIG = {
     DEFAULT_BOLD_ITALIC: "Helvetica-BoldOblique"
   },
   FONT_SIZE: {
-    NAME: 18,
-    SECTION_TITLE: 12,
-    ENTRY_TITLE: 10,
-    NORMAL: 10,
-    SMALL: 9
+    NAME: 14, // Set name to 14pt as requested
+    SECTION_TITLE: 11, // Set to 11pt as requested
+    ENTRY_TITLE: 11, // Set to 11pt as requested
+    NORMAL: 11, // Set to 11pt as requested
+    SMALL: 11 // Set to 11pt as requested
   },
   // Spacing
   SPACING: {
@@ -189,7 +189,19 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                .fillColor(PDF_CONFIG.COLOR.HEADING)
                .text(`${data.personal.firstName} ${data.personal.lastName}`, margin.LEFT, y, { lineBreak: false });
                
-            y += PDF_CONFIG.FONT_SIZE.NAME + PDF_CONFIG.SPACING.AFTER_NAME;
+            y += PDF_CONFIG.FONT_SIZE.NAME + 2; // Less space before professional title
+            
+            // Professional Title if available
+            if (data.personal.professionalTitle) {
+              doc.font(PDF_CONFIG.FONT.DEFAULT)
+                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                 .fillColor(PDF_CONFIG.COLOR.TEXT)
+                 .text(data.personal.professionalTitle, margin.LEFT, y, { lineBreak: false });
+                 
+              y += PDF_CONFIG.FONT_SIZE.NORMAL + 2; // Space after professional title
+            } else {
+              y += PDF_CONFIG.SPACING.AFTER_NAME; // Normal spacing if no title
+            }
             
             // Add separator line
             doc.strokeColor(PDF_CONFIG.COLOR.LINE)
