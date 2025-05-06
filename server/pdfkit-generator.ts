@@ -275,8 +275,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
               y += skillsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
             
-            // Use smaller spacing after competencies section to match example
-            y += 5; // Reduced spacing to make it closer to Experience section
+            // Use consistent spacing after competencies section to match other sections
+            y += 15; // Consistent spacing to match other sections
             break;
             
           case "experience":
