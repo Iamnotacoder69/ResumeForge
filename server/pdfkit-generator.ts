@@ -129,6 +129,13 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
         return Math.ceil(lines) * lineHeight;
       };
       
+      // Utility to clean text and prevent unexpected characters
+      const cleanTextForPDF = (text: string): string => {
+        if (!text) return '';
+        // Remove control characters and non-printable characters
+        return text.replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200D\uFEFF]/g, '');
+      };
+      
       const formatDate = (dateStr?: string, isCurrent: boolean = false): string => {
         if (isCurrent) return "Present";
         if (!dateStr) return "";
