@@ -149,6 +149,7 @@ export const completeCvSchema = z.object({
   personal: z.object({
     firstName: z.string().default(""),
     lastName: z.string().default(""),
+    professionalTitle: z.string().optional(),
     email: z.string().default(""),
     phone: z.string().default(""),
     linkedin: z.string().optional(),
