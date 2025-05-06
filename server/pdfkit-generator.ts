@@ -347,11 +347,11 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                 if (exp.responsibilities) {
                   const bulletIndent = 15;
                   
-                  // First, sanitize the entire responsibilities text to remove problematic characters
-                  const sanitizedResponsibilities = exp.responsibilities.replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200D\uFEFF]/g, '');
-                  
-                  // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedResponsibilities.split('\n');
+                  // Handle the text more carefully to preserve formatting while removing problematic characters
+                  const paragraphs = exp.responsibilities.split('\n').map(line => 
+                    // Only remove truly problematic control characters, preserve formatting characters
+                    line.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+                  );
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
@@ -457,11 +457,11 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
                   
-                  // First, sanitize the entire achievements text to remove problematic characters
-                  const sanitizedAchievements = edu.achievements.replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200D\uFEFF]/g, '');
-                  
-                  // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedAchievements.split('\n');
+                  // Handle the text more carefully to preserve formatting while removing problematic characters
+                  const paragraphs = edu.achievements.split('\n').map(line => 
+                    // Only remove truly problematic control characters, preserve formatting characters
+                    line.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+                  );
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
@@ -567,11 +567,11 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
                   
-                  // First, sanitize the entire achievements text to remove problematic characters
-                  const sanitizedAchievements = cert.achievements.replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200D\uFEFF]/g, '');
-                  
-                  // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedAchievements.split('\n');
+                  // Handle the text more carefully to preserve formatting while removing problematic characters
+                  const paragraphs = cert.achievements.split('\n').map(line => 
+                    // Only remove truly problematic control characters, preserve formatting characters
+                    line.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+                  );
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
@@ -677,11 +677,11 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
                   
-                  // First, sanitize the entire description to remove problematic characters
-                  const sanitizedDescription = activity.description.replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200D\uFEFF]/g, '');
-                  
-                  // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedDescription.split('\n');
+                  // Handle the text more carefully to preserve formatting while removing problematic characters
+                  const paragraphs = activity.description.split('\n').map(line => 
+                    // Only remove truly problematic control characters, preserve formatting characters
+                    line.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+                  );
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
