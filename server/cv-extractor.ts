@@ -39,14 +39,22 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
       4. Work Experience:
          - For each position, extract company name, job title, start date, end date, and responsibilities
          - Mark current positions with isCurrent=true and endDate=null
-         - Preserve bullet points in responsibilities when they exist in the original text
-         - Bullet points should be included as "• " followed by the item content
-         - Keep bullet-pointed lists intact - do not convert bullet points into a paragraph
+         - VERY IMPORTANT: Format responsibilities as bullet points, with each separate responsibility on its own line
+         - Each bullet point should start with "• " (bullet character followed by a space)
+         - If the original doesn't have bullet points, split paragraphs into logical bullet points
+         - Identify each distinct achievement, task, or responsibility and make it a separate bullet point
+         - Every sentence or logical segment in responsibilities should be a separate bullet point
+         - Example format:
+           "• Managed a team of 5 developers
+            • Increased sales by 20% through digital marketing
+            • Implemented new CRM system"
       
       5. Education:
          - Extract institution name, degree/major, start date, end date, and achievements/honors
          - Include all education listings, with the most recent first
-         - Preserve bullet points in achievements using "• " notation if they exist in the original text
+         - VERY IMPORTANT: Format achievements as bullet points, with each achievement on its own line
+         - Each bullet point should start with "• " (bullet character followed by a space)
+         - If original text doesn't have bullet points, convert paragraphs into logical bullet points
       
       6. Certifications:
          - Extract certification name, issuing institution, date acquired, and expiration date if available
@@ -54,7 +62,9 @@ export async function extractDataFromCV(textContent: string): Promise<CompleteCV
       7. Extracurricular Activities:
          - Include volunteer work, community involvement, and other activities
          - Extract organization, role, dates, and description
-         - Preserve bullet points in description using "• " notation if they exist in the original text
+         - VERY IMPORTANT: Format description as bullet points, with each activity detail on its own line
+         - Each bullet point should start with "• " (bullet character followed by a space)
+         - If original text doesn't have bullet points, convert paragraphs into logical bullet points
       
       8. Languages:
          - Extract languages and their proficiency levels
