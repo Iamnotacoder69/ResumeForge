@@ -244,7 +244,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                
             // Move position based on text height
             const summaryHeight = getTextHeight(data.professional?.summary || "", contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
-            y += summaryHeight + PDF_CONFIG.SPACING.BETWEEN_SECTIONS;
+            y += summaryHeight + 15; // Fixed spacing to match other sections
             break;
             
           case "competencies":
