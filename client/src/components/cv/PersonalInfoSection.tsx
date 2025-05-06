@@ -158,23 +158,6 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
           
           <FormField
             control={form.control}
-            name="personal.professionalTitle"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Professional Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Senior Software Engineer" {...field} />
-                </FormControl>
-                <FormMessage />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This will appear under your name in the CV
-                </p>
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
             name="personal.email"
             render={({ field }) => (
               <FormItem>

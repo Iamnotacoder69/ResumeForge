@@ -61,7 +61,6 @@ export type Extracurricular = {
 export type PersonalInfo = {
   firstName: string;
   lastName: string;
-  professionalTitle?: string; // Professional title to display under name
   email: string;
   phone: string;
   linkedin?: string;

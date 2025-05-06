@@ -28,11 +28,11 @@ const PDF_CONFIG = {
     DEFAULT_BOLD_ITALIC: "Helvetica-BoldOblique"
   },
   FONT_SIZE: {
-    NAME: 14, // Set name to 14pt as requested
-    SECTION_TITLE: 11, // Set to 11pt as requested
-    ENTRY_TITLE: 11, // Set to 11pt as requested
-    NORMAL: 11, // Set to 11pt as requested
-    SMALL: 11 // Set to 11pt as requested
+    NAME: 18,
+    SECTION_TITLE: 12,
+    ENTRY_TITLE: 10,
+    NORMAL: 10,
+    SMALL: 9
   },
   // Spacing
   SPACING: {
@@ -129,13 +129,6 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
         return Math.ceil(lines) * lineHeight;
       };
       
-      // Utility to clean text and prevent unexpected characters
-      const cleanTextForPDF = (text: string): string => {
-        if (!text) return '';
-        // Remove control characters and non-printable characters
-        return text.replace(/[\x00-\x1F\x7F-\x9F\u200B-\u200D\uFEFF]/g, '');
-      };
-      
       const formatDate = (dateStr?: string, isCurrent: boolean = false): string => {
         if (isCurrent) return "Present";
         if (!dateStr) return "";
@@ -196,19 +189,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                .fillColor(PDF_CONFIG.COLOR.HEADING)
                .text(`${data.personal.firstName} ${data.personal.lastName}`, margin.LEFT, y, { lineBreak: false });
                
-            y += PDF_CONFIG.FONT_SIZE.NAME + 2; // Less space before professional title
-            
-            // Professional Title if available
-            if (data.personal.professionalTitle) {
-              doc.font(PDF_CONFIG.FONT.DEFAULT)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.TEXT)
-                 .text(data.personal.professionalTitle, margin.LEFT, y, { lineBreak: false });
-                 
-              y += PDF_CONFIG.FONT_SIZE.NORMAL + 2; // Space after professional title
-            } else {
-              y += PDF_CONFIG.SPACING.AFTER_NAME; // Normal spacing if no title
-            }
+            y += PDF_CONFIG.FONT_SIZE.NAME + PDF_CONFIG.SPACING.AFTER_NAME;
             
             // Add separator line
             doc.strokeColor(PDF_CONFIG.COLOR.LINE)
@@ -347,11 +328,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                 if (exp.responsibilities) {
                   const bulletIndent = 15;
                   
-                  // Only target the specific character causing issues (the stray 't')
-                  const sanitizedResponsibilities = exp.responsibilities.replace(/\u0074\u0074/g, 't');
-                  
                   // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedResponsibilities.split('\n');
+                  const paragraphs = exp.responsibilities.split('\n');
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
@@ -457,11 +435,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
                   
-                  // Only target the specific character causing issues (the stray 't')
-                  const sanitizedAchievements = edu.achievements.replace(/\u0074\u0074/g, 't');
-                  
                   // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedAchievements.split('\n');
+                  const paragraphs = edu.achievements.split('\n');
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
@@ -567,11 +542,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
                   
-                  // Only target the specific character causing issues (the stray 't')
-                  const sanitizedAchievements = cert.achievements.replace(/\u0074\u0074/g, 't');
-                  
                   // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedAchievements.split('\n');
+                  const paragraphs = cert.achievements.split('\n');
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
@@ -677,11 +649,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
                   
-                  // Only target the specific character causing issues (the stray 't')
-                  const sanitizedDescription = activity.description.replace(/\u0074\u0074/g, 't');
-                  
                   // Split by new lines and process each paragraph
-                  const paragraphs = sanitizedDescription.split('\n');
+                  const paragraphs = activity.description.split('\n');
                   
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
