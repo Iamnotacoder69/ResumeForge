@@ -23,15 +23,24 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   
-  // Get the current photoUrl value from the form
-  const photoUrl = form.watch("personal.photoUrl");
+  // Get the current photoUrl value from the form with better error handling
+  let photoUrl = "";
+  try {
+    photoUrl = form.watch("personal.photoUrl") || "";
+  } catch (error) {
+    console.error("Error watching photoUrl:", error);
+  }
   
   // Update preview when photoUrl changes
   useEffect(() => {
-    if (photoUrl) {
-      setPhotoPreview(photoUrl);
-    } else {
-      setPhotoPreview(null);
+    try {
+      if (photoUrl) {
+        setPhotoPreview(photoUrl);
+      } else {
+        setPhotoPreview(null);
+      }
+    } catch (error) {
+      console.error("Error in photoUrl effect:", error);
     }
   }, [photoUrl]);
   
@@ -69,11 +78,16 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
     form.setValue("personal.photoUrl", "");
   };
   
-  // Get initials for avatar fallback
+  // Get initials for avatar fallback with better error handling
   const getInitials = () => {
-    const firstName = form.watch("personal.firstName") || '';
-    const lastName = form.watch("personal.lastName") || '';
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    try {
+      const firstName = form.watch("personal.firstName") || '';
+      const lastName = form.watch("personal.lastName") || '';
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    } catch (error) {
+      console.error("Error generating initials:", error);
+      return "";
+    }
   };
   
   return (
