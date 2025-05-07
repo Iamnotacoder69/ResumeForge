@@ -34,14 +34,14 @@ const PDF_CONFIG = {
     NORMAL: 10,
     SMALL: 9
   },
-  // Spacing
+  // Spacing - standardized for consistency
   SPACING: {
     AFTER_NAME: 3,
     AFTER_CONTACT: 8,
     AFTER_SECTION_TITLE: 5,
     PARAGRAPH: 5,
     BETWEEN_ENTRIES: 8,
-    BETWEEN_SECTIONS: 15,
+    BETWEEN_SECTIONS: 15, // Standard spacing between all sections
     LIST_ITEM: 2
   },
   // Colors
@@ -123,10 +123,15 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
       };
       
       const getTextHeight = (text: string, width: number, fontSize: number): number => {
-        const lineHeight = fontSize * 1.3; // Approximate line height
+        if (!text || text.trim() === '') return 0;
+        
+        // Set font size for correct measurement
         doc.fontSize(fontSize);
-        const lines = doc.widthOfString(text) / width;
-        return Math.ceil(lines) * lineHeight;
+        
+        // Use the native heightOfString method for accurate measurement
+        // It automatically considers line wrapping based on the specified width
+        const textHeight = doc.heightOfString(text, { width });
+        return textHeight;
       };
       
       const formatDate = (dateStr?: string, isCurrent: boolean = false): string => {
@@ -244,7 +249,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                
             // Move position based on text height
             const summaryHeight = getTextHeight(data.professional?.summary || "", contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
-            y += summaryHeight + 15; // Fixed spacing to match other sections
+            y += summaryHeight + PDF_CONFIG.SPACING.BETWEEN_SECTIONS; // Use standard section spacing
             break;
             
           case "competencies":
@@ -275,8 +280,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
               y += skillsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
             
-            // Use consistent spacing after competencies section to match other sections
-            y += 15; // Consistent spacing to match other sections
+            // Use consistent spacing after competencies section
+            y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS; // Use standard section spacing
             break;
             
           case "experience":
