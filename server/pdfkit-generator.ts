@@ -595,7 +595,8 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                 }
               });
               
-              y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS;
+              // Standard spacing between sections (reduced for certificates to extracurricular transition)
+              y += 10; // Reduced from 15 to make consistent with other sections visually
             }
             break;
             
