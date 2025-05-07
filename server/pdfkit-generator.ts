@@ -1,3 +1,4 @@
+const SECTION_SPACING = 30;
 import PDFDocument from "pdfkit";
 import { CompleteCV } from "@shared/types";
 import { Buffer } from "buffer";
@@ -16,49 +17,49 @@ const PDF_CONFIG = {
       TOP: 30,
       BOTTOM: 30,
       LEFT: 40,
-      RIGHT: 40
+      RIGHT: 40,
     },
-    SIZE: "A4" as const
+    SIZE: "A4" as const,
   },
   // Fonts and sizes
   FONT: {
     DEFAULT: "Helvetica",
     DEFAULT_BOLD: "Helvetica-Bold",
     DEFAULT_ITALIC: "Helvetica-Oblique",
-    DEFAULT_BOLD_ITALIC: "Helvetica-BoldOblique"
+    DEFAULT_BOLD_ITALIC: "Helvetica-BoldOblique",
   },
   FONT_SIZE: {
     NAME: 18,
     SECTION_TITLE: 12,
     ENTRY_TITLE: 10,
     NORMAL: 10,
-    SMALL: 9
+    SMALL: 9,
   },
-  // Spacing - standardized for consistency
+  // Spacing
   SPACING: {
     AFTER_NAME: 3,
     AFTER_CONTACT: 8,
     AFTER_SECTION_TITLE: 5,
     PARAGRAPH: 5,
     BETWEEN_ENTRIES: 8,
-    BETWEEN_SECTIONS: 15, // Standard spacing between all sections
-    LIST_ITEM: 2
+    BETWEEN_SECTIONS: 15,
+    LIST_ITEM: 2,
   },
   // Colors
   COLOR: {
     TEXT: "#333333",
     HEADING: "#333333",
-    LINE: "#333333"
+    LINE: "#333333",
   },
   // Image settings
   IMAGE: {
-    WIDTH: 80,  // Smaller width to maintain aspect ratio
+    WIDTH: 80, // Smaller width to maintain aspect ratio
     HEIGHT: 100,
     POSITION: {
       X: 480, // Right side of page
-      Y: 30   // Top of page
-    }
-  }
+      Y: 30, // Top of page
+    },
+  },
 };
 
 /**
@@ -71,7 +72,7 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
       const doc = new PDFDocument({
         size: PDF_CONFIG.PAGE.SIZE,
         margin: 0, // We'll handle margins manually for more control
-        bufferPages: true
+        bufferPages: true,
       });
 
       // Create a buffer to store PDF data
@@ -87,65 +88,83 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
       const pageHeight = doc.page.height;
       const margin = PDF_CONFIG.PAGE.MARGIN;
       const contentWidth = pageWidth - margin.LEFT - margin.RIGHT;
-      
+
       // Current Y position tracker
       let y = margin.TOP;
-      
+
       // Define sections to include and their order
       const sections = [
         { id: "header", visible: true },
         { id: "profile", visible: !!data.professional?.summary },
-        { id: "competencies", visible: !!(data.keyCompetencies?.technicalSkills?.length || data.keyCompetencies?.softSkills?.length) },
+        {
+          id: "competencies",
+          visible: !!(
+            data.keyCompetencies?.technicalSkills?.length ||
+            data.keyCompetencies?.softSkills?.length
+          ),
+        },
         { id: "experience", visible: !!data.experience?.length },
         { id: "education", visible: !!data.education?.length },
         { id: "certificates", visible: !!data.certificates?.length },
         { id: "extracurricular", visible: !!data.extracurricular?.length },
-        { id: "additional", visible: !!(data.languages?.length || data.additional?.skills?.length) }
-      ].filter(section => section.visible);
+        {
+          id: "additional",
+          visible: !!(
+            data.languages?.length || data.additional?.skills?.length
+          ),
+        },
+      ].filter((section) => section.visible);
 
       // Utility functions
       const addSectionTitle = (title: string, y: number): number => {
-        doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-           .fontSize(PDF_CONFIG.FONT_SIZE.SECTION_TITLE)
-           .fillColor(PDF_CONFIG.COLOR.HEADING)
-           .text(title, margin.LEFT, y, { lineBreak: false });
-        
+        doc
+          .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+          .fontSize(PDF_CONFIG.FONT_SIZE.SECTION_TITLE)
+          .fillColor(PDF_CONFIG.COLOR.HEADING)
+          .text(title, margin.LEFT, y, { lineBreak: false });
+
         y += PDF_CONFIG.FONT_SIZE.SECTION_TITLE + 2;
-        
+
         // Add separator line
-        doc.strokeColor(PDF_CONFIG.COLOR.LINE)
-           .lineWidth(1)
-           .moveTo(margin.LEFT, y)
-           .lineTo(pageWidth - margin.RIGHT, y)
-           .stroke();
-           
+        doc
+          .strokeColor(PDF_CONFIG.COLOR.LINE)
+          .lineWidth(1)
+          .moveTo(margin.LEFT, y)
+          .lineTo(pageWidth - margin.RIGHT, y)
+          .stroke();
+
         return y + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE;
       };
-      
-      const getTextHeight = (text: string, width: number, fontSize: number): number => {
-        if (!text || text.trim() === '') return 0;
-        
-        // Set font size for correct measurement
+
+      const getTextHeight = (
+        text: string,
+        width: number,
+        fontSize: number,
+      ): number => {
+        const lineHeight = fontSize * 1.3; // Approximate line height
         doc.fontSize(fontSize);
-        
-        // Use the native heightOfString method for accurate measurement
-        // It automatically considers line wrapping based on the specified width
-        const textHeight = doc.heightOfString(text, { width });
-        return textHeight;
+        const lines = doc.widthOfString(text) / width;
+        return Math.ceil(lines) * lineHeight;
       };
-      
-      const formatDate = (dateStr?: string, isCurrent: boolean = false): string => {
+
+      const formatDate = (
+        dateStr?: string,
+        isCurrent: boolean = false,
+      ): string => {
         if (isCurrent) return "Present";
         if (!dateStr) return "";
-        
+
         try {
           const date = new Date(dateStr);
-          return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
         } catch (e) {
           return dateStr;
         }
       };
-      
+
       const checkPageBreak = (requiredHeight: number) => {
         if (y + requiredHeight > pageHeight - margin.BOTTOM) {
           doc.addPage();
@@ -162,22 +181,22 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
               try {
                 // Extract base64 data
                 const photoUrl = data.personal.photoUrl;
-                if (photoUrl.startsWith('data:image/')) {
+                if (photoUrl.startsWith("data:image/")) {
                   // Get the base64 data part
-                  const base64Data = photoUrl.split(',')[1];
+                  const base64Data = photoUrl.split(",")[1];
                   if (base64Data) {
                     // Convert to buffer
-                    const imageBuffer = Buffer.from(base64Data, 'base64');
-                    
+                    const imageBuffer = Buffer.from(base64Data, "base64");
+
                     // Add image to document at right side
                     doc.image(
-                      imageBuffer, 
-                      PDF_CONFIG.IMAGE.POSITION.X, 
-                      PDF_CONFIG.IMAGE.POSITION.Y, 
-                      { 
+                      imageBuffer,
+                      PDF_CONFIG.IMAGE.POSITION.X,
+                      PDF_CONFIG.IMAGE.POSITION.Y,
+                      {
                         fit: [PDF_CONFIG.IMAGE.WIDTH, PDF_CONFIG.IMAGE.HEIGHT],
-                        align: 'right'
-                      }
+                        align: "right",
+                      },
                     );
                     // No need to adjust y position as the image is positioned absolutely
                   }
@@ -187,597 +206,769 @@ export async function generateCVWithPDFKit(data: CompleteCV): Promise<Buffer> {
                 // Continue without image if there's an error
               }
             }
-            
+
             // Name
-            doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-               .fontSize(PDF_CONFIG.FONT_SIZE.NAME)
-               .fillColor(PDF_CONFIG.COLOR.HEADING)
-               .text(`${data.personal.firstName} ${data.personal.lastName}`, margin.LEFT, y, { lineBreak: false });
-               
+            doc
+              .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+              .fontSize(PDF_CONFIG.FONT_SIZE.NAME)
+              .fillColor(PDF_CONFIG.COLOR.HEADING)
+              .text(
+                `${data.personal.firstName} ${data.personal.lastName}`,
+                margin.LEFT,
+                y,
+                { lineBreak: false },
+              );
+
             y += PDF_CONFIG.FONT_SIZE.NAME + PDF_CONFIG.SPACING.AFTER_NAME;
-            
+
             // Add separator line
-            doc.strokeColor(PDF_CONFIG.COLOR.LINE)
-               .lineWidth(1)
-               .moveTo(margin.LEFT, y)
-               .lineTo(pageWidth - margin.RIGHT, y)
-               .stroke();
-               
+            doc
+              .strokeColor(PDF_CONFIG.COLOR.LINE)
+              .lineWidth(1)
+              .moveTo(margin.LEFT, y)
+              .lineTo(pageWidth - margin.RIGHT, y)
+              .stroke();
+
             y += 5; // Space after line
-            
+
             // Contact info
-            doc.font(PDF_CONFIG.FONT.DEFAULT)
-               .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-               .fillColor(PDF_CONFIG.COLOR.TEXT);
-               
+            doc
+              .font(PDF_CONFIG.FONT.DEFAULT)
+              .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+              .fillColor(PDF_CONFIG.COLOR.TEXT);
+
             // Format contact info on one line with separators
             const contactParts = [];
-            
+
             if (data.personal.email) {
               contactParts.push(data.personal.email);
             }
-            
+
             if (data.personal.phone) {
               contactParts.push(data.personal.phone);
             }
-            
+
             if (data.personal.linkedin) {
               contactParts.push(data.personal.linkedin);
             }
-            
+
             const contactText = contactParts.join(" | ");
             doc.text(contactText, margin.LEFT, y, { lineBreak: false });
-            
+
             y += PDF_CONFIG.FONT_SIZE.NORMAL + PDF_CONFIG.SPACING.AFTER_CONTACT;
             break;
-            
+
           case "profile":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                40,
+            );
+
             // Add section title
             y = addSectionTitle("Summary", y);
-            
+
             // Add profile text
-            doc.font(PDF_CONFIG.FONT.DEFAULT)
-               .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-               .fillColor(PDF_CONFIG.COLOR.TEXT)
-               .text(data.professional?.summary || "", margin.LEFT, y, {
-                 width: contentWidth,
-                 align: "left"
-               });
-               
+            doc
+              .font(PDF_CONFIG.FONT.DEFAULT)
+              .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+              .fillColor(PDF_CONFIG.COLOR.TEXT)
+              .text(data.professional?.summary || "", margin.LEFT, y, {
+                width: contentWidth,
+                align: "left",
+              });
+
             // Move position based on text height
-            const summaryHeight = getTextHeight(data.professional?.summary || "", contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
-            y += summaryHeight + PDF_CONFIG.SPACING.BETWEEN_SECTIONS; // Use standard section spacing
+            const summaryHeight = getTextHeight(
+              data.professional?.summary || "",
+              contentWidth,
+              PDF_CONFIG.FONT_SIZE.NORMAL,
+            );
+            y += summaryHeight + 15; // Fixed spacing to match other sections
             break;
-            
+
           case "competencies":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 60);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                60,
+            );
+
             // Add section title
             y = addSectionTitle("Key Competencies", y);
-            
+
             // Combined skills - just display all skills together without labels
             const allSkills = [
               ...(data.keyCompetencies?.technicalSkills || []),
-              ...(data.keyCompetencies?.softSkills || [])
+              ...(data.keyCompetencies?.softSkills || []),
             ];
-            
+
             if (allSkills.length > 0) {
-              doc.font(PDF_CONFIG.FONT.DEFAULT)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.TEXT)
-                 .text(allSkills.join(", "), margin.LEFT, y, {
-                   width: contentWidth,
-                   align: "left"
-                 });
-                 
+              doc
+                .font(PDF_CONFIG.FONT.DEFAULT)
+                .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                .fillColor(PDF_CONFIG.COLOR.TEXT)
+                .text(allSkills.join(", "), margin.LEFT, y, {
+                  width: contentWidth,
+                  align: "left",
+                });
+
               // Move position based on text height
               const skillsText = allSkills.join(", ");
-              const skillsHeight = getTextHeight(skillsText, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+              const skillsHeight = getTextHeight(
+                skillsText,
+                contentWidth,
+                PDF_CONFIG.FONT_SIZE.NORMAL,
+              );
               y += skillsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
-            
-            // Use consistent spacing after competencies section
-            y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS; // Use standard section spacing
+
+            // Use consistent spacing after competencies section to match other sections
+            y += SECTION_SPACING; // Consistent spacing to match other sections
             break;
-            
+
           case "experience":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                40,
+            );
+
             // Add section title
             y = addSectionTitle("Experience", y);
-            
+
             // Process each experience entry
             if (data.experience?.length) {
               data.experience.forEach((exp, index) => {
                 // Estimate height for this entry
                 const expTitleHeight = PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
                 const companyHeight = PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                const respHeight = getTextHeight(exp.responsibilities || "", contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
-                const totalHeight = expTitleHeight + companyHeight + respHeight + 15;
-                
+                const respHeight = getTextHeight(
+                  exp.responsibilities || "",
+                  contentWidth,
+                  PDF_CONFIG.FONT_SIZE.NORMAL,
+                );
+                const totalHeight =
+                  expTitleHeight + companyHeight + respHeight + 15;
+
                 // Check if we need a page break
                 checkPageBreak(totalHeight);
-                
+
                 // Two-column layout with job title on left, dates on right
-                doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
-                   .fillColor(PDF_CONFIG.COLOR.HEADING)
-                   .text(exp.jobTitle, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
+                  .fillColor(PDF_CONFIG.COLOR.HEADING)
+                  .text(exp.jobTitle, margin.LEFT, y, { lineBreak: false });
+
                 // Date on the right
                 const startDate = formatDate(exp.startDate);
-                const endDate = exp.isCurrent ? "Present" : formatDate(exp.endDate);
+                const endDate = exp.isCurrent
+                  ? "Present"
+                  : formatDate(exp.endDate);
                 const dateText = `${startDate} - ${endDate}`;
-                
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(dateText, pageWidth - margin.RIGHT - doc.widthOfString(dateText), y, { lineBreak: false });
-                   
+
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(
+                    dateText,
+                    pageWidth - margin.RIGHT - doc.widthOfString(dateText),
+                    y,
+                    { lineBreak: false },
+                  );
+
                 y += PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
-                
+
                 // Company name
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(exp.companyName, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(exp.companyName, margin.LEFT, y, { lineBreak: false });
+
                 y += PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                
+
                 // Process responsibilities text with bullet points
                 if (exp.responsibilities) {
                   const bulletIndent = 15;
-                  
+
                   // Split by new lines and process each paragraph
-                  const paragraphs = exp.responsibilities.split('\n');
-                  
+                  const paragraphs = exp.responsibilities.split("\n");
+
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
-                    
+
                     // If line starts with bullet marker, format accordingly
-                    if (paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•')) {
+                    if (
+                      paragraph.trim().startsWith("-") ||
+                      paragraph.trim().startsWith("•")
+                    ) {
                       const cleanText = paragraph.trim().substring(1).trim();
-                      
+
                       // Draw bullet
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text('•', margin.LEFT, y, { lineBreak: false });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text("•", margin.LEFT, y, { lineBreak: false });
+
                       // Add indented text after bullet
                       doc.text(cleanText, margin.LEFT + bulletIndent, y, {
                         width: contentWidth - bulletIndent,
-                        align: 'left'
+                        align: "left",
                       });
-                      
+
                       // Calculate height of this bullet point
-                      const paraHeight = getTextHeight(cleanText, contentWidth - bulletIndent, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        cleanText,
+                        contentWidth - bulletIndent,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     } else {
                       // Regular paragraph
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text(paragraph, margin.LEFT, y, {
-                           width: contentWidth,
-                           align: 'left'
-                         });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text(paragraph, margin.LEFT, y, {
+                          width: contentWidth,
+                          align: "left",
+                        });
+
                       // Calculate height of this paragraph
-                      const paraHeight = getTextHeight(paragraph, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        paragraph,
+                        contentWidth,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     }
-                    
+
                     // Add small spacing between paragraphs
                     if (pIndex < paragraphs.length - 1) {
                       y += PDF_CONFIG.SPACING.LIST_ITEM;
                     }
                   });
                 }
-                
+
                 // Add space between entries (except after the last one)
                 if (index < data.experience.length - 1) {
                   y += PDF_CONFIG.SPACING.BETWEEN_ENTRIES;
                 }
               });
-              
+
               y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS;
             }
             break;
-            
+
           case "education":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                40,
+            );
+
             // Add section title
             y = addSectionTitle("Education", y);
-            
+
             // Process each education entry
             if (data.education?.length) {
               data.education.forEach((edu, index) => {
                 // Estimate height for this entry
                 const titleHeight = PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
                 const schoolHeight = PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                const achieveHeight = edu.achievements 
-                  ? getTextHeight(edu.achievements, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL) 
+                const achieveHeight = edu.achievements
+                  ? getTextHeight(
+                      edu.achievements,
+                      contentWidth,
+                      PDF_CONFIG.FONT_SIZE.NORMAL,
+                    )
                   : 0;
-                const totalHeight = titleHeight + schoolHeight + achieveHeight + 10;
-                
+                const totalHeight =
+                  titleHeight + schoolHeight + achieveHeight + 10;
+
                 // Check if we need a page break
                 checkPageBreak(totalHeight);
-                
+
                 // Two column layout - degree left, dates right
-                doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
-                   .fillColor(PDF_CONFIG.COLOR.HEADING)
-                   .text(edu.major, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
+                  .fillColor(PDF_CONFIG.COLOR.HEADING)
+                  .text(edu.major, margin.LEFT, y, { lineBreak: false });
+
                 // Date on the right
                 const endDate = formatDate(edu.endDate);
-                
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(endDate, pageWidth - margin.RIGHT - doc.widthOfString(endDate), y, { lineBreak: false });
-                   
+
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(
+                    endDate,
+                    pageWidth - margin.RIGHT - doc.widthOfString(endDate),
+                    y,
+                    { lineBreak: false },
+                  );
+
                 y += PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
-                
+
                 // School name
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(edu.schoolName, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(edu.schoolName, margin.LEFT, y, { lineBreak: false });
+
                 y += PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                
+
                 // Achievements if any
                 if (edu.achievements) {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
-                  
+
                   // Split by new lines and process each paragraph
-                  const paragraphs = edu.achievements.split('\n');
-                  
+                  const paragraphs = edu.achievements.split("\n");
+
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
-                    
+
                     // If line starts with bullet marker, format accordingly
-                    if (paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•')) {
+                    if (
+                      paragraph.trim().startsWith("-") ||
+                      paragraph.trim().startsWith("•")
+                    ) {
                       const cleanText = paragraph.trim().substring(1).trim();
-                      
+
                       // Draw bullet
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text('•', margin.LEFT, y, { lineBreak: false });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text("•", margin.LEFT, y, { lineBreak: false });
+
                       // Add indented text after bullet
                       doc.text(cleanText, margin.LEFT + bulletIndent, y, {
                         width: contentWidth - bulletIndent,
-                        align: 'left'
+                        align: "left",
                       });
-                      
+
                       // Calculate height of this bullet point
-                      const paraHeight = getTextHeight(cleanText, contentWidth - bulletIndent, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        cleanText,
+                        contentWidth - bulletIndent,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     } else {
                       // Regular paragraph
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text(paragraph, margin.LEFT, y, {
-                           width: contentWidth,
-                           align: 'left'
-                         });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text(paragraph, margin.LEFT, y, {
+                          width: contentWidth,
+                          align: "left",
+                        });
+
                       // Calculate height of this paragraph
-                      const paraHeight = getTextHeight(paragraph, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        paragraph,
+                        contentWidth,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     }
-                    
+
                     // Add small spacing between paragraphs
                     if (pIndex < paragraphs.length - 1) {
                       y += PDF_CONFIG.SPACING.LIST_ITEM;
                     }
                   });
                 }
-                
+
                 // Add space between entries (except after the last one)
                 if (index < data.education.length - 1) {
                   y += PDF_CONFIG.SPACING.BETWEEN_ENTRIES;
                 }
               });
-              
+
               y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS;
             }
             break;
-            
+
           case "certificates":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                40,
+            );
+
             // Add section title
             y = addSectionTitle("Certificates", y);
-            
+
             // Process each certificate entry
             if (data.certificates?.length) {
               data.certificates.forEach((cert, index) => {
                 // Estimate height for this entry
                 const titleHeight = PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
                 const instHeight = PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                const achieveHeight = cert.achievements 
-                  ? getTextHeight(cert.achievements, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL) 
+                const achieveHeight = cert.achievements
+                  ? getTextHeight(
+                      cert.achievements,
+                      contentWidth,
+                      PDF_CONFIG.FONT_SIZE.NORMAL,
+                    )
                   : 0;
-                const totalHeight = titleHeight + instHeight + achieveHeight + 10;
-                
+                const totalHeight =
+                  titleHeight + instHeight + achieveHeight + 10;
+
                 // Check if we need a page break
                 checkPageBreak(totalHeight);
-                
+
                 // Certificate name and date
-                doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
-                   .fillColor(PDF_CONFIG.COLOR.HEADING)
-                   .text(cert.name, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
+                  .fillColor(PDF_CONFIG.COLOR.HEADING)
+                  .text(cert.name, margin.LEFT, y, { lineBreak: false });
+
                 // Date on the right
                 const acquiredDate = formatDate(cert.dateAcquired);
-                
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(acquiredDate, pageWidth - margin.RIGHT - doc.widthOfString(acquiredDate), y, { lineBreak: false });
-                   
+
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(
+                    acquiredDate,
+                    pageWidth - margin.RIGHT - doc.widthOfString(acquiredDate),
+                    y,
+                    { lineBreak: false },
+                  );
+
                 y += PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
-                
+
                 // Institution
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(cert.institution, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(cert.institution, margin.LEFT, y, { lineBreak: false });
+
                 y += PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                
+
                 // Achievements if any
                 if (cert.achievements) {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
-                  
+
                   // Split by new lines and process each paragraph
-                  const paragraphs = cert.achievements.split('\n');
-                  
+                  const paragraphs = cert.achievements.split("\n");
+
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
-                    
+
                     // If line starts with bullet marker, format accordingly
-                    if (paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•')) {
+                    if (
+                      paragraph.trim().startsWith("-") ||
+                      paragraph.trim().startsWith("•")
+                    ) {
                       const cleanText = paragraph.trim().substring(1).trim();
-                      
+
                       // Draw bullet
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text('•', margin.LEFT, y, { lineBreak: false });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text("•", margin.LEFT, y, { lineBreak: false });
+
                       // Add indented text after bullet
                       doc.text(cleanText, margin.LEFT + bulletIndent, y, {
                         width: contentWidth - bulletIndent,
-                        align: 'left'
+                        align: "left",
                       });
-                      
+
                       // Calculate height of this bullet point
-                      const paraHeight = getTextHeight(cleanText, contentWidth - bulletIndent, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        cleanText,
+                        contentWidth - bulletIndent,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     } else {
                       // Regular paragraph
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text(paragraph, margin.LEFT, y, {
-                           width: contentWidth,
-                           align: 'left'
-                         });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text(paragraph, margin.LEFT, y, {
+                          width: contentWidth,
+                          align: "left",
+                        });
+
                       // Calculate height of this paragraph
-                      const paraHeight = getTextHeight(paragraph, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        paragraph,
+                        contentWidth,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     }
-                    
+
                     // Add small spacing between paragraphs
                     if (pIndex < paragraphs.length - 1) {
                       y += PDF_CONFIG.SPACING.LIST_ITEM;
                     }
                   });
                 }
-                
+
                 // Add space between entries (except after the last one)
                 if (index < data.certificates.length - 1) {
                   y += PDF_CONFIG.SPACING.BETWEEN_ENTRIES;
                 }
               });
-              
+
               y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS;
             }
             break;
-            
+
           case "extracurricular":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                40,
+            );
+
             // Add section title
             y = addSectionTitle("Extracurricular Activities", y);
-            
+
             // Process each extracurricular entry
             if (data.extracurricular?.length) {
               data.extracurricular.forEach((activity, index) => {
                 // Estimate height for this entry
                 const titleHeight = PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
                 const orgHeight = PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                const descHeight = getTextHeight(activity.description || "", contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+                const descHeight = getTextHeight(
+                  activity.description || "",
+                  contentWidth,
+                  PDF_CONFIG.FONT_SIZE.NORMAL,
+                );
                 const totalHeight = titleHeight + orgHeight + descHeight + 10;
-                
+
                 // Check if we need a page break
                 checkPageBreak(totalHeight);
-                
+
                 // Role and date
-                doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
-                   .fillColor(PDF_CONFIG.COLOR.HEADING)
-                   .text(activity.role, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.ENTRY_TITLE)
+                  .fillColor(PDF_CONFIG.COLOR.HEADING)
+                  .text(activity.role, margin.LEFT, y, { lineBreak: false });
+
                 // Date on the right
                 const startDate = formatDate(activity.startDate);
-                const endDate = activity.isCurrent ? "Present" : formatDate(activity.endDate);
+                const endDate = activity.isCurrent
+                  ? "Present"
+                  : formatDate(activity.endDate);
                 const dateText = `${startDate} - ${endDate}`;
-                
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(dateText, pageWidth - margin.RIGHT - doc.widthOfString(dateText), y, { lineBreak: false });
-                   
+
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(
+                    dateText,
+                    pageWidth - margin.RIGHT - doc.widthOfString(dateText),
+                    y,
+                    { lineBreak: false },
+                  );
+
                 y += PDF_CONFIG.FONT_SIZE.ENTRY_TITLE * 1.3;
-                
+
                 // Organization
-                doc.font(PDF_CONFIG.FONT.DEFAULT)
-                   .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                   .fillColor(PDF_CONFIG.COLOR.TEXT)
-                   .text(activity.organization, margin.LEFT, y, { lineBreak: false });
-                   
+                doc
+                  .font(PDF_CONFIG.FONT.DEFAULT)
+                  .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                  .fillColor(PDF_CONFIG.COLOR.TEXT)
+                  .text(activity.organization, margin.LEFT, y, {
+                    lineBreak: false,
+                  });
+
                 y += PDF_CONFIG.FONT_SIZE.NORMAL * 1.3;
-                
+
                 // Description with bullet points
                 if (activity.description) {
                   // Process with bullet points if needed
                   const bulletIndent = 15;
-                  
+
                   // Split by new lines and process each paragraph
-                  const paragraphs = activity.description.split('\n');
-                  
+                  const paragraphs = activity.description.split("\n");
+
                   paragraphs.forEach((paragraph, pIndex) => {
                     if (!paragraph.trim()) return;
-                    
+
                     // If line starts with bullet marker, format accordingly
-                    if (paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•')) {
+                    if (
+                      paragraph.trim().startsWith("-") ||
+                      paragraph.trim().startsWith("•")
+                    ) {
                       const cleanText = paragraph.trim().substring(1).trim();
-                      
+
                       // Draw bullet
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text('•', margin.LEFT, y, { lineBreak: false });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text("•", margin.LEFT, y, { lineBreak: false });
+
                       // Add indented text after bullet
                       doc.text(cleanText, margin.LEFT + bulletIndent, y, {
                         width: contentWidth - bulletIndent,
-                        align: 'left'
+                        align: "left",
                       });
-                      
+
                       // Calculate height of this bullet point
-                      const paraHeight = getTextHeight(cleanText, contentWidth - bulletIndent, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        cleanText,
+                        contentWidth - bulletIndent,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     } else {
                       // Regular paragraph
-                      doc.font(PDF_CONFIG.FONT.DEFAULT)
-                         .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                         .fillColor(PDF_CONFIG.COLOR.TEXT)
-                         .text(paragraph, margin.LEFT, y, {
-                           width: contentWidth,
-                           align: 'left'
-                         });
-                         
+                      doc
+                        .font(PDF_CONFIG.FONT.DEFAULT)
+                        .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                        .fillColor(PDF_CONFIG.COLOR.TEXT)
+                        .text(paragraph, margin.LEFT, y, {
+                          width: contentWidth,
+                          align: "left",
+                        });
+
                       // Calculate height of this paragraph
-                      const paraHeight = getTextHeight(paragraph, contentWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+                      const paraHeight = getTextHeight(
+                        paragraph,
+                        contentWidth,
+                        PDF_CONFIG.FONT_SIZE.NORMAL,
+                      );
                       y += paraHeight;
                     }
-                    
+
                     // Add small spacing between paragraphs
                     if (pIndex < paragraphs.length - 1) {
                       y += PDF_CONFIG.SPACING.LIST_ITEM;
                     }
                   });
                 }
-                
+
                 // Add space between entries (except after the last one)
                 if (index < data.extracurricular.length - 1) {
                   y += PDF_CONFIG.SPACING.BETWEEN_ENTRIES;
                 }
               });
-              
+
               y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS;
             }
             break;
-            
+
           case "additional":
             // Check if we need a page break
-            checkPageBreak(PDF_CONFIG.FONT_SIZE.SECTION_TITLE + PDF_CONFIG.SPACING.AFTER_SECTION_TITLE + 40);
-            
+            checkPageBreak(
+              PDF_CONFIG.FONT_SIZE.SECTION_TITLE +
+                PDF_CONFIG.SPACING.AFTER_SECTION_TITLE +
+                40,
+            );
+
             // Add section title
             y = addSectionTitle("Additional Information", y);
-            
+
             // Computer skills
             if (data.additional?.skills?.length) {
               // Check if we need a page break
               checkPageBreak(PDF_CONFIG.FONT_SIZE.NORMAL * 2);
-              
-              doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.HEADING)
-                 .text("IT skills:", margin.LEFT, y, { continued: true });
-                 
+
+              doc
+                .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+                .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                .fillColor(PDF_CONFIG.COLOR.HEADING)
+                .text("IT skills:", margin.LEFT, y, { continued: true });
+
               const labelWidth = doc.widthOfString("IT skills: ");
-              
-              doc.font(PDF_CONFIG.FONT.DEFAULT)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.TEXT);
-                 
+
+              doc
+                .font(PDF_CONFIG.FONT.DEFAULT)
+                .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                .fillColor(PDF_CONFIG.COLOR.TEXT);
+
               // Add skills, continued from the label
               const skillsText = data.additional.skills.join(", ");
               doc.text(skillsText, {
                 continued: false,
                 width: contentWidth - labelWidth,
-                align: "left"
+                align: "left",
               });
-              
-              const skillsHeight = getTextHeight(skillsText, contentWidth - labelWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+
+              const skillsHeight = getTextHeight(
+                skillsText,
+                contentWidth - labelWidth,
+                PDF_CONFIG.FONT_SIZE.NORMAL,
+              );
               y += skillsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
-            
+
             // Languages
             if (data.languages?.length) {
               // Check if we need a page break
               checkPageBreak(PDF_CONFIG.FONT_SIZE.NORMAL * 2);
-              
-              doc.font(PDF_CONFIG.FONT.DEFAULT_BOLD)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.HEADING)
-                 .text("Languages:", margin.LEFT, y, { continued: true });
-                 
+
+              doc
+                .font(PDF_CONFIG.FONT.DEFAULT_BOLD)
+                .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                .fillColor(PDF_CONFIG.COLOR.HEADING)
+                .text("Languages:", margin.LEFT, y, { continued: true });
+
               const labelWidth = doc.widthOfString("Languages: ");
-              
-              doc.font(PDF_CONFIG.FONT.DEFAULT)
-                 .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
-                 .fillColor(PDF_CONFIG.COLOR.TEXT);
-                 
+
+              doc
+                .font(PDF_CONFIG.FONT.DEFAULT)
+                .fontSize(PDF_CONFIG.FONT_SIZE.NORMAL)
+                .fillColor(PDF_CONFIG.COLOR.TEXT);
+
               // Add languages, continued from the label
-              const languagesText = data.languages.map(lang => 
-                `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
-              ).join(", ");
-              
+              const languagesText = data.languages
+                .map(
+                  (lang) =>
+                    `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`,
+                )
+                .join(", ");
+
               doc.text(languagesText, {
                 continued: false,
                 width: contentWidth - labelWidth,
-                align: "left"
+                align: "left",
               });
-              
-              const langsHeight = getTextHeight(languagesText, contentWidth - labelWidth, PDF_CONFIG.FONT_SIZE.NORMAL);
+
+              const langsHeight = getTextHeight(
+                languagesText,
+                contentWidth - labelWidth,
+                PDF_CONFIG.FONT_SIZE.NORMAL,
+              );
               y += langsHeight + PDF_CONFIG.SPACING.PARAGRAPH;
             }
-            
-            y += PDF_CONFIG.SPACING.BETWEEN_SECTIONS - PDF_CONFIG.SPACING.PARAGRAPH;
+
+            y +=
+              PDF_CONFIG.SPACING.BETWEEN_SECTIONS -
+              PDF_CONFIG.SPACING.PARAGRAPH;
             break;
         }
       }
