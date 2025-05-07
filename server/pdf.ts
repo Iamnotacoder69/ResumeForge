@@ -3,12 +3,12 @@ import { CompleteCV, SectionOrder, TemplateType } from "@shared/types";
 
 // Standardized spacing constants with more balanced values
 const SPACING = {
-  SECTION: 10,         // Balanced spacing between sections
-  ENTRY: 8,            // Moderate spacing between entries
+  SECTION: 12,         // Fixed consistent spacing between all sections
+  ENTRY: 6,            // Reduced spacing between entries
   SECTION_TITLE: 4,    // Standard space after section titles
-  LINE_BELOW_TITLE: 3, // Reduced space after separators for better consistency
+  LINE_BELOW_TITLE: 3, // Space after separators
   TEXT_BLOCK: 0,       // No extra spacing after text blocks
-  SUB_SECTION: 6       // Moderate spacing between sub-sections
+  SUB_SECTION: 6       // Space between sub-sections
 };
 
 /**
@@ -23,28 +23,28 @@ const SPACING = {
  */
 function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: number, maxWidth: number, lineHeight: number): number {
   if (!text || typeof text !== 'string' || text.trim() === '') return y;
-  
+
   // Process text for bullet points
   // Split by new lines first
   const paragraphs = text.split('\n');
   let currentY = y;
-  
+
   paragraphs.forEach((paragraph, i) => {
     if (paragraph.trim() === '') return; // Skip empty paragraphs
-    
+
     // Format bullet points if line starts with - or •
     const hasBullet = paragraph.trim().startsWith('-') || paragraph.trim().startsWith('•');
     let processedText = paragraph;
-    
+
     if (hasBullet) {
       // Create proper bullet point spacing
       processedText = paragraph.trim().substring(1).trim();
       const bulletX = x;
       const textX = x + 4; // Indent text after bullet
-      
+
       // Add bullet point
       doc.text('•', bulletX, currentY);
-      
+
       // Process remaining text with indentation
       const bulletLines = doc.splitTextToSize(processedText, maxWidth - 4);
       doc.text(bulletLines, textX, currentY);
@@ -56,7 +56,7 @@ function addWrappedText(doc: jsPDF, text: string | undefined, x: number, y: numb
       currentY += (lines.length * lineHeight);
     }
   });
-  
+
   // Always add extra space after text blocks
   return currentY + SPACING.TEXT_BLOCK;
 }
@@ -200,7 +200,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
     if (!dateStr || typeof dateStr !== 'string' || dateStr.trim() === '') {
       return '';
     }
-    
+
     try {
       return new Date(dateStr).toLocaleDateString('en-US', options);
     } catch (error) {
@@ -208,7 +208,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
       return '';
     }
   }
-  
+
   // Modern Sidebar layout is no longer used
   const isModernSidebar = false;
   if (false) { // This block will be skipped
@@ -724,7 +724,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
             const languagesText = data.languages.map(lang => 
               `${lang.name} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
             ).join(", ");
-            
+
             mainYPos = addWrappedText(doc, languagesText, mainContentX + 8, mainYPos, mainContentWidth - 8, lineHeight);
           }
 
@@ -766,7 +766,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           photoSize, 
           photoSize
         );
-        console.log("Image added successfully to standard template using full URL");
+        console.log("Image added successfullyto standard template using full URL");
       } catch (e) {
         console.log("Failed to add image to standard template with full URL, trying with extracted data:", e);
         // If that fails, try with just the base64 data
@@ -1020,7 +1020,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Education", margin, yPos);
-          
+
           // Add visual separator line under the title for consistency with other sections
           yPos += SPACING.LINE_BELOW_TITLE;
           yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
@@ -1073,7 +1073,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Certificates", margin, yPos);
-          
+
           // Add visual separator line under the title for consistency with other sections
           yPos += SPACING.LINE_BELOW_TITLE;
           yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
@@ -1129,7 +1129,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
           doc.setFont(titleFont, "bold");
           doc.setFontSize(subtitleFontSize);
           doc.text("Extracurricular Activities", margin, yPos);
-          
+
           // Add visual separator line under the title for consistency with other sections
           yPos += SPACING.LINE_BELOW_TITLE;
           yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
@@ -1186,7 +1186,7 @@ export async function generatePDF(data: CompleteCV): Promise<Buffer> {
         doc.setFont(titleFont, "bold");
         doc.setFontSize(subtitleFontSize);
         doc.text("Additional Information", margin, yPos);
-        
+
         // Add visual separator line under the title for consistency with other sections
         yPos += SPACING.LINE_BELOW_TITLE;
         yPos = addSectionSeparator(doc, margin, yPos, contentWidth * 0.25, [primaryColor[0], primaryColor[1], primaryColor[2]]);
