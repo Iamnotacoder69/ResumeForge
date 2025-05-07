@@ -57,13 +57,13 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
   };
   
   const handleAchievementsChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-    let text = e.target.value;
-    const prevText = form.getValues(`certificates.${index}.achievements`);
+    let text = e.target.value || "";
+    const prevText = form.getValues(`certificates.${index}.achievements`) || "";
     const textArea = e.target;
     const cursorPosition = textArea.selectionStart;
     
     // Check if text was deleted (backspace/delete was pressed)
-    if (prevText.length > text.length) {
+    if (prevText && text && prevText.length > text.length) {
       // Check if we're deleting the last bullet point or part of it
       const prevLines = prevText.split('\n');
       const currentLines = text.split('\n');
