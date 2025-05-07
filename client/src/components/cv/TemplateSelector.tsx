@@ -25,6 +25,11 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       id: 'executive',
       name: 'Executive',
       description: 'Elegant professional design with consistent spacing and formatting'
+    },
+    {
+      id: 'fixed-grid',
+      name: 'Fixed Grid',
+      description: 'Structured layout with fixed positioning that maintains consistent spacing regardless of content length'
     }
   ];
 
@@ -80,6 +85,31 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                       {/* Content section 2 */}
                       <div className="absolute top-21 left-2 w-8 h-1 bg-gray-600 rounded"></div>
                       <div className="absolute top-21 left-11 right-2 h-0.5 bg-gray-400 rounded"></div>
+                    </>
+                  )}
+                  
+                  {/* Fixed Grid template preview */}
+                  {template.id === 'fixed-grid' && (
+                    <>
+                      {/* Header/Name area with accent color */}
+                      <div className="absolute top-1 left-2 right-2 h-3 bg-blue-700 rounded"></div>
+                      
+                      {/* Horizontal blue divider */}
+                      <div className="absolute top-5 left-2 right-2 h-0.5 bg-blue-500 rounded"></div>
+                      
+                      {/* Section blocks with fixed heights */}
+                      <div className="absolute top-7 left-2 right-2 h-2 bg-slate-700 rounded"></div>
+                      <div className="absolute top-10 left-2 right-2 h-3 bg-gray-200 rounded"></div>
+                      
+                      <div className="absolute top-14 left-2 right-2 h-2 bg-slate-700 rounded"></div>
+                      <div className="absolute top-17 left-2 right-2 h-3 bg-gray-200 rounded"></div>
+                      
+                      {/* Grid lines to show structured layout */}
+                      <div className="absolute top-7 left-2 right-2 h-16 border-b border-l border-r border-dashed border-blue-300 opacity-30"></div>
+                      
+                      {/* Bullet points */}
+                      <div className="absolute top-22 left-3 w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
+                      <div className="absolute top-22 left-4 w-3 h-0.5 bg-gray-600 rounded"></div>
                     </>
                   )}
                 </div>
