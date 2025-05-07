@@ -47,16 +47,17 @@ export const TEMPLATE_CONFIG = {
     }
   },
   
-  // Fixed spacing values
+  // Fixed spacing values - THESE MUST BE CONSISTENT FOR ALL SECTIONS
   SPACING: {
-    // Spacing between sections (fixed values)
-    SECTION_SPACING: 15, // Always 15pts between major sections
+    // Spacing between sections - THIS IS THE KEY SPACING VALUE FOR CONSISTENT LAYOUT
+    // This exact same value must be used between all sections
+    SECTION_SPACING: 15, // 15pts between ALL major sections - DO NOT CHANGE THIS VALUE
     
     // Spacing after elements
     AFTER_NAME: 3,
     AFTER_CONTACT: 8,
     AFTER_SECTION_TITLE: 5,
-    AFTER_PARAGRAPH: 5,
+    AFTER_PARAGRAPH: 5, // Used after content blocks
     
     // Spacing between entries within sections
     BETWEEN_ENTRIES: 8,
@@ -92,13 +93,19 @@ export const TEMPLATE_CONFIG = {
 };
 
 /**
- * Helper function to enforce fixed spacing between sections
- * This function always returns the exact same spacing value
- * for consistency throughout the document.
+ * CRITICAL FUNCTION for consistent section spacing
+ * This function ALWAYS returns the exact same fixed spacing value
+ * to ensure perfect consistency between all sections of the CV.
  * 
- * @returns Fixed section spacing value
+ * All sections (Summary, Key Competencies, Experience, etc.) MUST use
+ * this function to determine spacing between them.
+ * 
+ * @returns Fixed section spacing value (15pts)
  */
 export function getSectionSpacing(): number {
+  // This is the single source of truth for section spacing
+  // This ensures that all sections have exactly the same
+  // spacing between them for a professional, consistent layout
   return TEMPLATE_CONFIG.SPACING.SECTION_SPACING;
 }
 

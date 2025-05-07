@@ -148,8 +148,12 @@ export async function generateFixedCV(data: CompleteCV): Promise<Buffer> {
         TEMPLATE_CONFIG.TYPOGRAPHY.SIZES.NORMAL
       );
       
-      y += summaryHeight + getSectionSpacing();
+      // Just add content height plus paragraph spacing, NOT section spacing
+      y += summaryHeight + TEMPLATE_CONFIG.SPACING.AFTER_PARAGRAPH;
     }
+    
+    // Use EXACTLY the same fixed spacing between all sections
+    y += getSectionSpacing();
   }
   
   // Add key competencies with fixed spacing
@@ -179,10 +183,11 @@ export async function generateFixedCV(data: CompleteCV): Promise<Buffer> {
         TEMPLATE_CONFIG.TYPOGRAPHY.SIZES.NORMAL
       );
       
+      // Just add content height plus paragraph spacing, NOT section spacing
       y += skillsHeight + TEMPLATE_CONFIG.SPACING.AFTER_PARAGRAPH;
     }
     
-    // Add fixed section spacing
+    // Use EXACTLY the same fixed spacing between all sections
     y += getSectionSpacing();
   }
   
@@ -292,7 +297,7 @@ export async function generateFixedCV(data: CompleteCV): Promise<Buffer> {
         }
       });
       
-      // Add fixed section spacing after experience section
+      // Use EXACTLY the same fixed spacing between all sections
       y += getSectionSpacing();
     }
   }
@@ -401,7 +406,7 @@ export async function generateFixedCV(data: CompleteCV): Promise<Buffer> {
         }
       });
       
-      // Add fixed section spacing
+      // Use EXACTLY the same fixed spacing between all sections
       y += getSectionSpacing();
     }
   }
