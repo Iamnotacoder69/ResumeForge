@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { generateCVWithPDFKit } from "./pdfkit-generator";
+import { generateFixedCV } from "./fixed-template-generator";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -210,11 +211,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
-      console.log("PDF Generation - Calling generateCVWithPDFKit function");
+      console.log("PDF Generation - Preparing to generate CV with fixed template");
       
       try {
-        // Generate PDF buffer
-        const pdfBuffer = await generateCVWithPDFKit(data);
+        // Determine which template generator to use
+        let pdfBuffer;
+        
+        // Use fixed spacing template for consistent layout
+        console.log("PDF Generation - Using fixed template generator for consistent spacing");
+        pdfBuffer = await generateFixedCV(data);
+        
         console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
         
         // Set headers

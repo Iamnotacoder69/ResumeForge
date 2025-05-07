@@ -1,5 +1,5 @@
 import PDFDocument from "pdfkit";
-import { CompleteCV } from "@shared/types";
+import { CompleteCv as CompleteCV } from "@shared/schema";
 import { Buffer } from "buffer";
 import { TEMPLATE_CONFIG, getSectionSpacing, getContentWidth, calculateTextHeight } from "./template-config";
 
