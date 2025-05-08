@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { completeCvSchema } from "./schema";
 
-export type TemplateType = 'executive' | 'fixed-grid';
+export type TemplateType = 'executive' | 'fixed-grid' | 'consistent-spacing';
 
 export type SectionType = 'personal' | 'summary' | 'keyCompetencies' | 'experience' | 'education' | 'certificates' | 'extracurricular' | 'additional';
 

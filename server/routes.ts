@@ -4,6 +4,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { generateCVWithPDFKit } from "./pdfkit-generator";
 import { generateFixedGridCV } from "./fixed-grid-cv";
+import { generateConsistentSpacingCV } from "./consistent-spacing-cv";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -219,8 +220,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (data.templateSettings?.template === "fixed-grid") {
           console.log("PDF Generation - Using fixed-grid template");
           pdfBuffer = await generateFixedGridCV(data);
+        } else if (data.templateSettings?.template === "consistent-spacing") {
+          console.log("PDF Generation - Using consistent-spacing template");
+          pdfBuffer = await generateConsistentSpacingCV(data);
         } else {
-          console.log("PDF Generation - Using standard template");
+          console.log("PDF Generation - Using executive template");
           pdfBuffer = await generateCVWithPDFKit(data);
         }
         console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
