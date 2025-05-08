@@ -30,6 +30,11 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       id: 'fixed-grid',
       name: 'Fixed Grid',
       description: 'Structured layout with fixed positioning that maintains consistent spacing regardless of content length'
+    },
+    {
+      id: 'consistent-spacing',
+      name: 'Consistent Spacing',
+      description: 'Dynamic template with perfect spacing between sections based on content length'
     }
   ];
 
@@ -110,6 +115,31 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                       {/* Bullet points */}
                       <div className="absolute top-22 left-3 w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
                       <div className="absolute top-22 left-4 w-3 h-0.5 bg-gray-600 rounded"></div>
+                    </>
+                  )}
+                  
+                  {/* Consistent Spacing template preview */}
+                  {template.id === 'consistent-spacing' && (
+                    <>
+                      {/* Header/Name area */}
+                      <div className="absolute top-1 left-2 right-2 h-3 bg-green-700 rounded"></div>
+                      
+                      {/* First section with auto spacing */}
+                      <div className="absolute top-6 left-2 w-10 h-1.5 bg-slate-700 rounded"></div>
+                      <div className="absolute top-8 left-2 w-6 h-0.5 bg-green-500 rounded"></div>
+                      <div className="absolute top-10 left-2 right-2 h-1 bg-gray-600 rounded"></div>
+                      <div className="absolute top-12 left-2 right-4 h-1 bg-gray-500 rounded"></div>
+                      
+                      {/* Visual spacing indicator */}
+                      <div className="absolute top-14 left-6 right-6 h-1 border-l-2 border-r-2 border-dashed border-green-300"></div>
+                      
+                      {/* Second section with auto spacing */}
+                      <div className="absolute top-16 left-2 w-10 h-1.5 bg-slate-700 rounded"></div>
+                      <div className="absolute top-18 left-2 w-6 h-0.5 bg-green-500 rounded"></div>
+                      <div className="absolute top-20 left-2 right-4 h-1 bg-gray-600 rounded"></div>
+                      
+                      {/* Arrow showing dynamic spacing */}
+                      <div className="absolute top-13 right-3 text-green-500 text-xs font-bold">↕</div>
                     </>
                   )}
                 </div>
