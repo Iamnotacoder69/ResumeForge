@@ -2,7 +2,8 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { generatePrecisionCV } from "./cv-template-engine";
+import { generateCVWithPDFKit } from "./pdfkit-generator";
+import { generateFixedGridCV } from "./fixed-grid-cv";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -213,9 +214,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PDF Generation - Getting template type:", data.templateSettings?.template);
       
       try {
-        // Generate PDF buffer using our new Precision template 
-        console.log("PDF Generation - Using precision template");
-        const pdfBuffer = await generatePrecisionCV(data);
+        // Generate PDF buffer based on template type
+        let pdfBuffer;
+        if (data.templateSettings?.template === "fixed-grid") {
+          console.log("PDF Generation - Using fixed-grid template");
+          pdfBuffer = await generateFixedGridCV(data);
+        } else {
+          console.log("PDF Generation - Using standard template");
+          pdfBuffer = await generateCVWithPDFKit(data);
+        }
         console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
         
         // Set headers

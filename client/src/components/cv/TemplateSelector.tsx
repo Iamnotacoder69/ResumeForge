@@ -22,9 +22,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: { id: TemplateType; name: string; description: string }[] = [
     {
-      id: 'precision',
-      name: 'Precision',
-      description: 'A modern CV with fixed grid layout and consistent spacing regardless of content length'
+      id: 'executive',
+      name: 'Executive',
+      description: 'Elegant professional design with consistent spacing and formatting'
+    },
+    {
+      id: 'fixed-grid',
+      name: 'Fixed Grid',
+      description: 'Structured layout with fixed positioning that maintains consistent spacing regardless of content length'
     }
   ];
 
@@ -58,31 +63,53 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             >
               <div className="h-32 mb-3 bg-gray-100 rounded flex items-center justify-center">
                 <div className={`w-20 h-24 border ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-300'} rounded relative overflow-hidden`}>
-                  {/* Precision template preview */}
-                  {template.id === 'precision' && (
+                  {/* Executive template preview */}
+                  {template.id === 'executive' && (
                     <>
-                      {/* Header/Name area with blue accent */}
-                      <div className="absolute top-1 left-2 right-2 h-3 bg-blue-800 rounded"></div>
+                      {/* Header/Name area */}
+                      <div className="absolute top-1 left-2 right-2 h-3 bg-slate-800 rounded"></div>
                       
-                      {/* Section titles with blue underlines */}
-                      <div className="absolute top-5 left-2 w-8 h-1.5 bg-slate-700 rounded"></div>
-                      <div className="absolute top-6.5 left-2 right-2 h-0.5 bg-blue-500 rounded"></div>
+                      {/* Section title with separator line */}
+                      <div className="absolute top-6 left-2 w-12 h-1.5 bg-slate-700 rounded"></div>
+                      <div className="absolute top-8 left-2 w-8 h-0.5 bg-amber-500 rounded"></div>
                       
-                      {/* Fixed section blocks showing grid structure */}
-                      <div className="absolute top-8 left-2 right-2 h-2 bg-gray-100 rounded"></div>
+                      {/* Content section 1 */}
+                      <div className="absolute top-10 left-2 right-2 h-1 bg-gray-600 rounded"></div>
+                      <div className="absolute top-12 left-2 right-4 h-1 bg-gray-500 rounded"></div>
+                      <div className="absolute top-14 left-2 right-6 h-1 bg-gray-500 rounded"></div>
                       
-                      <div className="absolute top-11 left-2 w-8 h-1.5 bg-slate-700 rounded"></div>
-                      <div className="absolute top-12.5 left-2 right-2 h-0.5 bg-blue-500 rounded"></div>
-                      <div className="absolute top-14 left-2 right-2 h-2 bg-gray-100 rounded"></div>
+                      {/* Section title with separator line */}
+                      <div className="absolute top-17 left-2 w-10 h-1.5 bg-slate-700 rounded"></div>
+                      <div className="absolute top-19 left-2 w-6 h-0.5 bg-amber-500 rounded"></div>
                       
-                      <div className="absolute top-17 left-2 w-8 h-1.5 bg-slate-700 rounded"></div>
-                      <div className="absolute top-18.5 left-2 right-2 h-0.5 bg-blue-500 rounded"></div>
-                      <div className="absolute top-20 left-2 right-2 h-2 bg-gray-100 rounded"></div>
+                      {/* Content section 2 */}
+                      <div className="absolute top-21 left-2 w-8 h-1 bg-gray-600 rounded"></div>
+                      <div className="absolute top-21 left-11 right-2 h-0.5 bg-gray-400 rounded"></div>
+                    </>
+                  )}
+                  
+                  {/* Fixed Grid template preview */}
+                  {template.id === 'fixed-grid' && (
+                    <>
+                      {/* Header/Name area with accent color */}
+                      <div className="absolute top-1 left-2 right-2 h-3 bg-blue-700 rounded"></div>
                       
-                      {/* Grid structure lines */}
-                      <div className="absolute top-0 left-0 right-0 bottom-0 border-l border-r border-blue-100 opacity-30 pointer-events-none"></div>
-                      <div className="absolute top-11 left-0 right-0 border-t border-blue-100 opacity-30 pointer-events-none"></div>
-                      <div className="absolute top-17 left-0 right-0 border-t border-blue-100 opacity-30 pointer-events-none"></div>
+                      {/* Horizontal blue divider */}
+                      <div className="absolute top-5 left-2 right-2 h-0.5 bg-blue-500 rounded"></div>
+                      
+                      {/* Section blocks with fixed heights */}
+                      <div className="absolute top-7 left-2 right-2 h-2 bg-slate-700 rounded"></div>
+                      <div className="absolute top-10 left-2 right-2 h-3 bg-gray-200 rounded"></div>
+                      
+                      <div className="absolute top-14 left-2 right-2 h-2 bg-slate-700 rounded"></div>
+                      <div className="absolute top-17 left-2 right-2 h-3 bg-gray-200 rounded"></div>
+                      
+                      {/* Grid lines to show structured layout */}
+                      <div className="absolute top-7 left-2 right-2 h-16 border-b border-l border-r border-dashed border-blue-300 opacity-30"></div>
+                      
+                      {/* Bullet points */}
+                      <div className="absolute top-22 left-3 w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
+                      <div className="absolute top-22 left-4 w-3 h-0.5 bg-gray-600 rounded"></div>
                     </>
                   )}
                 </div>
