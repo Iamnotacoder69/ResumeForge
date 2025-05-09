@@ -20,19 +20,20 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onTemplateChange,
   onPhotoInclusionChange
 }) => {
-  const templates: { id: TemplateType; name: string; description: string }[] = [
+  // Define available templates
+  const templates = [
     {
-      id: 'professional',
+      id: 'professional' as TemplateType,
       name: 'Professional',
       description: 'Classic professional design with elegant typography and consistent spacing'
     },
     {
-      id: 'modern',
+      id: 'modern' as TemplateType,
       name: 'Modern',
       description: 'Contemporary design with bold typography and striking visual elements'
     },
     {
-      id: 'minimal',
+      id: 'minimal' as TemplateType,
       name: 'Minimal',
       description: 'Clean, minimalist design with ample whitespace and centered typography'
     }

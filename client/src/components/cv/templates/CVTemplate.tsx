@@ -1,5 +1,5 @@
 import React from 'react';
-import { CompleteCV } from '@shared/types';
+import { CompleteCV, TemplateType } from '@shared/types';
 import ProfessionalTemplate from './ProfessionalTemplate';
 import ModernTemplate from './ModernTemplate';
 import MinimalTemplate from './MinimalTemplate';
@@ -18,14 +18,14 @@ const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
   const renderTemplate = () => {
     const templateType = data.templateSettings?.template || 'professional';
     
-    switch (templateType) {
-      case 'modern':
-        return <ModernTemplate data={data} />;
-      case 'minimal':
-        return <MinimalTemplate data={data} />;
-      case 'professional':
-      default:
-        return <ProfessionalTemplate data={data} />;
+    // Explicitly type check to satisfy TypeScript
+    if (templateType === 'modern') {
+      return <ModernTemplate data={data} />;
+    } else if (templateType === 'minimal') {
+      return <MinimalTemplate data={data} />;
+    } else {
+      // Default to professional template
+      return <ProfessionalTemplate data={data} />;
     }
   };
 
