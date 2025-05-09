@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import { generatePDFFromHTML } from '@/lib/pdf-generator';
 import CVTemplate from './templates/CVTemplate';
+import { toast } from '@/hooks/use-toast';
 
 interface PDFPreviewProps {
   data: CompleteCV;
@@ -20,12 +21,29 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
     
     try {
       setIsGenerating(true);
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we create your PDF...",
+      });
+      
+      console.log("Starting PDF generation...");
       
       // Generate the PDF directly from HTML using html2pdf.js
       await generatePDFFromHTML(templateRef.current, data);
+      
+      console.log("PDF generation completed successfully");
+      toast({
+        title: "Success!",
+        description: "Your CV has been downloaded as a PDF.",
+        variant: "default",
+      });
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      toast({
+        title: "PDF Generation Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -70,15 +88,16 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       
       <div className="pdf-preview-content overflow-auto pb-10">
         <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none">
+          {/* We need to ensure all styles are properly inlined for PDF generation */}
           <CVTemplate data={data} templateRef={templateRef} />
         </div>
       </div>
       
       <div className="text-xs text-gray-500 text-center mt-2">
         <p>
-          This preview is exactly how your PDF will look when downloaded.
+          This preview shows how your CV will look when downloaded.
           <br />
-          Clicking "Download as PDF" will convert this preview to a PDF file.
+          Click "Download as PDF" to save your CV as a PDF file.
         </p>
       </div>
     </div>
