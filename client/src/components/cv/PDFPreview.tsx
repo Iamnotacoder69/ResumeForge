@@ -28,8 +28,31 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       
       console.log("Starting PDF generation...");
       
-      // Generate the PDF directly from HTML using html2pdf.js
-      await generatePDFFromHTML(templateRef.current, data);
+      // Prepare the template for PDF capture by ensuring it has the right styling
+      const template = templateRef.current;
+      
+      // Track original styles to restore later
+      const originalStyles = {
+        width: template.style.width,
+        margin: template.style.margin,
+        padding: template.style.padding,
+        backgroundColor: template.style.backgroundColor,
+      };
+      
+      // Set styles directly on the template for better rendering
+      template.style.width = '210mm';
+      template.style.margin = '0';
+      template.style.padding = '0';
+      template.style.backgroundColor = 'white';
+      
+      // Generate the PDF using the element with direct styling
+      await generatePDFFromHTML(template, data);
+      
+      // Restore original styles
+      template.style.width = originalStyles.width;
+      template.style.margin = originalStyles.margin;
+      template.style.padding = originalStyles.padding;
+      template.style.backgroundColor = originalStyles.backgroundColor;
       
       console.log("PDF generation completed successfully");
       toast({
