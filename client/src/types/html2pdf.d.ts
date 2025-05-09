@@ -15,7 +15,7 @@ declare module 'html2pdf.js' {
     jsPDF?: {
       unit?: string;
       format?: string;
-      orientation?: 'portrait' | 'landscape';
+      orientation?: 'portrait' | 'landscape' | string;
       [key: string]: any;
     };
     pagebreak?: {
