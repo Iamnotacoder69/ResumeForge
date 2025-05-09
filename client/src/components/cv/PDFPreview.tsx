@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
-import { generatePDFFromHTML } from '@/lib/pdf-generator';
+import { generatePDF } from '@/lib/pdf-generator-direct';
 import CVTemplate from './templates/CVTemplate';
 
 interface PDFPreviewProps {
@@ -15,11 +15,9 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
   const templateRef = useRef<HTMLDivElement>(null);
   
   const handleDownloadPDF = useCallback(async () => {
-    if (!templateRef.current) return;
-    
     try {
-      // Generate the PDF using the HTML content
-      await generatePDFFromHTML(templateRef.current, data);
+      // Generate the PDF directly using the CV data (not from HTML)
+      await generatePDF(data);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
