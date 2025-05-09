@@ -1,4 +1,3 @@
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CompleteCV } from '@shared/types';
 
@@ -12,19 +11,25 @@ const PDF_CONFIG = {
     format: 'a4' as const, // A4 format
     orientation: 'portrait' as const,
   },
-  // Image quality settings
-  quality: {
-    scale: 2, // Higher scale for better quality
-    useCORS: true,
-    allowTaint: true,
-    logging: false,
+  // Margins
+  margins: {
+    top: 10,
+    right: 10,
+    bottom: 10,
+    left: 10
+  },
+  // Font settings
+  font: {
+    family: 'helvetica',
+    style: 'normal',
+    size: 10
   }
 };
 
 /**
- * Generates a PDF from an HTML element
- * @param element The HTML element to capture
- * @param data The CV data (for filename)
+ * Generates a PDF directly from the CV data
+ * @param element The HTML element containing the reference CV (for styling cues only)
+ * @param data The CV data 
  * @returns Promise that resolves when PDF generation is complete
  */
 export async function generatePDFFromHTML(
@@ -32,7 +37,7 @@ export async function generatePDFFromHTML(
   data: CompleteCV
 ): Promise<void> {
   try {
-    // Show a loading indicator or message
+    // Show a loading indicator
     const loadingEl = document.createElement('div');
     loadingEl.className = 
       'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
@@ -45,31 +50,6 @@ export async function generatePDFFromHTML(
       </div>
     `;
     document.body.appendChild(loadingEl);
-
-    // Create a clone of the element to avoid modifying the original
-    const clone = element.cloneNode(true) as HTMLElement;
-    
-    // Temporarily append the clone to the body but make it invisible
-    clone.style.position = 'absolute';
-    clone.style.left = '-9999px';
-    clone.style.top = '0';
-    document.body.appendChild(clone);
-    
-    // Calculate PDF dimensions
-    const pdfWidth = 210; // A4 width in mm
-    const pdfHeight = 297; // A4 height in mm
-    
-    // Capture the element as an image using html2canvas
-    const canvas = await html2canvas(clone, {
-      scale: PDF_CONFIG.quality.scale,
-      useCORS: PDF_CONFIG.quality.useCORS,
-      allowTaint: PDF_CONFIG.quality.allowTaint,
-      logging: PDF_CONFIG.quality.logging,
-    });
-    
-    // Calculate scaling factor to fit the canvas to PDF page
-    const imgWidth = pdfWidth - 20; // 10mm margins on each side
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
     // Create PDF document
     const pdf = new jsPDF({
@@ -78,43 +58,352 @@ export async function generatePDFFromHTML(
       format: PDF_CONFIG.format.format,
     });
     
-    // Add the image to the PDF
-    pdf.addImage(
-      canvas.toDataURL('image/jpeg', 0.95),
-      'JPEG',
-      10, // x position (10mm margin)
-      10, // y position (10mm margin)
-      imgWidth,
-      imgHeight
-    );
+    // Set default font
+    pdf.setFont(PDF_CONFIG.font.family, PDF_CONFIG.font.style);
+    pdf.setFontSize(PDF_CONFIG.font.size);
     
-    // Handle multi-page PDF if content is too long
-    let heightLeft = imgHeight;
-    let position = 10; // Initial position
+    // Page dimensions
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = PDF_CONFIG.margins;
+    const contentWidth = pageWidth - margin.left - margin.right;
     
-    while (heightLeft > pdfHeight - 20) { // 20mm total margin (10mm top + 10mm bottom)
-      // Add a new page
-      pdf.addPage();
+    // Current Y position tracker
+    let y = margin.top;
+    
+    // Helper function to add a section title
+    const addSectionTitle = (title: string, yPos: number): number => {
+      pdf.setFont(PDF_CONFIG.font.family, 'bold');
+      pdf.setFontSize(12);
+      pdf.text(title, margin.left, yPos);
       
-      // Calculate remaining height
-      position = -(pdfHeight - 20 - position);
+      // Add a line under the title
+      yPos += 5;
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin.left, yPos, pageWidth - margin.right, yPos);
       
-      // Add the image to the new page, shifted upward
-      pdf.addImage(
-        canvas.toDataURL('image/jpeg', 0.95),
-        'JPEG',
-        10,
-        position,
-        imgWidth,
-        imgHeight
-      );
+      // Return the new Y position
+      return yPos + 5;
+    };
+    
+    // Helper function to add text with line wrapping
+    const addWrappedText = (text: string, x: number, yPos: number, maxWidth: number): number => {
+      pdf.setFont(PDF_CONFIG.font.family, 'normal');
+      pdf.setFontSize(10);
       
-      // Update the remaining height
-      heightLeft -= (pdfHeight - 20);
+      // Split text to multiline and get updated Y position
+      const splitText = pdf.splitTextToSize(text, maxWidth);
+      pdf.text(splitText, x, yPos);
+      
+      // Return the new Y position (plus some padding)
+      return yPos + (splitText.length * 5);
+    };
+    
+    // Format date helper
+    const formatDate = (dateStr?: string, isCurrent: boolean = false): string => {
+      if (isCurrent) return "Present";
+      if (!dateStr) return "";
+      
+      try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      } catch (e) {
+        return dateStr;
+      }
+    };
+    
+    // Add bullet point helper
+    const addBulletPoint = (text: string, x: number, yPos: number, maxWidth: number): number => {
+      // Add bullet
+      pdf.text("•", x, yPos);
+      
+      // Add indented text
+      return addWrappedText(text, x + 5, yPos, maxWidth - 5);
+    };
+    
+    // Check for page break
+    const checkPageBreak = (yPos: number, requiredHeight: number): number => {
+      if (yPos + requiredHeight > pageHeight - margin.bottom) {
+        pdf.addPage();
+        return margin.top;
+      }
+      return yPos;
+    };
+    
+    // PERSONAL INFO SECTION
+    // Name
+    pdf.setFont(PDF_CONFIG.font.family, 'bold');
+    pdf.setFontSize(18);
+    pdf.text(`${data.personal.firstName} ${data.personal.lastName}`, margin.left, y);
+    y += 10;
+    
+    // Contact info
+    pdf.setFont(PDF_CONFIG.font.family, 'normal');
+    pdf.setFontSize(10);
+    
+    const contactInfo = [];
+    if (data.personal.email) contactInfo.push(data.personal.email);
+    if (data.personal.phone) contactInfo.push(data.personal.phone);
+    if (data.personal.linkedin) contactInfo.push(data.personal.linkedin);
+    
+    pdf.text(contactInfo.join(' | '), margin.left, y);
+    y += 15;
+    
+    // PROFESSIONAL SUMMARY
+    if (data.professional?.summary) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Professional Summary', y);
+      y = addWrappedText(data.professional.summary, margin.left, y, contentWidth);
+      y += 10;
     }
     
-    // Cleanup: remove the temporary clone
-    document.body.removeChild(clone);
+    // KEY COMPETENCIES
+    if (data.keyCompetencies?.technicalSkills?.length || data.keyCompetencies?.softSkills?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Key Competencies', y);
+      
+      if (data.keyCompetencies?.technicalSkills?.length) {
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text('Technical Skills:', margin.left, y);
+        y += 5;
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        y = addWrappedText(
+          data.keyCompetencies.technicalSkills.join(', '), 
+          margin.left, 
+          y, 
+          contentWidth
+        );
+        y += 5;
+      }
+      
+      if (data.keyCompetencies?.softSkills?.length) {
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text('Soft Skills:', margin.left, y);
+        y += 5;
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        y = addWrappedText(
+          data.keyCompetencies.softSkills.join(', '), 
+          margin.left, 
+          y, 
+          contentWidth
+        );
+      }
+      
+      y += 10;
+    }
+    
+    // EXPERIENCE SECTION
+    if (data.experience?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Professional Experience', y);
+      
+      data.experience.forEach((exp) => {
+        y = checkPageBreak(y, 30);
+        
+        // Job title
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text(exp.jobTitle, margin.left, y);
+        
+        // Date on the right
+        const dateText = `${formatDate(exp.startDate)} - ${exp.isCurrent ? 'Present' : formatDate(exp.endDate)}`;
+        const dateTextWidth = pdf.getTextWidth(dateText);
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        pdf.text(dateText, pageWidth - margin.right - dateTextWidth, y);
+        y += 5;
+        
+        // Company name
+        pdf.text(exp.companyName, margin.left, y);
+        y += 7;
+        
+        // Responsibilities
+        if (exp.responsibilities) {
+          const lines = exp.responsibilities.split('\n');
+          lines.forEach(line => {
+            if (!line.trim()) return;
+            
+            y = checkPageBreak(y, 15);
+            
+            // If line starts with bullet point
+            if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+              const cleanLine = line.trim().substring(1).trim();
+              y = addBulletPoint(cleanLine, margin.left + 5, y, contentWidth - 5);
+            } else {
+              y = addWrappedText(line, margin.left, y, contentWidth);
+            }
+          });
+        }
+        
+        y += 10;
+      });
+    }
+    
+    // EDUCATION SECTION
+    if (data.education?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Education', y);
+      
+      data.education.forEach((edu) => {
+        y = checkPageBreak(y, 30);
+        
+        // Degree
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text(edu.major, margin.left, y);
+        
+        // Date on the right
+        const dateText = `${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}`;
+        const dateTextWidth = pdf.getTextWidth(dateText);
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        pdf.text(dateText, pageWidth - margin.right - dateTextWidth, y);
+        y += 5;
+        
+        // School name
+        pdf.text(edu.schoolName, margin.left, y);
+        y += 7;
+        
+        // Achievements
+        if (edu.achievements) {
+          const lines = edu.achievements.split('\n');
+          lines.forEach(line => {
+            if (!line.trim()) return;
+            
+            y = checkPageBreak(y, 15);
+            
+            // If line starts with bullet point
+            if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+              const cleanLine = line.trim().substring(1).trim();
+              y = addBulletPoint(cleanLine, margin.left + 5, y, contentWidth - 5);
+            } else {
+              y = addWrappedText(line, margin.left, y, contentWidth);
+            }
+          });
+        }
+        
+        y += 10;
+      });
+    }
+    
+    // CERTIFICATES SECTION
+    if (data.certificates?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Certifications', y);
+      
+      data.certificates.forEach((cert) => {
+        y = checkPageBreak(y, 30);
+        
+        // Certificate name
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text(cert.name, margin.left, y);
+        
+        // Date on the right
+        const dateText = formatDate(cert.dateAcquired);
+        const dateTextWidth = pdf.getTextWidth(dateText);
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        pdf.text(dateText, pageWidth - margin.right - dateTextWidth, y);
+        y += 5;
+        
+        // Institution
+        pdf.text(cert.institution, margin.left, y);
+        y += 7;
+        
+        // Achievements
+        if (cert.achievements) {
+          const lines = cert.achievements.split('\n');
+          lines.forEach(line => {
+            if (!line.trim()) return;
+            
+            y = checkPageBreak(y, 15);
+            
+            // If line starts with bullet point
+            if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+              const cleanLine = line.trim().substring(1).trim();
+              y = addBulletPoint(cleanLine, margin.left + 5, y, contentWidth - 5);
+            } else {
+              y = addWrappedText(line, margin.left, y, contentWidth);
+            }
+          });
+        }
+        
+        y += 10;
+      });
+    }
+    
+    // EXTRACURRICULAR SECTION
+    if (data.extracurricular?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Extracurricular Activities', y);
+      
+      data.extracurricular.forEach((extra) => {
+        y = checkPageBreak(y, 30);
+        
+        // Role
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text(extra.role, margin.left, y);
+        
+        // Date on the right
+        const dateText = `${formatDate(extra.startDate)} - ${extra.isCurrent ? 'Present' : formatDate(extra.endDate)}`;
+        const dateTextWidth = pdf.getTextWidth(dateText);
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        pdf.text(dateText, pageWidth - margin.right - dateTextWidth, y);
+        y += 5;
+        
+        // Organization
+        pdf.text(extra.organization, margin.left, y);
+        y += 7;
+        
+        // Description
+        if (extra.description) {
+          const lines = extra.description.split('\n');
+          lines.forEach(line => {
+            if (!line.trim()) return;
+            
+            y = checkPageBreak(y, 15);
+            
+            // If line starts with bullet point
+            if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+              const cleanLine = line.trim().substring(1).trim();
+              y = addBulletPoint(cleanLine, margin.left + 5, y, contentWidth - 5);
+            } else {
+              y = addWrappedText(line, margin.left, y, contentWidth);
+            }
+          });
+        }
+        
+        y += 10;
+      });
+    }
+    
+    // LANGUAGES SECTION (if applicable)
+    if (data.languages?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Languages', y);
+      
+      data.languages.forEach((lang) => {
+        y = checkPageBreak(y, 15);
+        
+        pdf.setFont(PDF_CONFIG.font.family, 'bold');
+        pdf.text(lang.name, margin.left, y);
+        
+        pdf.setFont(PDF_CONFIG.font.family, 'normal');
+        pdf.text(`- ${lang.proficiency}`, margin.left + 40, y);
+        
+        y += 7;
+      });
+    }
+    
+    // ADDITIONAL SKILLS (if applicable)
+    if (data.additional?.skills?.length) {
+      y = checkPageBreak(y, 40);
+      y = addSectionTitle('Additional Skills', y);
+      
+      y = addWrappedText(
+        data.additional.skills.join(', '), 
+        margin.left, 
+        y, 
+        contentWidth
+      );
+      
+      y += 10;
+    }
     
     // Generate the filename from user data
     const firstName = data.personal.firstName || 'CV';

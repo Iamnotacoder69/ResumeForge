@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import { generatePDFFromHTML } from '@/lib/pdf-generator';
 import CVTemplate from './templates/CVTemplate';
+import { useToast } from '@/hooks/use-toast';
 
 interface PDFPreviewProps {
   data: CompleteCV;
@@ -13,22 +14,44 @@ interface PDFPreviewProps {
  */
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
   const templateRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   const handleDownloadPDF = useCallback(async () => {
-    if (!templateRef.current) return;
+    if (!templateRef.current) {
+      toast({
+        title: "Error",
+        description: "PDF template reference not found",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
-      // Generate the PDF using the HTML content
+      // Generate the PDF directly from the data
+      // The templateRef is used for style reference only
       await generatePDFFromHTML(templateRef.current, data);
+      
+      toast({
+        title: "Success",
+        description: "Your CV has been downloaded as a PDF",
+      });
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      
+      toast({
+        title: "PDF Generation Failed",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive"
+      });
     }
-  }, [data]);
+  }, [data, toast]);
   
   return (
     <div className="pdf-preview-container space-y-6">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between mb-4">
+        <div className="text-sm text-muted-foreground">
+          <p>This is a preview of your CV. The downloaded PDF may look slightly different.</p>
+        </div>
         <Button 
           onClick={handleDownloadPDF}
           className="flex items-center gap-2"
