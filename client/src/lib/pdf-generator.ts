@@ -14,55 +14,12 @@ const PDF_CONFIG = {
   },
   // Image quality settings
   quality: {
-    scale: 4, // Higher scale for better quality (increased from 2 to 4)
+    scale: 2, // Higher scale for better quality
     useCORS: true,
     allowTaint: true,
     logging: false,
-    letterRendering: true, // Improve text rendering
-    backgroundColor: '#FFFFFF', // Ensure white background
-  },
-  // Content positioning
-  content: {
-    margin: 10, // 10mm margins
-    width: 190, // A4 width (210mm) - margins
   }
 };
-
-/**
- * Prepares an element for better PDF rendering
- * @param element The element to prepare for capture
- * @returns A clone of the element with proper styling
- */
-function prepareElementForCapture(element: HTMLElement): HTMLElement {
-  // Clone the element to avoid modifying the original
-  const clone = element.cloneNode(true) as HTMLElement;
-  
-  // Apply specific styling to ensure proper rendering
-  clone.style.width = `${PDF_CONFIG.content.width * 3.779527559}px`; // Convert mm to px (1mm = 3.779527559px)
-  clone.style.margin = '0';
-  clone.style.padding = '0';
-  clone.style.backgroundColor = 'white';
-  clone.style.position = 'absolute';
-  clone.style.left = '-9999px';
-  clone.style.top = '0';
-  
-  // Ensure all fonts are loaded and rendered correctly
-  const styleElement = document.createElement('style');
-  styleElement.textContent = `
-    * {
-      font-family: "Helvetica", Arial, sans-serif !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    p, h1, h2, h3, h4, h5, h6, span, div {
-      margin-bottom: 0.2em !important;
-      line-height: 1.4 !important;
-    }
-  `;
-  clone.appendChild(styleElement);
-  
-  return clone;
-}
 
 /**
  * Generates a PDF from an HTML element
@@ -89,107 +46,83 @@ export async function generatePDFFromHTML(
     `;
     document.body.appendChild(loadingEl);
 
-    // Prepare the element for capture
-    const clone = prepareElementForCapture(element);
+    // Create a clone of the element to avoid modifying the original
+    const clone = element.cloneNode(true) as HTMLElement;
+    
+    // Temporarily append the clone to the body but make it invisible
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
     document.body.appendChild(clone);
     
     // Calculate PDF dimensions
     const pdfWidth = 210; // A4 width in mm
     const pdfHeight = 297; // A4 height in mm
-    const margin = PDF_CONFIG.content.margin;
-    const contentWidth = pdfWidth - (margin * 2);
     
-    try {
-      // Wait for fonts and images to load
-      await document.fonts.ready;
+    // Capture the element as an image using html2canvas
+    const canvas = await html2canvas(clone, {
+      scale: PDF_CONFIG.quality.scale,
+      useCORS: PDF_CONFIG.quality.useCORS,
+      allowTaint: PDF_CONFIG.quality.allowTaint,
+      logging: PDF_CONFIG.quality.logging,
+    });
+    
+    // Calculate scaling factor to fit the canvas to PDF page
+    const imgWidth = pdfWidth - 20; // 10mm margins on each side
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Create PDF document
+    const pdf = new jsPDF({
+      orientation: PDF_CONFIG.format.orientation,
+      unit: PDF_CONFIG.format.unit,
+      format: PDF_CONFIG.format.format,
+    });
+    
+    // Add the image to the PDF
+    pdf.addImage(
+      canvas.toDataURL('image/jpeg', 0.95),
+      'JPEG',
+      10, // x position (10mm margin)
+      10, // y position (10mm margin)
+      imgWidth,
+      imgHeight
+    );
+    
+    // Handle multi-page PDF if content is too long
+    let heightLeft = imgHeight;
+    let position = 10; // Initial position
+    
+    while (heightLeft > pdfHeight - 20) { // 20mm total margin (10mm top + 10mm bottom)
+      // Add a new page
+      pdf.addPage();
       
-      // Allow some time for the DOM to fully render
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Calculate remaining height
+      position = -(pdfHeight - 20 - position);
       
-      // Capture the element as an image using html2canvas with improved settings
-      const canvas = await html2canvas(clone, {
-        scale: PDF_CONFIG.quality.scale,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        letterRendering: true,
-        backgroundColor: '#FFFFFF',
-        imageTimeout: 0, // No timeout for images
-        onclone: (clonedDoc) => {
-          // Force a specific rendering for better quality
-          const styleElement = clonedDoc.createElement('style');
-          styleElement.innerHTML = `
-            * { -webkit-font-smoothing: antialiased; }
-            img { image-rendering: high-quality; }
-          `;
-          clonedDoc.head.appendChild(styleElement);
-        }
-      });
+      // Add the image to the new page, shifted upward
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 0.95),
+        'JPEG',
+        10,
+        position,
+        imgWidth,
+        imgHeight
+      );
       
-      // Create PDF document with exact A4 dimensions
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true,
-        putOnlyUsedFonts: true,
-        floatPrecision: 16 // For better precision in rendering
-      });
-      
-      // Calculate scaling to maintain aspect ratio while fitting A4
-      const imgWidth = contentWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Function to add a page with content
-      const addPage = (pageNum: number, yPosition: number) => {
-        if (pageNum > 0) {
-          pdf.addPage();
-        }
-        
-        // Add image with text extraction enabled (higher quality setting)
-        pdf.addImage(
-          canvas.toDataURL('image/png', 1.0), // Use PNG for better quality
-          'PNG',
-          margin,
-          yPosition,
-          imgWidth,
-          imgHeight,
-          undefined, 
-          'FAST',
-          0 // No rotation
-        );
-      };
-      
-      // Handle pagination for long content
-      let heightLeft = imgHeight;
-      let position = margin;
-      let pageNum = 0;
-      
-      // Add first page
-      addPage(pageNum, position);
-      
-      // Add additional pages if content overflows
-      while (heightLeft > pdfHeight - (margin * 2)) {
-        pageNum++;
-        position = -(pdfHeight - (margin * 2) - position);
-        heightLeft -= (pdfHeight - (margin * 2));
-        addPage(pageNum, position);
-      }
-      
-      // Generate the filename from user data
-      const firstName = data.personal.firstName || 'CV';
-      const lastName = data.personal.lastName || '';
-      const filename = `${firstName}_${lastName}_CV.pdf`.replace(/\s+/g, '_');
-      
-      // Save the PDF with selectable text option enabled
-      pdf.save(filename);
-      
-    } finally {
-      // Clean up: remove the clone whether successful or not
-      if (clone.parentNode) {
-        clone.parentNode.removeChild(clone);
-      }
+      // Update the remaining height
+      heightLeft -= (pdfHeight - 20);
     }
+    
+    // Cleanup: remove the temporary clone
+    document.body.removeChild(clone);
+    
+    // Generate the filename from user data
+    const firstName = data.personal.firstName || 'CV';
+    const lastName = data.personal.lastName || '';
+    const filename = `${firstName}_${lastName}_CV.pdf`.replace(/\s+/g, '_');
+    
+    // Download the PDF
+    pdf.save(filename);
     
     // Remove loading indicator
     document.body.removeChild(loadingEl);
