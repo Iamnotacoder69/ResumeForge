@@ -22,19 +22,19 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: { id: TemplateType; name: string; description: string }[] = [
     {
-      id: 'executive',
-      name: 'Executive',
-      description: 'Elegant professional design with consistent spacing and formatting'
+      id: 'professional',
+      name: 'Professional',
+      description: 'Classic professional design with elegant typography and consistent spacing'
     },
     {
-      id: 'fixed-grid',
-      name: 'Fixed Grid',
-      description: 'Structured layout with fixed positioning that maintains consistent spacing regardless of content length'
+      id: 'modern',
+      name: 'Modern',
+      description: 'Contemporary design with bold typography and striking visual elements'
     },
     {
-      id: 'consistent-spacing',
-      name: 'Consistent Spacing',
-      description: 'Dynamic template with perfect spacing between sections based on content length'
+      id: 'minimal',
+      name: 'Minimal',
+      description: 'Clean, minimalist design with ample whitespace and centered typography'
     }
   ];
 
@@ -68,8 +68,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             >
               <div className="h-32 mb-3 bg-gray-100 rounded flex items-center justify-center">
                 <div className={`w-20 h-24 border ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-300'} rounded relative overflow-hidden`}>
-                  {/* Executive template preview */}
-                  {template.id === 'executive' && (
+                  {/* Professional template preview */}
+                  {template.id === 'professional' && (
                     <>
                       {/* Header/Name area */}
                       <div className="absolute top-1 left-2 right-2 h-3 bg-slate-800 rounded"></div>
@@ -93,53 +93,55 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     </>
                   )}
                   
-                  {/* Fixed Grid template preview */}
-                  {template.id === 'fixed-grid' && (
+                  {/* Modern template preview */}
+                  {template.id === 'modern' && (
                     <>
                       {/* Header/Name area with accent color */}
-                      <div className="absolute top-1 left-2 right-2 h-3 bg-blue-700 rounded"></div>
+                      <div className="absolute top-1 left-0 right-0 h-5 bg-blue-600 rounded-t"></div>
+                      <div className="absolute top-2 left-2 w-10 h-1.5 bg-white rounded opacity-80"></div>
                       
-                      {/* Horizontal blue divider */}
-                      <div className="absolute top-5 left-2 right-2 h-0.5 bg-blue-500 rounded"></div>
+                      {/* Section title with highlight */}
+                      <div className="absolute top-7 left-2 w-1 h-3 bg-blue-500 rounded-sm"></div>
+                      <div className="absolute top-7 left-4 w-8 h-1.5 bg-slate-700 rounded"></div>
                       
-                      {/* Section blocks with fixed heights */}
-                      <div className="absolute top-7 left-2 right-2 h-2 bg-slate-700 rounded"></div>
-                      <div className="absolute top-10 left-2 right-2 h-3 bg-gray-200 rounded"></div>
-                      
-                      <div className="absolute top-14 left-2 right-2 h-2 bg-slate-700 rounded"></div>
-                      <div className="absolute top-17 left-2 right-2 h-3 bg-gray-200 rounded"></div>
-                      
-                      {/* Grid lines to show structured layout */}
-                      <div className="absolute top-7 left-2 right-2 h-16 border-b border-l border-r border-dashed border-blue-300 opacity-30"></div>
+                      {/* Content section with timeline */}
+                      <div className="absolute top-10 left-3 h-10 w-0.5 bg-blue-200"></div>
+                      <div className="absolute top-10 left-3 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                      <div className="absolute top-10 left-6 right-2 h-1 bg-slate-700 rounded"></div>
+                      <div className="absolute top-12 left-6 right-4 h-0.5 bg-gray-400 rounded-full"></div>
                       
                       {/* Bullet points */}
-                      <div className="absolute top-22 left-3 w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
-                      <div className="absolute top-22 left-4 w-3 h-0.5 bg-gray-600 rounded"></div>
+                      <div className="absolute top-17 left-6 w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
+                      <div className="absolute top-17 left-8 w-6 h-0.5 bg-gray-500 rounded"></div>
+                      <div className="absolute top-19 left-6 w-0.5 h-0.5 bg-blue-500 rounded-full"></div>
+                      <div className="absolute top-19 left-8 w-8 h-0.5 bg-gray-500 rounded"></div>
                     </>
                   )}
                   
-                  {/* Consistent Spacing template preview */}
-                  {template.id === 'consistent-spacing' && (
+                  {/* Minimal template preview */}
+                  {template.id === 'minimal' && (
                     <>
-                      {/* Header/Name area */}
-                      <div className="absolute top-1 left-2 right-2 h-3 bg-green-700 rounded"></div>
+                      {/* Centered header */}
+                      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-2 bg-gray-800 rounded"></div>
+                      <div className="absolute top-5 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gray-400 rounded"></div>
                       
-                      {/* First section with auto spacing */}
-                      <div className="absolute top-6 left-2 w-10 h-1.5 bg-slate-700 rounded"></div>
-                      <div className="absolute top-8 left-2 w-6 h-0.5 bg-green-500 rounded"></div>
-                      <div className="absolute top-10 left-2 right-2 h-1 bg-gray-600 rounded"></div>
-                      <div className="absolute top-12 left-2 right-4 h-1 bg-gray-500 rounded"></div>
+                      {/* Centered section title */}
+                      <div className="absolute top-8 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-500 rounded"></div>
                       
-                      {/* Visual spacing indicator */}
-                      <div className="absolute top-14 left-6 right-6 h-1 border-l-2 border-r-2 border-dashed border-green-300"></div>
+                      {/* Centered content */}
+                      <div className="absolute top-11 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-gray-400 rounded"></div>
+                      <div className="absolute top-13 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-gray-400 rounded"></div>
+                      <div className="absolute top-15 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-gray-400 rounded"></div>
                       
-                      {/* Second section with auto spacing */}
-                      <div className="absolute top-16 left-2 w-10 h-1.5 bg-slate-700 rounded"></div>
-                      <div className="absolute top-18 left-2 w-6 h-0.5 bg-green-500 rounded"></div>
-                      <div className="absolute top-20 left-2 right-4 h-1 bg-gray-600 rounded"></div>
+                      {/* Centered section title */}
+                      <div className="absolute top-18 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-500 rounded"></div>
                       
-                      {/* Arrow showing dynamic spacing */}
-                      <div className="absolute top-13 right-3 text-green-500 text-xs font-bold">↕</div>
+                      {/* Skill pills */}
+                      <div className="absolute top-21 left-1/2 -translate-x-1/2 flex space-x-1">
+                        <div className="w-2 h-1 bg-gray-200 border border-gray-300 rounded-full"></div>
+                        <div className="w-3 h-1 bg-gray-200 border border-gray-300 rounded-full"></div>
+                        <div className="w-2 h-1 bg-gray-200 border border-gray-300 rounded-full"></div>
+                      </div>
                     </>
                   )}
                 </div>

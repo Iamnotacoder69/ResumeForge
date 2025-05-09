@@ -2,9 +2,6 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { generateCVWithPDFKit } from "./pdfkit-generator";
-import { generateFixedGridCV } from "./fixed-grid-cv";
-import { generateConsistentSpacingCV } from "./consistent-spacing-cv";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
@@ -123,55 +120,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Generate PDF
-  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+  // Validate CV Data for PDF Generation (client-side PDF generation)
+  app.post("/api/validate-cv", async (req: Request, res: Response) => {
     try {
-      console.log("PDF Generation - Request received");
+      console.log("CV Validation - Request received");
       
-      // Add debugging logs
-      console.log("PDF Generation - Template:", req.body.templateSettings?.template);
-      console.log("PDF Generation - Has Key Competencies:", !!req.body.keyCompetencies);
-      console.log("PDF Generation - Has Extracurricular:", !!req.body.extracurricular);
-      console.log("PDF Generation - Sections:", req.body.templateSettings?.sectionOrder?.map((s: any) => s.id));
-      console.log("PDF Generation - Include Photo:", req.body.templateSettings?.includePhoto);
-      
-      // If photo is included, log photo info
-      if (req.body.templateSettings?.includePhoto && req.body.personal?.photoUrl) {
-        console.log("PDF Generation - Photo URL provided:", 
-          typeof req.body.personal.photoUrl === 'string' ? 
-          `URL length: ${req.body.personal.photoUrl.length}, starts with: ${req.body.personal.photoUrl.substring(0, 30)}...` : 'Not a string');
-          
-        // More detailed debugging for the image
-        if (typeof req.body.personal.photoUrl === 'string') {
-          const photoUrl = req.body.personal.photoUrl;
-          let formatInfo = "Unknown format";
-          
-          if (photoUrl.startsWith('data:image/png;base64,')) {
-            formatInfo = "PNG base64";
-          } else if (photoUrl.startsWith('data:image/jpeg;base64,')) {
-            formatInfo = "JPEG base64";
-          } else if (photoUrl.startsWith('data:image/')) {
-            formatInfo = "Other image base64";
-          } else if (photoUrl.startsWith('http')) {
-            formatInfo = "HTTP URL";
-          }
-          
-          console.log("PDF Generation - Image format appears to be:", formatInfo);
-        }
-      }
+      // Log debugging info about the CV data
+      console.log("CV Validation - Template:", req.body.templateSettings?.template);
+      console.log("CV Validation - Has Key Competencies:", !!req.body.keyCompetencies);
+      console.log("CV Validation - Has Extracurricular:", !!req.body.extracurricular);
       
       // For preview mode, use a relaxed parsing that allows empty fields
-      // instead of rejecting the entire request
       let data;
       
       try {
         // Try to validate with the regular schema
         data = completeCvSchema.parse(req.body);
-        console.log("PDF Generation - CV data passed validation");
+        console.log("CV Validation - CV data passed validation");
       } catch (validationError) {
-        console.log("PDF validation issues detected, using relaxed mode for preview");
+        console.log("CV validation issues detected, using relaxed mode for preview");
         
-        // Create default data structure with empty values
+        // Create default data structure with empty values for missing fields
         data = {
           personal: { 
             firstName: req.body.personal?.firstName || "",
@@ -212,39 +181,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
-      console.log("PDF Generation - Getting template type:", data.templateSettings?.template);
+      // Return validated data for client-side PDF generation
+      res.status(200).json({
+        success: true,
+        message: "CV data validated successfully",
+        data
+      });
       
-      try {
-        // Generate PDF buffer based on template type
-        let pdfBuffer;
-        if (data.templateSettings?.template === "fixed-grid") {
-          console.log("PDF Generation - Using fixed-grid template");
-          pdfBuffer = await generateFixedGridCV(data);
-        } else if (data.templateSettings?.template === "consistent-spacing") {
-          console.log("PDF Generation - Using consistent-spacing template");
-          pdfBuffer = await generateConsistentSpacingCV(data);
-        } else {
-          console.log("PDF Generation - Using executive template");
-          pdfBuffer = await generateCVWithPDFKit(data);
-        }
-        console.log("PDF Generation - PDF buffer created, size:", pdfBuffer.length);
-        
-        // Set headers
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=cv.pdf');
-        
-        // Send PDF buffer
-        res.status(200).send(pdfBuffer);
-        console.log("PDF Generation - Response sent successfully");
-      } catch (pdfError) {
-        console.error("PDF Generation - Error generating PDF:", pdfError);
-        throw pdfError;
-      }
     } catch (error) {
-      console.error("PDF Generation - Error caught:", error);
+      console.error("CV Validation - Error caught:", error);
       
       if (error instanceof z.ZodError) {
-        console.log("PDF Generation - Validation error");
+        console.log("CV Validation - Validation error");
         return res.status(400).json({ 
           success: false, 
           message: "Validation error", 
@@ -254,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(500).json({ 
         success: false, 
-        message: "Failed to generate PDF", 
+        message: "Failed to validate CV data", 
         error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
