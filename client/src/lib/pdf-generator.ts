@@ -14,7 +14,9 @@ const PDF_CONFIG = {
   html2canvas: { 
     scale: 2, // Scale factor for better quality
     useCORS: true,
-    letterRendering: true
+    letterRendering: true,
+    allowTaint: true,
+    foreignObjectRendering: true, // Helps with bullet points and special characters
   },
   jsPDF: { 
     unit: 'mm', 
@@ -24,7 +26,10 @@ const PDF_CONFIG = {
   pagebreak: { 
     mode: ['avoid-all', 'css', 'legacy'],
     before: '.page-break'
-  }
+  },
+  fontFaces: [
+    { family: 'Arial', style: 'normal' }
+  ]
 };
 
 /**

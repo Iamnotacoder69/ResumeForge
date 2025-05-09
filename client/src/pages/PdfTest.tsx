@@ -14,8 +14,17 @@ const PdfTest: React.FC = () => {
       margin: [10, 10, 10, 10],
       filename: 'test.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as 'portrait' }
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true, 
+        letterRendering: true,
+        allowTaint: true,
+        foreignObjectRendering: true  // This can help with bullet points
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as 'portrait' },
+      fontFaces: [
+        { family: 'Arial', style: 'normal' }
+      ]
     };
 
     try {
@@ -42,7 +51,7 @@ const PdfTest: React.FC = () => {
         
         <div className="my-6">
           <h3 className="font-medium">Features:</h3>
-          <ul className="list-disc pl-6 mt-2">
+          <ul style={{ listStyleType: 'disc', paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
             <li>Direct HTML to PDF conversion</li>
             <li>Proper styling preservation</li>
             <li>Image support</li>
