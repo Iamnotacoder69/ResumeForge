@@ -1,8 +1,7 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import CVTemplate from './templates/CVTemplate';
-import '@/styles/pdf-page.css';
 
 interface PDFPreviewProps {
   data: CompleteCV;
@@ -30,33 +29,29 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         body * {
           visibility: hidden;
         }
-        .cv-page, .cv-page *, .cv-template-wrapper, .cv-template-wrapper * {
+        .cv-template-wrapper, .cv-template-wrapper * {
           visibility: visible;
         }
-        
-        /* Position for printing */
-        .cv-page {
+        .cv-template-wrapper {
           position: absolute;
           left: 0;
           top: 0;
           width: 100%;
           box-shadow: none !important;
           background-color: white !important;
-          padding: 0 !important;
-          margin: 0 !important;
         }
         
         /* Force background colors and images to print */
-        .cv-page *, .cv-template-wrapper * {
+        .cv-template-wrapper * {
           -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
           color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         /* Page settings for PDF output */
         @page {
           size: A4 portrait;
-          margin: 0;
+          margin: 0mm;
         }
         
         /* Ensure proper font rendering */
@@ -69,17 +64,6 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         p, h1, h2, h3 {
           overflow: visible !important;
           white-space: normal !important;
-        }
-        
-        /* Maintain page breaks */
-        .cv-section {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-        
-        .cv-page-break {
-          page-break-before: always;
-          break-before: page;
         }
       }
     `;
@@ -101,7 +85,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   
   return (
     <div className="pdf-preview-container space-y-6">
-      <div className="flex justify-between items-center mb-4 print:hidden bg-white p-4 rounded-lg shadow-sm">
+      <div className="flex justify-between items-center mb-4 print:hidden">
         <Button 
           onClick={onClose}
           variant="outline"
@@ -124,53 +108,32 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
           Back to Editor
         </Button>
         
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-500 hidden sm:block">
-            <span className="font-medium">Tip:</span> All sections will stay together when printed.
-          </div>
-          <Button 
-            onClick={handlePrintPDF}
-            className="flex items-center gap-2"
+        <Button 
+          onClick={handlePrintPDF}
+          className="flex items-center gap-2"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download as PDF
-          </Button>
-        </div>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download as PDF
+        </Button>
       </div>
       
       <div className="pdf-preview-content">
-        <div className="paged-container max-w-[210mm] mx-auto">
-          {/* A4 page container with visible page margins */}
-          <div className="cv-page bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full" ref={printRef}>
-            {/* A thin border to show page edges clearly only in preview mode */}
-            <div className="screen-only absolute inset-0 border border-dashed border-gray-300 pointer-events-none print:hidden"></div>
-            {/* The actual CV content */}
-            <CVTemplate data={data} templateRef={printRef} />
-          </div>
-          
-          {/* Print instructions - only visible in preview */}
-          <div className="mt-6 bg-blue-50 p-4 rounded-lg text-sm text-blue-800 screen-only">
-            <h3 className="font-bold mb-2">Printing Tips:</h3>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Ensure "Background Graphics" is enabled in your browser's print dialog</li>
-              <li>For best results, use A4 paper size with no margins</li>
-              <li>Select "Scale to fit" if content appears cut off</li>
-            </ul>
-          </div>
+        <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full">
+          <CVTemplate data={data} templateRef={printRef} />
         </div>
       </div>
     </div>
