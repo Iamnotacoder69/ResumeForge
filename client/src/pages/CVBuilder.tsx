@@ -496,14 +496,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Extracurricular Activities <Check className="ml-2 h-4 w-4" />
+                          Next: Extracurricular <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -517,14 +519,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Additional Information <Check className="ml-2 h-4 w-4" />
+                          Next: Additional Info <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -538,14 +542,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.REORDER)}
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Organize Sections <Check className="ml-2 h-4 w-4" />
+                          Next: Organize Sections <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -563,8 +569,9 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <div>
                           <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -572,7 +579,7 @@ const CVBuilder = () => {
                               <Button 
                                 type="button" 
                                 variant="outline"
-                                className="relative"
+                                className="relative bg-primary text-white hover:bg-primary/90 font-semibold"
                                 onClick={handlePreview}
                               >
                                 <Eye className="mr-2 h-4 w-4" /> Preview CV
