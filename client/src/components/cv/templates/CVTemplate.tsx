@@ -23,8 +23,10 @@ const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
       return <ModernTemplate data={data} />;
     } else if (templateType === 'minimal') {
       return <MinimalTemplate data={data} />;
+    } else if (templateType === 'professional') {
+      return <ProfessionalTemplate data={data} />;
     } else {
-      // Default to professional template
+      // Default to professional template if an invalid type is provided
       return <ProfessionalTemplate data={data} />;
     }
   };

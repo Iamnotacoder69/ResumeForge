@@ -155,10 +155,10 @@ export default function WelcomePage() {
   return (
     <div className="container max-w-6xl mx-auto py-12 px-4 sm:px-6">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          CV Builder Pro
+        <h1 className="text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-qwalify-dark to-qwalify-green bg-clip-text text-transparent">
+          Qwalify
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-xl text-qwalify-dark max-w-2xl mx-auto">
           Create a professional CV in minutes. Upload your existing CV for intelligent parsing, or start from scratch.
         </p>
       </div>
@@ -218,7 +218,7 @@ export default function WelcomePage() {
           </CardContent>
           <CardFooter className="flex flex-col items-stretch gap-4">
             <Button 
-              className="w-full"
+              className="w-full bg-qwalify-green hover:bg-qwalify-green/90"
               disabled={!file || isUploading}
               onClick={handleUpload}
             >
@@ -286,7 +286,7 @@ export default function WelcomePage() {
           </CardContent>
           <CardFooter>
             <Button 
-              className="w-full" 
+              className="w-full border-qwalify-dark text-qwalify-dark hover:bg-qwalify-dark hover:text-white transition-colors" 
               variant="outline"
               onClick={handleStartFromScratch}
             >
