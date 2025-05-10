@@ -26,12 +26,18 @@ def convert_html_to_pdf(html_content, output_filename):
         encoding='utf-8'
     )
     
-    # Check if conversion was successful
-    if pisa_status.err:
+    # Check if conversion was successful - pisa_status usually has an err attribute to check
+    # but handle it gracefully if it doesn't have that attribute
+    try:
+        conversion_failed = pisa_status.err if hasattr(pisa_status, 'err') else False
+        if conversion_failed:
+            return False, None
+    except Exception as e:
+        print(f"Error checking PDF conversion status: {e}")
         return False, None
     
-    # Write the PDF to a file
-    output_path = os.path.join(os.path.dirname(__file__), '..', 'generated-pdfs', output_filename)
+    # Write the PDF to a file - use process.cwd() equivalent in Python
+    output_path = os.path.join(os.getcwd(), 'generated-pdfs', output_filename)
     
     # Ensure directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

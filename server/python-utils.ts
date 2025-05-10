@@ -18,7 +18,7 @@ export async function generatePdfWithPython(
   return new Promise((resolve, reject) => {
     try {
       // Ensure the generated-pdfs directory exists
-      const pdfDir = path.join(__dirname, '..', 'generated-pdfs');
+      const pdfDir = path.join(process.cwd(), 'generated-pdfs');
       if (!fs.existsSync(pdfDir)) {
         fs.mkdirSync(pdfDir, { recursive: true });
       }
@@ -28,7 +28,7 @@ export async function generatePdfWithPython(
       fs.writeFileSync(tempJsonPath, JSON.stringify(jsonData, null, 2));
 
       // Path to the Python script
-      const scriptPath = path.join(__dirname, 'pdf-generator.py');
+      const scriptPath = path.join(process.cwd(), 'server', 'pdf-generator.py');
 
       // Spawn the Python process
       const pythonProcess = spawn('python3', [scriptPath, tempJsonPath, templateStyle]);
