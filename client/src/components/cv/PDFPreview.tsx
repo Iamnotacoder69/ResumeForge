@@ -99,7 +99,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
               <Button 
                 onClick={onClose}
                 variant="outline"
-                className="text-xs sm:text-sm bg-white text-secondary hover:bg-white/90 hover:text-secondary flex items-center gap-2"
+                className="text-xs sm:text-sm qwalify-secondary-btn flex items-center gap-2"
               >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
