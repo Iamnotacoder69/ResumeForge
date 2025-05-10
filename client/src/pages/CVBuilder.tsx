@@ -288,7 +288,7 @@ const CVBuilder = () => {
           data={{
             ...form.getValues(),
             templateSettings: {
-              template: selectedTemplate,
+              template: selectedTemplate as any,
               includePhoto: includePhoto,
               sectionOrder: sectionOrder
             }
@@ -495,19 +495,34 @@ const CVBuilder = () => {
                     <TabsContent value={CVTabs.PERSONAL} className="space-y-8">
                       <PersonalInfoSection form={form} />
                       
-                      <div className="flex justify-between">
+                      <div className="flex justify-between mt-8">
                         <Button 
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.TEMPLATE)}
+                          className="relative group border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all"
                         >
-                          Back
+                          <div className="absolute inset-0 flex items-center justify-start pl-3 opacity-70 group-hover:opacity-100 group-hover:pl-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M19 12H5"></path>
+                              <path d="M12 19l-7-7 7-7"></path>
+                            </svg>
+                          </div>
+                          <span className="ml-4">Back: Choose Template</span>
                         </Button>
+                        
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                          className="bg-primary hover:bg-primary/90 transition-all duration-200 group relative"
                         >
-                          Next: Professional Summary <Check className="ml-2 h-4 w-4" />
+                          <span>Next: Professional Summary</span>
+                          <div className="absolute inset-0 flex items-center justify-end pr-3 opacity-70 group-hover:opacity-100 group-hover:pr-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                              <path d="M5 12h14"/>
+                              <path d="m12 5 7 7-7 7"/>
+                            </svg>
+                          </div>
                         </Button>
                       </div>
                     </TabsContent>
@@ -516,19 +531,34 @@ const CVBuilder = () => {
                     <TabsContent value={CVTabs.SUMMARY} className="space-y-8">
                       <SummarySection form={form} />
                       
-                      <div className="flex justify-between">
+                      <div className="flex justify-between mt-8">
                         <Button 
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                          className="relative group border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all"
                         >
-                          Back
+                          <div className="absolute inset-0 flex items-center justify-start pl-3 opacity-70 group-hover:opacity-100 group-hover:pl-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M19 12H5"></path>
+                              <path d="M12 19l-7-7 7-7"></path>
+                            </svg>
+                          </div>
+                          <span className="ml-4">Back: Personal Information</span>
                         </Button>
+                        
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                          className="bg-primary hover:bg-primary/90 transition-all duration-200 group relative"
                         >
-                          Next: Key Competencies <Check className="ml-2 h-4 w-4" />
+                          <span>Next: Key Competencies</span>
+                          <div className="absolute inset-0 flex items-center justify-end pr-3 opacity-70 group-hover:opacity-100 group-hover:pr-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                              <path d="M5 12h14"/>
+                              <path d="m12 5 7 7-7 7"/>
+                            </svg>
+                          </div>
                         </Button>
                       </div>
                     </TabsContent>
