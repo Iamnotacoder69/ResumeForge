@@ -418,6 +418,161 @@ function renderHeader(cv: CompleteCV, templateType: string): string {
   }
 }
 
+function renderSummarySection(cv: CompleteCV): string {
+  if (!cv.professional?.summary) return '';
+
+  return `
+    <div class="section">
+      <h2>Professional Summary</h2>
+      <p>${cv.professional.summary}</p>
+    </div>
+  `;
+}
+
+function renderKeyCompetenciesSection(cv: CompleteCV): string {
+  const technicalSkills = cv.keyCompetencies?.technicalSkills || [];
+  const softSkills = cv.keyCompetencies?.softSkills || [];
+  
+  if (technicalSkills.length === 0 && softSkills.length === 0) return '';
+
+  const renderSkills = (skills: string[], title: string) => {
+    if (skills.length === 0) return '';
+    
+    return `
+      <div>
+        <h3>${title}</h3>
+        <div class="skills-list">
+          ${skills.map(skill => `<span class="skill">${skill}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  };
+
+  return `
+    <div class="section">
+      <h2>Key Competencies</h2>
+      ${renderSkills(technicalSkills, 'Technical Skills')}
+      ${renderSkills(softSkills, 'Soft Skills')}
+    </div>
+  `;
+}
+
+function renderExperienceSection(cv: CompleteCV): string {
+  if (!cv.experience || cv.experience.length === 0) return '';
+
+  const experienceItems = cv.experience.map(exp => {
+    const dateRange = exp.isCurrent
+      ? `${exp.startDate} - Present`
+      : `${exp.startDate} - ${exp.endDate || ''}`;
+    
+    return `
+      <div class="item">
+        <div class="job-title">${exp.jobTitle}</div>
+        <div class="company">${exp.companyName}</div>
+        <div class="date-range">${dateRange}</div>
+        <div class="responsibilities">${exp.responsibilities}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="section">
+      <h2>Professional Experience</h2>
+      ${experienceItems}
+    </div>
+  `;
+}
+
+function renderEducationSection(cv: CompleteCV): string {
+  if (!cv.education || cv.education.length === 0) return '';
+
+  const educationItems = cv.education.map(edu => {
+    const achievements = edu.achievements
+      ? `<div>${edu.achievements}</div>`
+      : '';
+    
+    return `
+      <div class="item">
+        <div class="degree">${edu.major}</div>
+        <div class="school">${edu.schoolName}</div>
+        <div class="date-range">${edu.startDate} - ${edu.endDate || ''}</div>
+        ${achievements}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="section">
+      <h2>Education</h2>
+      ${educationItems}
+    </div>
+  `;
+}
+
+function renderCertificatesSection(cv: CompleteCV): string {
+  if (!cv.certificates || cv.certificates.length === 0) return '';
+
+  const certificateItems = cv.certificates.map(cert => `
+    <div class="item">
+      <div class="degree">${cert.name}</div>
+      <div class="school">${cert.institution}</div>
+      <div class="date-range">
+        ${cert.dateAcquired}
+        ${cert.expirationDate ? ` - ${cert.expirationDate}` : ''}
+      </div>
+      ${cert.achievements ? `<div class="achievements">${cert.achievements}</div>` : ''}
+    </div>
+  `).join('');
+
+  return `
+    <div class="section">
+      <h2>Certifications</h2>
+      <div class="certificate-items">
+        ${certificateItems}
+      </div>
+    </div>
+  `;
+}
+
+function renderExtracurricularSection(cv: CompleteCV): string {
+  if (!cv.extracurricular || cv.extracurricular.length === 0) return '';
+
+  const extraItems = cv.extracurricular.map(extra => {
+    const dateRange = extra.isCurrent
+      ? `${extra.startDate} - Present`
+      : `${extra.startDate} - ${extra.endDate || ''}`;
+    
+    return `
+      <div class="item">
+        <div class="job-title">${extra.role}</div>
+        <div class="company">${extra.organization}</div>
+        <div class="date-range">${dateRange}</div>
+        <div class="responsibilities">${extra.description}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="section">
+      <h2>Extracurricular Activities</h2>
+      ${extraItems}
+    </div>
+  `;
+}
+
+function renderAdditionalSection(cv: CompleteCV): string {
+  if (!cv.additional?.skills || cv.additional.skills.length === 0) return '';
+
+  return `
+    <div class="section">
+      <h2>Additional Skills</h2>
+      <div class="skills-list">
+        ${cv.additional.skills.map(skill => `<span class="skill">${skill}</span>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
 /**
  * Renders a specific CV section based on the section ID
  */
@@ -533,6 +688,8 @@ function renderEducationSection(cv: CompleteCV): string {
     </div>
   `;
 }
+
+
 
 function renderExtracurricularSection(cv: CompleteCV): string {
   if (!cv.extracurricular || cv.extracurricular.length === 0) return '';
