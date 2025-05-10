@@ -1,4 +1,6 @@
 import { CompleteCV } from '@shared/types';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 /**
  * Configuration for PDF generation
@@ -31,54 +33,80 @@ export async function generatePDFFromHTML(
       options.onProgress(10);
     }
     
-    // Get the HTML content
-    const htmlContent = element.outerHTML;
+    // Clone the element to avoid modifying the original
+    const elementClone = element.cloneNode(true) as HTMLElement;
+    
+    // Set styles for better rendering
+    const originalStyle = window.getComputedStyle(element);
+    elementClone.style.width = originalStyle.width;
+    elementClone.style.margin = '0';
+    
+    // Temporarily add to body but hidden
+    elementClone.style.position = 'absolute';
+    elementClone.style.left = '-9999px';
+    elementClone.style.top = '-9999px';
+    document.body.appendChild(elementClone);
+    
+    if (showProgress && options.onProgress) {
+      options.onProgress(20);
+    }
+    
+    // Set up PDF document - A4 size
+    const pdfWidth = 210; // mm
+    const pdfHeight = 297; // mm
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
     
     if (showProgress && options.onProgress) {
       options.onProgress(30);
     }
     
-    // Create API request to generate PDF
-    const response = await fetch('/api/print-cv', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        htmlContent,
-        cvData: data,
-      }),
+    // Render the element to canvas
+    const canvas = await html2canvas(elementClone, {
+      scale: 2, // Higher scale for better quality
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      backgroundColor: '#ffffff', // White background
     });
     
     if (showProgress && options.onProgress) {
       options.onProgress(70);
     }
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to generate PDF: ${errorData.message || response.statusText}`);
-    }
+    // Calculate the proper width and height ratio
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
-    // Get the PDF blob from the response
-    const pdfBlob = await response.blob();
+    // Add the image to the PDF
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    
+    // If content height exceeds page, add more pages
+    if (imgHeight > pdfHeight) {
+      let heightLeft = imgHeight - pdfHeight;
+      let position = -pdfHeight; // Starting position for each new page
+      
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+    }
     
     if (showProgress && options.onProgress) {
       options.onProgress(90);
     }
     
-    // Create a download link and trigger download
-    const downloadUrl = window.URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Clean up the temporary element
+    document.body.removeChild(elementClone);
     
-    // Clean up
-    setTimeout(() => {
-      window.URL.revokeObjectURL(downloadUrl);
-    }, 100);
+    // Save and download the PDF
+    pdf.save(fileName);
     
     if (showProgress && options.onProgress) {
       options.onProgress(100);
