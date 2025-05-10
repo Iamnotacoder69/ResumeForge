@@ -16,7 +16,8 @@ interface CVTemplateProps {
 const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
   // Determine which template to render based on the template type
   const renderTemplate = () => {
-    const templateType = data.templateSettings?.template || 'professional';
+    // Safely extract and cast the template type
+    const templateType = (data.templateSettings?.template || 'professional') as TemplateType;
     
     // Use a switch statement for better type safety
     switch (templateType) {
