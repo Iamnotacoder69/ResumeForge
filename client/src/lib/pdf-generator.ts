@@ -1264,6 +1264,7 @@ export async function generatePDF(cvData: CompleteCV): Promise<Blob> {
   try {
     // Determine which template to use
     const templateType = cvData.templateSettings?.template || 'professional' as TemplateType;
+    console.log('Generating PDF with template:', templateType);
     
     // Create and append HTML content to document
     const template = templates[templateType];
@@ -1272,6 +1273,12 @@ export async function generatePDF(cvData: CompleteCV): Promise<Blob> {
     }
     
     // Generate HTML content
+    console.log('Applying data to template', {
+      personal: cvData.personal,
+      hasSections: cvData.templateSettings?.sectionOrder?.length,
+      hasSummary: !!cvData.professional?.summary,
+      hasExperience: cvData.experience?.length
+    });
     const htmlContent = template(cvData);
     
     // Create a temporary container
@@ -1290,7 +1297,6 @@ export async function generatePDF(cvData: CompleteCV): Promise<Blob> {
       scale: 2, // Higher scale for better quality
       useCORS: true, // Enable CORS for images
       allowTaint: true,
-      letterRendering: true,
       logging: false
     });
     
@@ -1354,7 +1360,9 @@ export async function generatePDF(cvData: CompleteCV): Promise<Blob> {
  */
 export async function downloadPDF(cvData: CompleteCV): Promise<void> {
   try {
+    console.log('Starting PDF generation process');
     const pdfBlob = await generatePDF(cvData);
+    console.log('PDF generation successful, creating blob URL');
     
     // Generate PDF file name
     const fileName = `${cvData.personal?.firstName || 'cv'}_${
@@ -1365,14 +1373,18 @@ export async function downloadPDF(cvData: CompleteCV): Promise<void> {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(pdfBlob);
     link.download = fileName;
+    console.log('Download link created, initiating download');
     
     // Trigger download
     document.body.appendChild(link);
     link.click();
     
-    // Clean up
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    // Clean up - Use setTimeout to ensure the browser has time to process the download
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      console.log('Download cleanup complete');
+    }, 100);
   } catch (error) {
     console.error('Error downloading PDF:', error);
     throw error;
