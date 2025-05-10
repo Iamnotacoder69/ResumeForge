@@ -16,19 +16,16 @@ interface CVTemplateProps {
 const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
   // Determine which template to render based on the template type
   const renderTemplate = () => {
-    // Safely extract and cast the template type
-    const templateType = (data.templateSettings?.template || 'professional') as TemplateType;
+    const templateType = data.templateSettings?.template || 'professional';
     
-    // Use a switch statement for better type safety
-    switch (templateType) {
-      case 'modern':
-        return <ModernTemplate data={data} />;
-      case 'minimal':
-        return <MinimalTemplate data={data} />;
-      case 'professional':
-      default:
-        // Default to professional template
-        return <ProfessionalTemplate data={data} />;
+    // Explicitly type check to satisfy TypeScript
+    if (templateType === 'modern') {
+      return <ModernTemplate data={data} />;
+    } else if (templateType === 'minimal') {
+      return <MinimalTemplate data={data} />;
+    } else {
+      // Default to professional template
+      return <ProfessionalTemplate data={data} />;
     }
   };
 
