@@ -52,33 +52,18 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         @page {
           size: A4 portrait;
           margin: 0mm;
-          /* Avoid unexpected page breaks */
-          orphans: 2;
-          widows: 2;
         }
         
         /* Ensure proper font rendering */
         * {
           font-family: 'Inter', 'Helvetica', sans-serif !important;
           -webkit-font-smoothing: antialiased;
-          text-rendering: optimizeLegibility !important;
         }
         
         /* Fix any text overflow issues */
         p, h1, h2, h3 {
           overflow: visible !important;
           white-space: normal !important;
-        }
-        
-        /* Ensure proper paged media handling */
-        section, div, article {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-        
-        /* Improve vector quality */
-        svg, img {
-          shape-rendering: geometricPrecision;
         }
       }
     `;
