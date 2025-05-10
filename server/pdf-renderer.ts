@@ -441,15 +441,12 @@ function renderSection(sectionId: string, cv: CompleteCV): string {
 }
 
 function renderSummarySection(cv: CompleteCV): string {
-  // Extract summary text based on CV data structure
-  const summaryText = cv.professional?.summary || '';
-  
-  if (!summaryText) return '';
+  if (!cv.professional?.summary) return '';
 
   return `
     <div class="section">
       <h2>Professional Summary</h2>
-      <p>${summaryText}</p>
+      <p>${cv.professional.summary}</p>
     </div>
   `;
 }
