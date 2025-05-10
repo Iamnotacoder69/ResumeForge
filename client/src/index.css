@@ -2,6 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Print styles for CV templates */
+@media print {
+  @page {
+    size: A4;
+    margin: 0.5cm;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Hide elements not needed in print */
+  button, 
+  nav, 
+  .no-print, 
+  .pdf-preview-container > div:first-child {
+    display: none !important;
+  }
+  
+  /* Ensure proper page breaks */
+  .cv-section {
+    page-break-inside: avoid;
+  }
+  
+  /* Make sure background colors and images are printed */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Guarantee white background for the entire document */
+  .cv-template-wrapper {
+    background-color: white !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
