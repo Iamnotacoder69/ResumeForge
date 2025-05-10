@@ -431,6 +431,8 @@ function renderSection(sectionId: string, cv: CompleteCV): string {
       return renderExperienceSection(cv);
     case 'education':
       return renderEducationSection(cv);
+    case 'certificates':
+      return renderCertificatesSection(cv);
     case 'extracurricular':
       return renderExtracurricularSection(cv);
     case 'additional':
@@ -570,3 +572,4 @@ function renderAdditionalSection(cv: CompleteCV): string {
     </div>
   `;
 }
+
