@@ -69,10 +69,10 @@ def generate_cv_pdf(json_data, template_style='professional'):
     
     # Get the CV data
     personal = json_data.get('personal', {})
-    summary = json_data.get('summary', {})
+    professional = json_data.get('professional', {})
     keyCompetencies = json_data.get('keyCompetencies', {})
-    experiences = json_data.get('experiences', [])
-    educations = json_data.get('educations', [])
+    experience = json_data.get('experience', [])
+    education = json_data.get('education', [])
     certificates = json_data.get('certificates', [])
     languages = json_data.get('languages', [])
     additional = json_data.get('additional', {})
@@ -101,10 +101,10 @@ def generate_cv_pdf(json_data, template_style='professional'):
 def generate_professional_template(cv_data):
     """Generate professional template HTML"""
     personal = cv_data.get('personal', {})
-    summary = cv_data.get('summary', {})
+    professional = cv_data.get('professional', {})
     keyCompetencies = cv_data.get('keyCompetencies', {})
-    experiences = cv_data.get('experiences', [])
-    educations = cv_data.get('educations', [])
+    experience = cv_data.get('experience', [])
+    education = cv_data.get('education', [])
     certificates = cv_data.get('certificates', [])
     languages = cv_data.get('languages', [])
     additional = cv_data.get('additional', {})
