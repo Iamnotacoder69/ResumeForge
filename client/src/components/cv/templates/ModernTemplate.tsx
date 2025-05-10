@@ -75,7 +75,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
           switch (section.id) {
             case 'summary':
               return data.professional?.summary ? (
-                <section key="summary" className="mb-8">
+                <section key="summary" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-3 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Professional Summary
@@ -86,7 +86,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               
             case 'keyCompetencies':
               return (data.keyCompetencies?.technicalSkills?.length || data.keyCompetencies?.softSkills?.length) ? (
-                <section key="keyCompetencies" className="mb-8">
+                <section key="keyCompetencies" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-3 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Key Competencies
@@ -128,7 +128,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               
             case 'experience':
               return data.experience?.length ? (
-                <section key="experience" className="mb-8">
+                <section key="experience" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-4 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Professional Experience
@@ -170,7 +170,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               
             case 'education':
               return data.education?.length ? (
-                <section key="education" className="mb-8">
+                <section key="education" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-4 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Education

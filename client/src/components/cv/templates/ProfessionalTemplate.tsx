@@ -155,7 +155,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'education':
               return data.education?.length ? (
-                <section key="education" className="mb-6">
+                <section key="education" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Education</h2>
                   
                   <div className="space-y-4">
@@ -192,7 +192,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'certificates':
               return data.certificates?.length ? (
-                <section key="certificates" className="mb-6">
+                <section key="certificates" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Certifications</h2>
                   
                   <div className="space-y-4">
@@ -230,7 +230,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'extracurricular':
               return data.extracurricular?.length ? (
-                <section key="extracurricular" className="mb-6">
+                <section key="extracurricular" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Extracurricular Activities</h2>
                   
                   <div className="space-y-4">
@@ -267,7 +267,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'additional':
               return (data.languages?.length || data.additional?.skills?.length) ? (
-                <section key="additional" className="mb-6">
+                <section key="additional" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Additional Information</h2>
                   
                   {data.languages?.length > 0 && (
