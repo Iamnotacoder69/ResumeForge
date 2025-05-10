@@ -39,6 +39,14 @@ function Router() {
           </Layout>
         )} 
       />
+      <WouterRoute 
+        path="/builder" 
+        component={() => (
+          <Layout>
+            <CVBuilder />
+          </Layout>
+        )} 
+      />
       <WouterRoute component={NotFound} />
     </Switch>
   );
