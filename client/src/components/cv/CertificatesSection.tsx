@@ -196,7 +196,7 @@ const CertificatesSection = ({ form }: CertificatesSectionProps) => {
             type="button"
             size="sm"
             onClick={addCertificate}
-            className="self-start sm:self-auto bg-primary text-white hover:bg-primary/90 font-semibold"
+            className="self-start sm:self-auto"
           >
             <Plus className="mr-1 h-4 w-4" /> Add Certificate
           </Button>

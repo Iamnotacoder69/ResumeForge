@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check, ArrowRight, ArrowLeft } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -99,7 +99,7 @@ const CVBuilder = () => {
   ];
   
   // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('executive');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
@@ -282,7 +282,7 @@ const CVBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-100">
       {showPreview ? (
         <PDFPreview 
           data={{
@@ -297,23 +297,21 @@ const CVBuilder = () => {
         />
       ) : (
         <>
-          <header className="qwalify-header sticky top-0 z-10">
+          <header className="bg-white shadow-sm sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
-                  <h1 className="text-2xl font-bold flex items-center">
-                    <span className="qwalify-logo">Qwalify</span>
-                    <span className="text-white">CV Builder</span>
-                  </h1>
+                  <FileText className="text-primary text-2xl mr-3" />
+                  <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm relative bg-primary text-white hover:bg-primary/90 hover:text-white font-bold group border-2 border-secondary"
+                    className="text-xs sm:text-sm relative group"
                   >
-                    <Eye className="mr-1 h-4 w-4" /> Preview CV
-                    <span className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
+                    <Eye className="mr-1 h-4 w-4" /> Preview
+                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
                       Preview available with incomplete fields
                     </span>
                   </Button>
@@ -323,7 +321,7 @@ const CVBuilder = () => {
                       title: "Help",
                       description: "Help documentation will be available soon",
                     })}
-                    className="text-xs sm:text-sm bg-white/30 hover:bg-white/40 text-white border-2 border-white/50 font-semibold"
+                    className="text-xs sm:text-sm"
                   >
                     <HelpCircle className="mr-1 h-4 w-4" /> Help
                   </Button>
@@ -378,18 +376,15 @@ const CVBuilder = () => {
                         onPhotoInclusionChange={handlePhotoInclusionChange}
                       />
                       
-                      <div className="flex justify-center mt-6">
+                      <div className="flex justify-end">
                         <Button 
-                          type="button"
-                          className="qwalify-primary-btn px-6 py-5 text-lg font-bold shadow-lg"
+                          type="button" 
                           onClick={() => {
                             console.log("Navigating to Personal Information tab");
                             setActiveTab(CVTabs.PERSONAL);
                           }}
-                          disabled={!selectedTemplate}
                         >
-                          Continue with {selectedTemplate ? (selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1)) : ""} Template
-                          <ArrowRight className="ml-2 h-5 w-5" />
+                          Next: Personal Information <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -403,16 +398,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.TEMPLATE)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Professional Summary <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Professional Summary <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -426,16 +419,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.PERSONAL)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Key Competencies <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Key Competencies <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -449,16 +440,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Work Experience <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Work Experience <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -472,16 +461,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EDUCATION)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Education <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Education <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -496,16 +483,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Extracurricular <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Extracurricular Activities <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -519,16 +504,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EDUCATION)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Additional Info <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Additional Information <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -542,16 +525,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.REORDER)}
-                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Organize Sections <ArrowRight className="ml-2 h-4 w-4" />
+                          Next: Organize Sections <Check className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -569,9 +550,8 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
-                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                          Back
                         </Button>
                         <div>
                           <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -579,7 +559,7 @@ const CVBuilder = () => {
                               <Button 
                                 type="button" 
                                 variant="outline"
-                                className="relative bg-primary text-white hover:bg-primary/90 font-semibold"
+                                className="relative"
                                 onClick={handlePreview}
                               >
                                 <Eye className="mr-2 h-4 w-4" /> Preview CV

@@ -19,7 +19,6 @@ export function useCVForm(initialData?: Partial<CompleteCV>) {
     personal: {
       firstName: "",
       lastName: "",
-      professionalTitle: "",
       email: "",
       phone: "",
       linkedin: "",
@@ -72,7 +71,7 @@ export function useCVForm(initialData?: Partial<CompleteCV>) {
       },
     ],
     templateSettings: {
-      template: "professional",
+      template: "executive",
       includePhoto: false,
       sectionOrder: defaultSectionOrder,
     },
