@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
+import fs from "fs";
 import { storage } from "./storage";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
