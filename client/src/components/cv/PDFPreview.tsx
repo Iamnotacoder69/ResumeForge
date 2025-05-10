@@ -15,6 +15,11 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrintPDF = useCallback(() => {
+    // Define a filename for the PDF
+    const firstName = data.personal?.firstName || '';
+    const lastName = data.personal?.lastName || '';
+    const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
+    
     // Create a print-friendly stylesheet
     const style = document.createElement('style');
     style.innerHTML = `
@@ -32,11 +37,13 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
           top: 0;
           width: 100%;
           box-shadow: none !important;
+          background-color: white !important;
         }
         
-        /* Remove backgrounds from certain elements when printing */
+        /* Force background colors and images to print */
         .cv-template-wrapper * {
           -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
         
@@ -46,23 +53,34 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
           margin: 0mm;
         }
         
-        /* Ensure text colors print properly */
-        body {
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
+        /* Ensure proper font rendering */
+        * {
+          font-family: 'Inter', 'Helvetica', sans-serif !important;
+          -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Fix any text overflow issues */
+        p, h1, h2, h3 {
+          overflow: visible !important;
+          white-space: normal !important;
         }
       }
     `;
     document.head.appendChild(style);
     
+    // Set the document title to improve the suggested filename
+    const originalTitle = document.title;
+    document.title = pdfFileName;
+    
     // Trigger the print dialog
     window.print();
     
-    // Remove the print-specific styles after printing
+    // Restore the original title and remove the print-specific styles
     setTimeout(() => {
+      document.title = originalTitle;
       document.head.removeChild(style);
     }, 1000);
-  }, []);
+  }, [data.personal]);
   
   return (
     <div className="pdf-preview-container space-y-6">
@@ -91,8 +109,8 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       </div>
       
       <div className="pdf-preview-content">
-        <div ref={printRef} className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full">
-          <CVTemplate data={data} />
+        <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full">
+          <CVTemplate data={data} templateRef={printRef} />
         </div>
       </div>
     </div>
