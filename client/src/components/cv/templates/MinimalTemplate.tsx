@@ -18,7 +18,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
   return (
     <div className="cv-template bg-white text-gray-800 p-8 max-w-[210mm] mx-auto shadow-lg print:shadow-none">
       {/* Header */}
-      <header className="mb-8 text-center">
+      <header className="mb-8 text-center cv-section">
         <h1 className="text-3xl font-light text-gray-900 mb-2 tracking-wide uppercase">
           {data.personal.firstName} {data.personal.lastName}
         </h1>
@@ -239,7 +239,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'additional':
               return (data.languages?.length || data.additional?.skills?.length) ? (
-                <section key="additional" className="mb-8">
+                <section key="additional" className="mb-8 cv-section">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Additional Information
                   </h2>

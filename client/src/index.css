@@ -29,6 +29,16 @@
     page-break-inside: avoid;
   }
   
+  /* Avoid page breaks after headings */
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+  }
+  
+  /* Avoid breaking list items */
+  li {
+    page-break-inside: avoid;
+  }
+  
   /* Make sure background colors and images are printed */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -37,13 +47,32 @@
   }
   
   /* Guarantee white background for the entire document */
-  .cv-template-wrapper {
+  .cv-template-wrapper, .cv-template {
     background-color: white !important;
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
     box-shadow: none !important;
+    /* Ensure content stays within print margins */
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  
+  /* Custom styles for better print rendering */
+  .cv-template {
+    font-size: 12pt !important; /* Standard size for print */
+    line-height: 1.3 !important; /* Better readability in print */
+  }
+  
+  /* Ensure dark text for better print contrast */
+  p, span, div {
+    color: black !important;
+  }
+  
+  /* Make sure background colors in Modern template are printed */
+  .bg-blue-600, .bg-blue-500, .bg-blue-50, .text-blue-600, .text-blue-700 {
+    print-color-adjust: exact !important;
   }
 }
 

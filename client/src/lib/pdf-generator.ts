@@ -60,9 +60,18 @@ export async function generatePDFFromHTML(
       }
       
       // Generate a filename from user data
-      const firstName = data.personal.firstName || 'CV';
+      // Generate a professional filename based on user's name
+      const firstName = data.personal.firstName || '';
       const lastName = data.personal.lastName || '';
-      const filename = `${firstName}_${lastName}_CV.pdf`.replace(/\s+/g, '_');
+      const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // Create filename with name and date, falling back to "Professional_CV" if no name provided
+      const filenamePart = firstName || lastName 
+        ? `${firstName}${lastName ? '_' + lastName : ''}_CV_${date}`
+        : `Professional_CV_${date}`;
+        
+      // Clean the filename by removing spaces and special characters
+      const filename = filenamePart.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
       
       // Write the print document with proper styling
       frameDoc.open();
@@ -72,8 +81,8 @@ export async function generatePDFFromHTML(
             <title>${filename}</title>
             <style>
               @page {
-                size: A4;
-                margin: 0.5cm;
+                size: A4 portrait;
+                margin: 0.7cm;
               }
               body {
                 margin: 0;
@@ -81,13 +90,29 @@ export async function generatePDFFromHTML(
                 font-family: Arial, Helvetica, sans-serif;
                 color: #333;
                 background: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
               }
               .print-wrapper {
                 width: 100%;
                 max-width: 100%;
                 margin: 0 auto;
-                padding: 0.5cm;
+                padding: 0;
                 box-sizing: border-box;
+              }
+              /* Ensure proper page breaks */
+              .cv-section {
+                page-break-inside: avoid;
+              }
+              /* Avoid page breaks after headings */
+              h1, h2, h3, h4 {
+                page-break-after: avoid;
+              }
+              /* Make sure background colors appear in print */
+              * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
               /* Copy embedded fonts and styles from the main page */
               ${Array.from(document.styleSheets)
