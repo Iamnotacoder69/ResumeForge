@@ -12,6 +12,7 @@ interface TemplateSelectorProps {
   includePhoto: boolean;
   onTemplateChange: (template: TemplateType) => void;
   onPhotoInclusionChange: (include: boolean) => void;
+  onContinue?: () => void; // Optional callback for continuing to next step
 }
 
 const TemplateSelector: React.FC<TemplateSelectorProps> = ({
@@ -170,9 +171,39 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               Include photo in CV
             </Label>
           </div>
-          <p className="text-sm text-gray-500 mt-2 ml-11">
+          <p className="text-sm text-gray-500 mt-2 ml-11 mb-6">
             Adding a professional photo is optional and depends on regional standards
           </p>
+          
+          <div className="flex justify-center mt-6">
+            <Button 
+              onClick={() => {
+                if (selectedTemplate) {
+                  // Find the Personal tab and navigate to it
+                  const personalTab = document.querySelector('[value="personal"]');
+                  if (personalTab && personalTab instanceof HTMLElement) {
+                    personalTab.click();
+                    console.log("Navigating to Personal Information tab");
+                  } else {
+                    console.error("Could not find Personal tab element");
+                  }
+                }
+              }}
+              className="qwalify-primary-btn px-10 py-6 text-lg font-bold shadow-lg"
+              disabled={!selectedTemplate}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-6 w-6 mr-2" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              Continue with {selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1)} Template
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
