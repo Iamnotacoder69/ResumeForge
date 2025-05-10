@@ -212,7 +212,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               
             case 'certificates':
               return data.certificates?.length ? (
-                <section key="certificates" className="mb-8">
+                <section key="certificates" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-4 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Certifications
@@ -253,7 +253,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               
             case 'extracurricular':
               return data.extracurricular?.length ? (
-                <section key="extracurricular" className="mb-8">
+                <section key="extracurricular" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-4 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Extracurricular Activities
@@ -295,7 +295,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               
             case 'additional':
               return (data.languages?.length || data.additional?.skills?.length) ? (
-                <section key="additional" className="mb-8">
+                <section key="additional" className="mb-8 cv-section">
                   <h2 className="text-xl font-bold text-blue-600 mb-4 flex items-center">
                     <span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-2"></span>
                     Additional Information
