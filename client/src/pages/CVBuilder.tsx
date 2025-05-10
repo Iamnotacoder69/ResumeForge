@@ -285,20 +285,15 @@ const CVBuilder = () => {
     <div className="min-h-screen bg-gray-100">
       {showPreview ? (
         <PDFPreview 
-          data={form.getValues()} 
-          onClose={() => setShowPreview(false)}
-          onDownload={() => {
-            console.log("PDFPreview download button clicked");
-            const dataWithTemplateSettings = {
-              ...form.getValues(),
-              templateSettings: {
-                template: selectedTemplate,
-                includePhoto: includePhoto,
-                sectionOrder: sectionOrder
-              }
-            };
-            submitMutation.mutate(dataWithTemplateSettings);
+          data={{
+            ...form.getValues(),
+            templateSettings: {
+              template: selectedTemplate,
+              includePhoto: includePhoto,
+              sectionOrder: sectionOrder
+            }
           }}
+          onClose={() => setShowPreview(false)}
         />
       ) : (
         <>
