@@ -4,6 +4,7 @@ from xhtml2pdf import pisa
 import os
 from io import BytesIO
 import json
+import sys
 
 def convert_html_to_pdf(html_content, output_filename):
     """
@@ -67,18 +68,8 @@ def generate_cv_pdf(json_data, template_style='professional'):
         except json.JSONDecodeError:
             return False, "Invalid JSON data"
     
-    # Get the CV data
-    personal = json_data.get('personal', {})
-    professional = json_data.get('professional', {})
-    keyCompetencies = json_data.get('keyCompetencies', {})
-    experience = json_data.get('experience', [])
-    education = json_data.get('education', [])
-    certificates = json_data.get('certificates', [])
-    languages = json_data.get('languages', [])
-    additional = json_data.get('additional', {})
-    templateSettings = json_data.get('templateSettings', {})
-    
     # Get the name for the PDF file
+    personal = json_data.get('personal', {})
     first_name = personal.get('firstName', 'CV')
     last_name = personal.get('lastName', 'Document')
     filename = f"{first_name}_{last_name}_CV.pdf"
@@ -100,6 +91,7 @@ def generate_cv_pdf(json_data, template_style='professional'):
 
 def generate_professional_template(cv_data):
     """Generate professional template HTML"""
+    # Extract all data sections from cv_data
     personal = cv_data.get('personal', {})
     professional = cv_data.get('professional', {})
     keyCompetencies = cv_data.get('keyCompetencies', {})
@@ -107,8 +99,11 @@ def generate_professional_template(cv_data):
     education = cv_data.get('education', [])
     certificates = cv_data.get('certificates', [])
     languages = cv_data.get('languages', [])
+    extracurricular = cv_data.get('extracurricular', [])
     additional = cv_data.get('additional', {})
+    templateSettings = cv_data.get('templateSettings', {})
     
+    # Define CSS styles for the CV - matching the web version's appearance
     html = f"""
     <html>
     <head>
@@ -116,13 +111,15 @@ def generate_professional_template(cv_data):
         <style>
             @page {{
                 size: A4;
-                margin: 1cm;
+                margin: 1.5cm;
             }}
             body {{
-                font-family: Arial, sans-serif;
+                font-family: 'Arial', 'Helvetica', sans-serif;
                 font-size: 11pt;
-                color: #333;
-                line-height: 1.4;
+                color: #043e44;
+                line-height: 1.5;
+                margin: 0;
+                padding: 0;
             }}
             .header {{
                 margin-bottom: 20px;
@@ -132,18 +129,16 @@ def generate_professional_template(cv_data):
                 font-weight: bold;
                 color: #043e44;
                 margin: 0;
-            }}
-            .title {{
-                font-size: 14pt;
-                color: #03d27c;
-                margin: 5px 0 10px 0;
+                padding: 0;
             }}
             .contact-info {{
-                margin-bottom: 15px;
+                margin: 5px 0;
                 font-size: 10pt;
+                color: #666;
             }}
             .section {{
                 margin-bottom: 20px;
+                page-break-inside: avoid;
             }}
             .section-title {{
                 font-size: 14pt;
@@ -151,36 +146,57 @@ def generate_professional_template(cv_data):
                 color: #043e44;
                 border-bottom: 2px solid #03d27c;
                 padding-bottom: 5px;
-                margin-bottom: 10px;
+                margin-bottom: 15px;
             }}
-            .company-title {{
+            .company-name {{
                 font-weight: bold;
-                margin-bottom: 0;
+                margin-bottom: 2px;
+                color: #043e44;
             }}
             .job-title {{
-                font-style: italic;
+                font-weight: 600;
                 color: #03d27c;
+                margin: 2px 0;
             }}
             .date-range {{
                 font-size: 10pt;
                 color: #666;
+                margin-bottom: 5px;
             }}
             .responsibilities {{
-                margin-top: 5px;
+                margin-top: 8px;
+                text-align: justify;
             }}
             .school-name {{
                 font-weight: bold;
+                color: #043e44;
+                margin-bottom: 2px;
             }}
             .degree {{
-                font-style: italic;
+                font-weight: 600;
+                color: #03d27c;
             }}
             .skills-list {{
-                column-count: 2;
-                column-gap: 20px;
+                display: flex;
+                flex-wrap: wrap;
+                margin: 0;
+                padding: 0;
             }}
-            .skills-item {{
+            .skill-item {{
+                background-color: rgba(3, 210, 124, 0.1);
+                border: 1px solid #03d27c;
+                border-radius: 4px;
+                padding: 3px 8px;
+                margin: 3px;
+                font-size: 10pt;
+                color: #043e44;
+                display: inline-block;
+            }}
+            .skill-category {{
+                font-weight: bold;
+                margin-top: 10px;
                 margin-bottom: 5px;
-                break-inside: avoid;
+                color: #043e44;
             }}
             .language {{
                 margin-bottom: 5px;
@@ -189,18 +205,46 @@ def generate_professional_template(cv_data):
                 font-weight: bold;
             }}
             .language-level {{
-                font-style: italic;
-                color: #666;
+                color: #03d27c;
+            }}
+            ul {{
+                padding-left: 20px;
+                margin: 5px 0;
+            }}
+            li {{
+                margin-bottom: 3px;
+            }}
+            
+            /* Icons */
+            .icon {{
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                margin-right: 5px;
+                vertical-align: middle;
+            }}
+            .email-icon::before {{
+                content: "✉";
+                color: #03d27c;
+            }}
+            .phone-icon::before {{
+                content: "☎";
+                color: #03d27c;
+            }}
+            .linkedin-icon::before {{
+                content: "in";
+                color: #03d27c;
+                font-weight: bold;
             }}
         </style>
     </head>
     <body>
         <div class="header">
             <h1 class="name">{personal.get('firstName', '')} {personal.get('lastName', '')}</h1>
-            <div class="title">{personal.get('professionalTitle', '')}</div>
             <div class="contact-info">
-                {personal.get('email', '')} | {personal.get('phone', '')}
-                {' | LinkedIn: ' + personal.get('linkedin', '') if personal.get('linkedin') else ''}
+                <span class="icon email-icon"></span>{personal.get('email', '')} 
+                <span class="icon phone-icon" style="margin-left: 10px;"></span>{personal.get('phone', '')}
+                {f'<span class="icon linkedin-icon" style="margin-left: 10px;"></span>{personal.get("linkedin", "")}' if personal.get('linkedin') else ''}
             </div>
         </div>
     """

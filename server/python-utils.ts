@@ -28,7 +28,7 @@ export async function generatePdfWithPython(
       fs.writeFileSync(tempJsonPath, JSON.stringify(jsonData, null, 2));
 
       // Path to the Python script
-      const scriptPath = path.join(process.cwd(), 'server', 'pdf-generator.py');
+      const scriptPath = path.join(process.cwd(), 'server', 'new-pdf-generator.py');
 
       // Spawn the Python process
       const pythonProcess = spawn('python3', [scriptPath, tempJsonPath, templateStyle]);
