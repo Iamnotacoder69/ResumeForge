@@ -93,18 +93,18 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
   return (
     <Card className="shadow-sm">
       <CardContent className="pt-5 sm:pt-6">
-        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Personal Information</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-[#043e44] mb-4 sm:mb-6">Personal Information</h2>
         
         <div className="flex flex-col sm:flex-row gap-6 mb-6">
           <div className="flex flex-col items-center">
-            <Avatar className="w-32 h-32 border-2 border-muted">
+            <Avatar className="w-32 h-32 border-2 border-[#03d27c]/30">
               <AvatarImage src={photoPreview || ""} alt="Profile" />
               <AvatarFallback className="text-2xl bg-muted">{getInitials() || <Camera className="w-10 h-10 text-muted-foreground" />}</AvatarFallback>
             </Avatar>
             
             <div className="mt-3 flex flex-col gap-2">
               <Label htmlFor="photo-upload" className="w-full">
-                <div className="flex items-center justify-center gap-2 bg-primary/10 text-primary rounded-md px-3 py-2 text-sm font-medium cursor-pointer hover:bg-primary/20 transition-colors">
+                <div className="flex items-center justify-center gap-2 bg-[#03d27c]/10 text-[#03d27c] rounded-md px-3 py-2 text-sm font-medium cursor-pointer hover:bg-[#03d27c]/20 transition-colors">
                   <Upload className="h-4 w-4" />
                   Upload Photo
                 </div>
@@ -123,7 +123,7 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
                   variant="outline"
                   size="sm"
                   onClick={removePhoto}
-                  className="text-destructive hover:text-destructive"
+                  className="border-red-400 text-red-500 hover:bg-red-50 hover:text-red-600"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Remove
@@ -147,7 +147,7 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
             name="personal.firstName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First Name*</FormLabel>
+                <FormLabel className="text-[#043e44] font-medium">First Name*</FormLabel>
                 <FormControl>
                   <Input placeholder="John" {...field} />
                 </FormControl>
@@ -161,7 +161,7 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
             name="personal.lastName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Last Name*</FormLabel>
+                <FormLabel className="text-[#043e44] font-medium">Last Name*</FormLabel>
                 <FormControl>
                   <Input placeholder="Doe" {...field} />
                 </FormControl>
@@ -175,7 +175,7 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
             name="personal.professionalTitle"
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
-                <FormLabel>Professional Title*</FormLabel>
+                <FormLabel className="text-[#043e44] font-medium">Professional Title*</FormLabel>
                 <FormControl>
                   <Input placeholder="Software Engineer" {...field} />
                 </FormControl>
@@ -192,7 +192,7 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
             name="personal.email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email*</FormLabel>
+                <FormLabel className="text-[#043e44] font-medium">Email*</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="john.doe@example.com" {...field} />
                 </FormControl>
