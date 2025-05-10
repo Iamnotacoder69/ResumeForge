@@ -82,16 +82,16 @@ export default function WelcomePage() {
         // Extract the actual data from the response
         const cvData = data.data || data;
         sessionStorage.setItem('extractedCVData', JSON.stringify(cvData));
-        console.log('Successfully stored CV data, navigating to builder...');
+        console.log('Successfully stored CV data, navigating to CV builder...');
         
         // Navigate after a very short delay to ensure storage completes
         setTimeout(() => {
-          navigate('/builder');
+          navigate('/cv-builder');
         }, 100);
       } catch (err) {
         console.error('Error storing CV data:', err);
         // Try to navigate anyway
-        navigate('/builder');
+        navigate('/cv-builder');
       }
     },
     onError: (error: Error) => {
@@ -149,7 +149,7 @@ export default function WelcomePage() {
   const handleStartFromScratch = () => {
     // Remove any stored CV data from previous sessions
     sessionStorage.removeItem('extractedCVData');
-    navigate('/builder');
+    navigate('/cv-builder');
   };
 
   return (

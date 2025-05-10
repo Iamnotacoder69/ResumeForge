@@ -206,7 +206,7 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
             name="personal.phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number*</FormLabel>
+                <FormLabel className="text-[#043e44] font-medium">Phone Number*</FormLabel>
                 <FormControl>
                   <Input placeholder="+1 (555) 123-4567" {...field} />
                 </FormControl>
@@ -220,10 +220,10 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
             name="personal.linkedin"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>LinkedIn Profile</FormLabel>
+                <FormLabel className="text-[#043e44] font-medium">LinkedIn Profile</FormLabel>
                 <FormControl>
                   <div className="flex rounded-md shadow-sm">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-[#03d27c]/30 bg-[#03d27c]/5 text-[#043e44] text-sm">
                       linkedin.com/in/
                     </span>
                     <Input 
