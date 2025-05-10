@@ -282,7 +282,7 @@ const CVBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-white to-primary/5">
       {showPreview ? (
         <PDFPreview 
           data={{
@@ -297,33 +297,54 @@ const CVBuilder = () => {
         />
       ) : (
         <>
-          <header className="bg-white shadow-sm sticky top-0 z-10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+            <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-white font-bold">Q</div>
+                <span className="text-xl font-bold text-gray-900">Qwalify</span>
+              </div>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => toast({
+                    title: "Help",
+                    description: "Help documentation will be available soon",
+                  })}
+                  className="text-xs sm:text-sm"
+                >
+                  <HelpCircle className="mr-1 h-4 w-4" /> Help
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handlePreview}
+                  className="text-xs sm:text-sm relative group"
+                >
+                  <Eye className="mr-1 h-4 w-4" /> Preview
+                  <span className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
+                    Preview available with incomplete fields
+                  </span>
+                </Button>
+              </div>
+            </div>
+          </nav>
+          
+          <header className="bg-white border-b mt-1">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
-                  <FileText className="text-primary text-2xl mr-3" />
-                  <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
+                  <div className="rounded-full bg-primary/10 p-2 mr-3">
+                    <FileText className="text-primary h-5 w-5" />
+                  </div>
+                  <h1 className="text-2xl font-bold text-gray-900">CV Builder</h1>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-gray-500 hidden sm:block">Complete all sections for best results</p>
                   <Button 
-                    variant="outline" 
-                    onClick={handlePreview}
-                    className="text-xs sm:text-sm relative group"
+                    onClick={handleSubmit(onSubmit)}
+                    className="bg-primary hover:bg-primary/90"
                   >
-                    <Eye className="mr-1 h-4 w-4" /> Preview
-                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
-                      Preview available with incomplete fields
-                    </span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => toast({
-                      title: "Help",
-                      description: "Help documentation will be available soon",
-                    })}
-                    className="text-xs sm:text-sm"
-                  >
-                    <HelpCircle className="mr-1 h-4 w-4" /> Help
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
                   </Button>
                 </div>
               </div>
