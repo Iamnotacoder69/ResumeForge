@@ -5,13 +5,14 @@ import CVTemplate from './templates/CVTemplate';
 
 interface PDFPreviewProps {
   data: CompleteCV;
+  onClose?: () => void;
 }
 
 /**
  * PDF Preview component that allows for printing/downloading the CV as a PDF
  * using the browser's built-in print functionality
  */
-const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
+const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrintPDF = useCallback(() => {
@@ -84,7 +85,29 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
   
   return (
     <div className="pdf-preview-container space-y-6">
-      <div className="flex justify-end mb-4 print:hidden">
+      <div className="flex justify-between items-center mb-4 print:hidden">
+        <Button 
+          onClick={onClose}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5"></path>
+            <path d="M12 19l-7-7 7-7"></path>
+          </svg>
+          Back to Editor
+        </Button>
+        
         <Button 
           onClick={handlePrintPDF}
           className="flex items-center gap-2"

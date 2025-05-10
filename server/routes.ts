@@ -145,6 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           personal: { 
             firstName: req.body.personal?.firstName || "",
             lastName: req.body.personal?.lastName || "",
+            professionalTitle: req.body.personal?.professionalTitle || "",
             email: req.body.personal?.email || "",
             phone: req.body.personal?.phone || "",
             linkedin: req.body.personal?.linkedin || "",
