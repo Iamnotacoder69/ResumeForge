@@ -356,18 +356,37 @@ const CVBuilder = () => {
           </header>
           
           <div className="bg-white border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-              <Progress value={progressMap[activeTab]} className="h-2.5" />
-              <div className="flex justify-between text-xs text-gray-500 mt-1 flex-wrap">
-                <span>Template</span>
-                <span>Personal</span>
-                <span className="hidden sm:inline">Summary</span>
-                <span className="hidden md:inline">Key Skills</span>
-                <span>Experience</span>
-                <span>Education</span>
-                <span className="hidden md:inline">Extracurricular</span>
-                <span>Additional</span>
-                <span>Organize</span>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="mb-2 flex justify-between items-center">
+                <div className="text-sm font-medium text-gray-700">
+                  Step {Object.values(CVTabs).indexOf(activeTab) + 1} of {Object.values(CVTabs).length}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {progressMap[activeTab]}% Complete
+                </div>
+              </div>
+              <Progress value={progressMap[activeTab]} className="h-2.5 bg-gray-100" />
+              
+              <div className="flex justify-between mt-4 overflow-x-auto hide-scrollbar pb-2">
+                <div className="flex space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-6">
+                  {Object.entries(CVTabs).map(([key, value]) => (
+                    <div 
+                      key={key} 
+                      onClick={() => setActiveTab(value)}
+                      className={`
+                        cursor-pointer px-3 py-2 rounded-md text-sm transition-colors
+                        ${activeTab === value ? 
+                          'bg-primary/10 text-primary font-medium' : 
+                          'hover:bg-gray-50 text-gray-600'}
+                      `}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {activeTab === value && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                        <span>{key.split('_').map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(' ')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
