@@ -167,7 +167,7 @@ export const completeCvSchema = z.object({
       companyName: z.string().default(""),
       jobTitle: z.string().default(""),
       startDate: z.string().default(""),
-      endDate: z.string().nullish(), // Allow both null and undefined
+      endDate: z.string().optional(),
       isCurrent: z.boolean().optional().default(false),
       responsibilities: z.string().default(""),
     })
@@ -177,7 +177,7 @@ export const completeCvSchema = z.object({
       schoolName: z.string().default(""),
       major: z.string().default(""),
       startDate: z.string().default(""),
-      endDate: z.string().nullish(),
+      endDate: z.string().default(""),
       achievements: z.string().optional(),
     })
   ).default([]),
@@ -186,7 +186,7 @@ export const completeCvSchema = z.object({
       institution: z.string().default(""),
       name: z.string().default(""),
       dateAcquired: z.string().default(""),
-      expirationDate: z.string().nullish(),
+      expirationDate: z.string().optional(),
       achievements: z.string().optional(),
     })
   ).default([]),
@@ -195,7 +195,7 @@ export const completeCvSchema = z.object({
       organization: z.string().default(""),
       role: z.string().default(""),
       startDate: z.string().default(""),
-      endDate: z.string().nullish(), // Allow both null and undefined
+      endDate: z.string().optional(),
       isCurrent: z.boolean().optional().default(false),
       description: z.string().default(""),
     })

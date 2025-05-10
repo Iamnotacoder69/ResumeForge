@@ -1,9 +1,6 @@
 import type { Express, Request, Response } from "express";
-import express from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import { storage } from "./storage";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
@@ -12,8 +9,6 @@ import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { generatePdfWithPython } from "./python-utils";
-import { log } from "./vite";
 
 // Configure multer for memory storage (files stored in buffer)
 const upload = multer({
@@ -24,68 +19,7 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve generated PDFs
-  const pdfDir = path.join(process.cwd(), 'generated-pdfs');
-  if (!fs.existsSync(pdfDir)) {
-    fs.mkdirSync(pdfDir, { recursive: true });
-  }
-  app.use('/generated-pdfs', (req, res, next) => {
-    // Only allow PDF downloads
-    if (!req.path.endsWith('.pdf')) {
-      return res.status(404).send('Not found');
-    }
-    next();
-  }, express.static(pdfDir));
-
   // CV Routes
-  
-  // Generate PDF from CV data using xhtml2pdf
-  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
-    try {
-      const validatedData = completeCvSchema.parse(req.body);
-      const templateStyle = req.body.templateSettings?.template || 'professional';
-      
-      log(`Generating PDF with template: ${templateStyle}`, 'pdf-generator');
-      
-      try {
-        const pdfPath = await generatePdfWithPython(validatedData, templateStyle);
-        
-        // Return the URL to the generated PDF
-        const filename = path.basename(pdfPath);
-        const pdfUrl = `/generated-pdfs/${filename}`;
-        
-        res.json({
-          success: true,
-          pdfUrl,
-          message: "PDF generated successfully"
-        });
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        log(`Error generating PDF: ${errorMsg}`, 'pdf-generator');
-        res.status(500).json({
-          success: false,
-          message: "Failed to generate PDF",
-          error: errorMsg
-        });
-      }
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const validationError = fromZodError(err);
-        res.status(400).json({
-          success: false,
-          message: "Invalid CV data",
-          error: validationError.message
-        });
-      } else {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        res.status(500).json({
-          success: false,
-          message: "Server error",
-          error: errorMsg
-        });
-      }
-    }
-  });
   
   // Submit CV - Create a new CV entry with all related data
   app.post("/api/cv", async (req: Request, res: Response) => {
