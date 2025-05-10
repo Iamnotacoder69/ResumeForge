@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check, ArrowRight } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check, ArrowRight, ArrowLeft } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -403,14 +403,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.TEMPLATE)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Professional Summary <Check className="ml-2 h-4 w-4" />
+                          Next: Professional Summary <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -447,15 +449,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
-                          className="qwalify-primary-btn font-semibold"
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Work Experience <Check className="ml-2 h-4 w-4" />
+                          Next: Work Experience <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
@@ -469,14 +472,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Education <Check className="ml-2 h-4 w-4" />
+                          Next: Education <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
