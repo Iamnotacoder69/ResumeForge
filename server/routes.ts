@@ -279,6 +279,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate PDF using wkhtmltopdf
+  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+    try {
+      const cvData = req.body;
+      
+      // Import dynamically to avoid issues with circular dependencies
+      const { renderCVToPDF } = await import('./pdf-renderer');
+      
+      // Get template type from the request
+      const templateType = cvData.templateSettings?.template || 'professional';
+      
+      // Generate the PDF
+      const { filePath, fileName } = await renderCVToPDF(cvData, templateType);
+      
+      // Set the response headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      
+      // Stream the file to the client
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+      // Clean up the file after sending
+      fileStream.on('end', () => {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (e) {
+          console.error('Error cleaning up PDF file:', e);
+        }
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to generate PDF',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

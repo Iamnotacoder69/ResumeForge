@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import CVTemplate from './templates/CVTemplate';
+import { Loader2 } from 'lucide-react';
 
 interface PDFPreviewProps {
   data: CompleteCV;
@@ -9,79 +10,59 @@ interface PDFPreviewProps {
 }
 
 /**
- * PDF Preview component that allows for printing/downloading the CV as a PDF
- * using the browser's built-in print functionality
+ * PDF Preview component that allows for downloading the CV as a PDF
+ * using the wkhtmltopdf server-side PDF generation
  */
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
-  const handlePrintPDF = useCallback(() => {
-    // Define a filename for the PDF
-    const firstName = data.personal?.firstName || '';
-    const lastName = data.personal?.lastName || '';
-    const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
-    
-    // Create a print-friendly stylesheet
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @media print {
-        /* Hide everything except the CV template */
-        body * {
-          visibility: hidden;
-        }
-        .cv-template-wrapper, .cv-template-wrapper * {
-          visibility: visible;
-        }
-        .cv-template-wrapper {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          box-shadow: none !important;
-          background-color: white !important;
-        }
-        
-        /* Force background colors and images to print */
-        .cv-template-wrapper * {
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        
-        /* Page settings for PDF output */
-        @page {
-          size: A4 portrait;
-          margin: 0mm;
-        }
-        
-        /* Ensure proper font rendering */
-        * {
-          font-family: 'Inter', 'Helvetica', sans-serif !important;
-          -webkit-font-smoothing: antialiased;
-        }
-        
-        /* Fix any text overflow issues */
-        p, h1, h2, h3 {
-          overflow: visible !important;
-          white-space: normal !important;
-        }
+  const handleGeneratePDF = useCallback(async () => {
+    try {
+      setIsGenerating(true);
+      
+      // Define a filename for the PDF based on the user's name
+      const firstName = data.personal?.firstName || '';
+      const lastName = data.personal?.lastName || '';
+      const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
+      
+      // Send the CV data to the server for PDF generation
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
       }
-    `;
-    document.head.appendChild(style);
-    
-    // Set the document title to improve the suggested filename
-    const originalTitle = document.title;
-    document.title = pdfFileName;
-    
-    // Trigger the print dialog
-    window.print();
-    
-    // Restore the original title and remove the print-specific styles
-    setTimeout(() => {
-      document.title = originalTitle;
-      document.head.removeChild(style);
-    }, 1000);
-  }, [data.personal]);
+      
+      // Get the PDF file as a blob
+      const blob = await response.blob();
+      
+      // Create a download link for the PDF
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = pdfFileName;
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [data]);
   
   return (
     <div className="pdf-preview-container space-y-6">
@@ -109,25 +90,35 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         </Button>
         
         <Button 
-          onClick={handlePrintPDF}
+          onClick={handleGeneratePDF}
+          disabled={isGenerating}
           className="flex items-center gap-2 bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download as PDF
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Generating PDF...
+            </>
+          ) : (
+            <>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download as PDF
+            </>
+          )}
         </Button>
       </div>
       

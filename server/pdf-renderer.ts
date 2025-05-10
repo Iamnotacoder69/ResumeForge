@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+// @ts-ignore
 import wkhtmltopdf from 'wkhtmltopdf';
 import { CompleteCV } from '@shared/types';
-import wkhtmlPath from 'wkhtmltopdf-installer';
+// @ts-ignore
+import * as wkhtmlPath from 'wkhtmltopdf-installer';
 
 // Ensure binary path is set correctly
 const wkhtmltopdfPath = wkhtmlPath.path;
@@ -53,7 +55,7 @@ export async function renderCVToPDF(
         enableLocalFileAccess: true,
         disableJavascript: false,
         javascriptDelay: 1000
-      }, (err) => {
+      }, (err: any) => {
         // Clean up the temporary HTML file
         try {
           fs.unlinkSync(htmlPath);
@@ -439,8 +441,8 @@ function renderSection(sectionId: string, cv: CompleteCV): string {
 }
 
 function renderSummarySection(cv: CompleteCV): string {
-  // Access the summary from either the summary property or professional.summary
-  const summaryText = cv.summary?.summary || cv.professional?.summary || '';
+  // Extract summary text based on CV data structure
+  const summaryText = cv.professional?.summary || '';
   
   if (!summaryText) return '';
 

@@ -28,6 +28,5 @@ declare module 'wkhtmltopdf' {
 }
 
 declare module 'wkhtmltopdf-installer' {
-  const path: string;
-  export default { path };
+  export const path: string;
 }
