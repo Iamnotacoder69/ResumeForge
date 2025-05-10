@@ -29,6 +29,11 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        qwalify: {
+          green: "#03d27c",
+          dark: "#043e44",
+          light: "#e6fffa",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
