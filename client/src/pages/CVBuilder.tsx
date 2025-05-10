@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check, Download } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -99,7 +99,7 @@ const CVBuilder = () => {
   ];
   
   // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('executive');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
@@ -276,7 +276,11 @@ const CVBuilder = () => {
     }
   };
 
-  const handlePreview = () => {
+  // Function to handle preview button click
+  const handlePreview = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    // Prevent default button behavior
+    event.preventDefault();
+    
     // Always show preview regardless of validation state
     setShowPreview(true);
   };
@@ -340,7 +344,7 @@ const CVBuilder = () => {
                 <div className="flex items-center gap-3">
                   <p className="text-sm text-gray-500 hidden sm:block">Complete all sections for best results</p>
                   <Button 
-                    onClick={handleSubmit(onSubmit)}
+                    onClick={handlePreview}
                     className="bg-primary hover:bg-primary/90"
                   >
                     <Download className="mr-2 h-4 w-4" />
