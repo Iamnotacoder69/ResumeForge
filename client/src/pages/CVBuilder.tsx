@@ -99,7 +99,7 @@ const CVBuilder = () => {
   ];
   
   // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('executive');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
@@ -107,7 +107,7 @@ const CVBuilder = () => {
   
   // Update form when template settings change
   useEffect(() => {
-    form.setValue('templateSettings.template', selectedTemplate);
+    form.setValue('templateSettings.template', selectedTemplate as any);
     form.setValue('templateSettings.includePhoto', includePhoto);
   }, [selectedTemplate, includePhoto, form]);
   
@@ -297,31 +297,40 @@ const CVBuilder = () => {
         />
       ) : (
         <>
-          <header className="bg-white shadow-sm sticky top-0 z-10">
+          <header className="bg-white shadow-md sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
-                  <FileText className="text-primary text-2xl mr-3" />
-                  <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
+                  <div className="bg-primary/10 p-2 rounded-full mr-3">
+                    <FileText className="text-primary text-2xl" />
+                  </div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">CV Builder</h1>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm relative group"
+                    className="text-xs sm:text-sm relative group hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors duration-200"
                   >
-                    <Eye className="mr-1 h-4 w-4" /> Preview
-                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
-                      Preview available with incomplete fields
+                    <Eye className="mr-2 h-4 w-4" /> Preview CV
+                    <span className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg p-3 text-xs hidden group-hover:block z-10 text-gray-600">
+                      Preview your CV even with incomplete sections
                     </span>
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant="default" 
+                    onClick={handlePreview}
+                    className="text-xs sm:text-sm bg-primary hover:bg-primary/90 transition-colors duration-200"
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> Download PDF
+                  </Button>
+                  <Button 
+                    variant="ghost" 
                     onClick={() => toast({
                       title: "Help",
                       description: "Help documentation will be available soon",
                     })}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm hover:bg-gray-100"
                   >
                     <HelpCircle className="mr-1 h-4 w-4" /> Help
                   </Button>
@@ -330,19 +339,99 @@ const CVBuilder = () => {
             </div>
           </header>
           
-          <div className="bg-white border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-              <Progress value={progressMap[activeTab]} className="h-2.5" />
-              <div className="flex justify-between text-xs text-gray-500 mt-1 flex-wrap">
-                <span>Template</span>
-                <span>Personal</span>
-                <span className="hidden sm:inline">Summary</span>
-                <span className="hidden md:inline">Key Skills</span>
-                <span>Experience</span>
-                <span>Education</span>
-                <span className="hidden md:inline">Extracurricular</span>
-                <span>Additional</span>
-                <span>Organize</span>
+          <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 py-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="mb-3">
+                <div className="text-sm font-medium text-gray-800">
+                  Step {Object.values(CVTabs).indexOf(activeTab) + 1} of {Object.values(CVTabs).length}:
+                  <span className="ml-2 text-primary font-semibold">
+                    {activeTab === CVTabs.TEMPLATE && "Choose Template"}
+                    {activeTab === CVTabs.PERSONAL && "Personal Information"}
+                    {activeTab === CVTabs.SUMMARY && "Professional Summary"}
+                    {activeTab === CVTabs.KEY_COMPETENCIES && "Key Skills & Competencies"}
+                    {activeTab === CVTabs.EXPERIENCE && "Work Experience"}
+                    {activeTab === CVTabs.EDUCATION && "Education"}
+                    {activeTab === CVTabs.EXTRACURRICULAR && "Extracurricular Activities"}
+                    {activeTab === CVTabs.ADDITIONAL && "Additional Information"}
+                    {activeTab === CVTabs.REORDER && "Organize Sections"}
+                  </span>
+                </div>
+              </div>
+              
+              <Progress value={progressMap[activeTab]} className="h-3 rounded-full bg-gray-100" />
+              
+              <div className="flex justify-between text-xs text-gray-500 mt-3 flex-wrap">
+                <button 
+                  onClick={() => setActiveTab(CVTabs.TEMPLATE)}
+                  className={`flex flex-col items-center transition-colors ${activeTab === CVTabs.TEMPLATE ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.TEMPLATE ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Template</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                  className={`flex flex-col items-center transition-colors ${activeTab === CVTabs.PERSONAL ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.PERSONAL ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Personal</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                  className={`flex flex-col items-center transition-colors hidden sm:flex ${activeTab === CVTabs.SUMMARY ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.SUMMARY ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Summary</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                  className={`flex flex-col items-center transition-colors hidden md:flex ${activeTab === CVTabs.KEY_COMPETENCIES ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.KEY_COMPETENCIES ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Key Skills</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                  className={`flex flex-col items-center transition-colors ${activeTab === CVTabs.EXPERIENCE ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.EXPERIENCE ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Experience</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                  className={`flex flex-col items-center transition-colors ${activeTab === CVTabs.EDUCATION ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.EDUCATION ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Education</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                  className={`flex flex-col items-center transition-colors hidden md:flex ${activeTab === CVTabs.EXTRACURRICULAR ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.EXTRACURRICULAR ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Activities</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                  className={`flex flex-col items-center transition-colors ${activeTab === CVTabs.ADDITIONAL ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.ADDITIONAL ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Additional</span>
+                </button>
+                
+                <button 
+                  onClick={() => setActiveTab(CVTabs.REORDER)}
+                  className={`flex flex-col items-center transition-colors ${activeTab === CVTabs.REORDER ? 'text-primary font-medium' : 'hover:text-primary/70'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full mb-1 ${activeTab === CVTabs.REORDER ? 'bg-primary' : 'bg-gray-300'}`}></span>
+                  <span>Organize</span>
+                </button>
               </div>
             </div>
           </div>
@@ -376,15 +465,28 @@ const CVBuilder = () => {
                         onPhotoInclusionChange={handlePhotoInclusionChange}
                       />
                       
-                      <div className="flex justify-end">
+                      <div className="flex justify-between mt-8">
+                        <div className="text-sm text-gray-500">
+                          <span className="inline-flex items-center">
+                            <div className="bg-primary/10 w-5 h-5 rounded-full flex items-center justify-center text-primary mr-2 font-semibold">1</div>
+                            Step 1 of 9
+                          </span>
+                        </div>
                         <Button 
                           type="button" 
                           onClick={() => {
                             console.log("Navigating to Personal Information tab");
                             setActiveTab(CVTabs.PERSONAL);
                           }}
+                          className="bg-primary hover:bg-primary/90 transition-all duration-200 group relative"
                         >
-                          Next: Personal Information <Check className="ml-2 h-4 w-4" />
+                          <span>Next: Personal Information</span>
+                          <div className="absolute inset-0 flex items-center justify-end pr-3 opacity-70 group-hover:opacity-100 group-hover:pr-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                              <path d="M5 12h14"/>
+                              <path d="m12 5 7 7-7 7"/>
+                            </svg>
+                          </div>
                         </Button>
                       </div>
                     </TabsContent>
