@@ -31,7 +31,8 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       <div className="flex justify-end mb-4">
         <Button 
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white no-print"
+          size="lg"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -53,7 +54,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       </div>
       
       <div className="pdf-preview-content">
-        <div className="max-w-[210mm] mx-auto bg-white shadow-lg">
+        <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:max-w-none">
           <CVTemplate data={data} templateRef={templateRef} />
         </div>
       </div>
