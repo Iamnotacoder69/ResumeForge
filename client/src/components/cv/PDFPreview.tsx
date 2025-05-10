@@ -29,29 +29,33 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         body * {
           visibility: hidden;
         }
-        .cv-template-wrapper, .cv-template-wrapper * {
+        .cv-page, .cv-page *, .cv-template-wrapper, .cv-template-wrapper * {
           visibility: visible;
         }
-        .cv-template-wrapper {
+        
+        /* Position for printing */
+        .cv-page {
           position: absolute;
           left: 0;
           top: 0;
           width: 100%;
           box-shadow: none !important;
           background-color: white !important;
+          padding: 0 !important;
+          margin: 0 !important;
         }
         
         /* Force background colors and images to print */
-        .cv-template-wrapper * {
+        .cv-page *, .cv-template-wrapper * {
           -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
           print-color-adjust: exact !important;
+          color-adjust: exact !important;
         }
         
         /* Page settings for PDF output */
         @page {
           size: A4 portrait;
-          margin: 0mm;
+          margin: 0;
         }
         
         /* Ensure proper font rendering */
@@ -64,6 +68,17 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         p, h1, h2, h3 {
           overflow: visible !important;
           white-space: normal !important;
+        }
+        
+        /* Maintain page breaks */
+        .cv-section {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        
+        .cv-page-break {
+          page-break-before: always;
+          break-before: page;
         }
       }
     `;
@@ -132,10 +147,14 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
       </div>
       
       <div className="pdf-preview-content">
-        <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full">
-          <CVTemplate data={data} templateRef={printRef} />
+        <div className="paged-container max-w-[210mm] mx-auto">
+          <div className="cv-page bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full" ref={printRef}>
+            <CVTemplate data={data} templateRef={printRef} />
+          </div>
         </div>
       </div>
+      
+
     </div>
   );
 };
