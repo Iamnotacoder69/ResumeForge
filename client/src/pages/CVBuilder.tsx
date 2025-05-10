@@ -99,7 +99,7 @@ const CVBuilder = () => {
   ];
   
   // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('executive');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
@@ -301,16 +301,16 @@ const CVBuilder = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
-                  <FileText className="text-primary text-2xl mr-3" />
-                  <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
+                  <FileText className="text-[#03d27c] text-2xl mr-3" />
+                  <h1 className="text-2xl font-bold text-[#043e44]">CV Builder</h1>
                 </div>
                 <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm relative group"
+                    className="text-xs sm:text-sm relative group border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                   >
-                    <Eye className="mr-1 h-4 w-4" /> Preview
+                    <Eye className="mr-1 h-4 w-4 text-[#03d27c]" /> Preview
                     <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
                       Preview available with incomplete fields
                     </span>
@@ -321,28 +321,28 @@ const CVBuilder = () => {
                       title: "Help",
                       description: "Help documentation will be available soon",
                     })}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                   >
-                    <HelpCircle className="mr-1 h-4 w-4" /> Help
+                    <HelpCircle className="mr-1 h-4 w-4 text-[#03d27c]" /> Help
                   </Button>
                 </div>
               </div>
             </div>
           </header>
           
-          <div className="bg-white border-b border-gray-200">
+          <div className="bg-white border-b border-[#03d27c]/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-              <Progress value={progressMap[activeTab]} className="h-2.5" />
-              <div className="flex justify-between text-xs text-gray-500 mt-1 flex-wrap">
-                <span>Template</span>
-                <span>Personal</span>
-                <span className="hidden sm:inline">Summary</span>
-                <span className="hidden md:inline">Key Skills</span>
-                <span>Experience</span>
-                <span>Education</span>
-                <span className="hidden md:inline">Extracurricular</span>
-                <span>Additional</span>
-                <span>Organize</span>
+              <Progress value={progressMap[activeTab]} className="h-2.5 bg-[#03d27c]/20" />
+              <div className="flex justify-between text-xs text-[#043e44]/80 mt-1 flex-wrap">
+                <span className={activeTab === CVTabs.TEMPLATE ? "text-[#03d27c] font-medium" : ""}>Template</span>
+                <span className={activeTab === CVTabs.PERSONAL ? "text-[#03d27c] font-medium" : ""}>Personal</span>
+                <span className={`hidden sm:inline ${activeTab === CVTabs.SUMMARY ? "text-[#03d27c] font-medium" : ""}`}>Summary</span>
+                <span className={`hidden md:inline ${activeTab === CVTabs.KEY_COMPETENCIES ? "text-[#03d27c] font-medium" : ""}`}>Key Skills</span>
+                <span className={activeTab === CVTabs.EXPERIENCE ? "text-[#03d27c] font-medium" : ""}>Experience</span>
+                <span className={activeTab === CVTabs.EDUCATION ? "text-[#03d27c] font-medium" : ""}>Education</span>
+                <span className={`hidden md:inline ${activeTab === CVTabs.EXTRACURRICULAR ? "text-[#03d27c] font-medium" : ""}`}>Extracurricular</span>
+                <span className={activeTab === CVTabs.ADDITIONAL ? "text-[#03d27c] font-medium" : ""}>Additional</span>
+                <span className={activeTab === CVTabs.REORDER ? "text-[#03d27c] font-medium" : ""}>Organize</span>
               </div>
             </div>
           </div>
@@ -383,6 +383,7 @@ const CVBuilder = () => {
                             console.log("Navigating to Personal Information tab");
                             setActiveTab(CVTabs.PERSONAL);
                           }}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Personal Information <Check className="ml-2 h-4 w-4" />
                         </Button>
@@ -398,12 +399,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.TEMPLATE)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Professional Summary <Check className="ml-2 h-4 w-4" />
                         </Button>
