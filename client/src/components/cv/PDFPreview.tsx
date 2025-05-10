@@ -26,13 +26,27 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
     html2canvas: { 
       scale: 2,
       useCORS: true,
-      letterRendering: true
+      letterRendering: true,
+      logging: false,
+      dpi: 300,
+      imageTimeout: 0
     },
     jsPDF: { 
       unit: 'mm', 
       format: 'a4', 
-      orientation: 'portrait' 
-    }
+      orientation: 'portrait',
+      compress: true
+    },
+    fontFaces: [
+      {
+        family: 'Inter',
+        weight: 'normal',
+      },
+      {
+        family: 'Inter',
+        weight: 'bold',
+      }
+    ]
   };
   
   const handleGeneratePDF = useCallback(async () => {
@@ -41,11 +55,65 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
     try {
       setIsGenerating(true);
       
-      // Get a clone of the template element to avoid modifying the original DOM
-      const element = printRef.current.cloneNode(true) as HTMLElement;
+      // Create a styled version for PDF export
+      const pdfContent = document.createElement('div');
+      pdfContent.innerHTML = printRef.current.innerHTML;
+      
+      // Apply PDF-specific styles
+      const style = document.createElement('style');
+      style.textContent = `
+        body {
+          font-family: 'Inter', 'Helvetica', Arial, sans-serif;
+          color: #333;
+          line-height: 1.5;
+        }
+        h1, h2, h3, h4 {
+          margin-top: 0;
+          color: #043e44;
+          font-weight: bold;
+        }
+        h1 { font-size: 20pt; margin-bottom: 5pt; }
+        h2 { font-size: 16pt; margin-bottom: 5pt; border-bottom: 1pt solid #03d27c; padding-bottom: 3pt; }
+        h3 { font-size: 14pt; margin-bottom: 3pt; }
+        ul { margin-top: 5pt; margin-bottom: 5pt; padding-left: 15pt; }
+        li {
+          position: relative;
+          list-style-type: disc;
+          margin-bottom: 3pt;
+        }
+        li::before {
+          content: "•";
+          position: absolute;
+          left: -15pt;
+          color: #03d27c;
+        }
+        .date-range {
+          font-style: italic;
+          color: #666;
+          font-size: 10pt;
+        }
+        .job-title, .degree {
+          font-weight: bold;
+        }
+        .company, .school {
+          font-weight: 500;
+        }
+        .section {
+          margin-bottom: 15pt;
+        }
+      `;
+      pdfContent.appendChild(style);
+      
+      // Fix bullet points for list items
+      const listItems = pdfContent.querySelectorAll('li');
+      listItems.forEach(item => {
+        if (!item.textContent?.trim().startsWith('•')) {
+          item.innerHTML = '• ' + item.innerHTML;
+        }
+      });
       
       // Ensure all images are loaded
-      const images = element.querySelectorAll('img');
+      const images = pdfContent.querySelectorAll('img');
       await Promise.all(Array.from(images).map(img => {
         if (img.complete) return Promise.resolve();
         return new Promise(resolve => {
@@ -57,7 +125,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
       // Generate PDF using html2pdf
       await html2pdf()
         .set(html2pdfOptions)
-        .from(element)
+        .from(pdfContent)
         .save();
         
     } catch (error) {
