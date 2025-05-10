@@ -127,21 +127,22 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
       }
       
       // Add Key Competencies
-      if (data.professional?.keyCompetencies?.technicalSkills?.length || 
-          data.professional?.keyCompetencies?.softSkills?.length) {
+      const keyCompetencies = data.keyCompetencies;
+      if (keyCompetencies?.technicalSkills?.length || 
+          keyCompetencies?.softSkills?.length) {
         plainText += `KEY COMPETENCIES\n`;
         
-        if (data.professional?.keyCompetencies?.technicalSkills?.length) {
+        if (keyCompetencies?.technicalSkills?.length) {
           plainText += `Technical Skills:\n`;
-          data.professional.keyCompetencies.technicalSkills.forEach(skill => {
+          keyCompetencies.technicalSkills.forEach((skill: string) => {
             plainText += `- ${skill}\n`;
           });
           plainText += '\n';
         }
         
-        if (data.professional?.keyCompetencies?.softSkills?.length) {
+        if (keyCompetencies?.softSkills?.length) {
           plainText += `Soft Skills:\n`;
-          data.professional.keyCompetencies.softSkills.forEach(skill => {
+          keyCompetencies.softSkills.forEach((skill: string) => {
             plainText += `- ${skill}\n`;
           });
           plainText += '\n';
