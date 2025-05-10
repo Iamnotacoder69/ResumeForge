@@ -1,6 +1,8 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
@@ -9,6 +11,8 @@ import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { generatePdfWithPython } from "./python-utils";
+import { log } from "./vite";
 
 // Configure multer for memory storage (files stored in buffer)
 const upload = multer({
