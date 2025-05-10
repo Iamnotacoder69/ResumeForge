@@ -31,8 +31,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       <div className="flex justify-end mb-4">
         <Button 
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2 bg-primary hover:bg-primary/90"
-          size="lg"
+          className="flex items-center gap-2"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 

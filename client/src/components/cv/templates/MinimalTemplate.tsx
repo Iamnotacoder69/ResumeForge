@@ -18,7 +18,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
   return (
     <div className="cv-template bg-white text-gray-800 p-8 max-w-[210mm] mx-auto shadow-lg print:shadow-none">
       {/* Header */}
-      <header className="mb-8 text-center cv-section">
+      <header className="mb-8 text-center">
         <h1 className="text-3xl font-light text-gray-900 mb-2 tracking-wide uppercase">
           {data.personal.firstName} {data.personal.lastName}
         </h1>
@@ -56,7 +56,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
           switch (section.id) {
             case 'summary':
               return data.professional?.summary ? (
-                <section key="summary" className="mb-8 cv-section">
+                <section key="summary" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Profile
                   </h2>
@@ -66,7 +66,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'keyCompetencies':
               return (data.keyCompetencies?.technicalSkills?.length || data.keyCompetencies?.softSkills?.length) ? (
-                <section key="keyCompetencies" className="mb-8 cv-section">
+                <section key="keyCompetencies" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Key Skills
                   </h2>
@@ -107,7 +107,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'experience':
               return data.experience?.length ? (
-                <section key="experience" className="mb-8 cv-section">
+                <section key="experience" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Experience
                   </h2>
@@ -143,7 +143,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'education':
               return data.education?.length ? (
-                <section key="education" className="mb-8 cv-section">
+                <section key="education" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Education
                   </h2>
@@ -179,7 +179,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'certificates':
               return data.certificates?.length ? (
-                <section key="certificates" className="mb-8 cv-section">
+                <section key="certificates" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Certifications
                   </h2>
@@ -203,7 +203,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'extracurricular':
               return data.extracurricular?.length ? (
-                <section key="extracurricular" className="mb-8 cv-section">
+                <section key="extracurricular" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Extracurricular Activities
                   </h2>
@@ -239,7 +239,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
               
             case 'additional':
               return (data.languages?.length || data.additional?.skills?.length) ? (
-                <section key="additional" className="mb-8 cv-section">
+                <section key="additional" className="mb-8">
                   <h2 className="text-lg font-normal text-gray-500 uppercase tracking-widest text-center mb-4">
                     Additional Information
                   </h2>

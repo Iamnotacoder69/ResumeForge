@@ -1,12 +1,31 @@
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { CompleteCV } from '@shared/types';
 
 /**
- * Custom print-to-PDF functionality that triggers the browser's print dialog
- * with optimized settings for PDF download
- * 
- * @param element The HTML element to print
- * @param data The CV data (for filename suggestion)
- * @returns Promise that resolves when print dialog is opened
+ * Configuration for PDF generation
+ */
+const PDF_CONFIG = {
+  // PDF format configuration
+  format: {
+    unit: 'mm' as const,
+    format: 'a4' as const, // A4 format
+    orientation: 'portrait' as const,
+  },
+  // Image quality settings
+  quality: {
+    scale: 2, // Higher scale for better quality
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+  }
+};
+
+/**
+ * Generates a PDF from an HTML element
+ * @param element The HTML element to capture
+ * @param data The CV data (for filename)
+ * @returns Promise that resolves when PDF generation is complete
  */
 export async function generatePDFFromHTML(
   element: HTMLElement,
@@ -21,149 +40,93 @@ export async function generatePDFFromHTML(
       <div class="bg-white p-4 rounded-md shadow-xl">
         <div class="flex items-center space-x-3">
           <div class="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full"></div>
-          <p class="text-lg font-medium">Preparing PDF...</p>
+          <p class="text-lg font-medium">Generating PDF...</p>
         </div>
       </div>
     `;
     document.body.appendChild(loadingEl);
 
-    try {
-      // Create a clone of the element to print
-      const printContent = element.cloneNode(true) as HTMLElement;
+    // Create a clone of the element to avoid modifying the original
+    const clone = element.cloneNode(true) as HTMLElement;
+    
+    // Temporarily append the clone to the body but make it invisible
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    document.body.appendChild(clone);
+    
+    // Calculate PDF dimensions
+    const pdfWidth = 210; // A4 width in mm
+    const pdfHeight = 297; // A4 height in mm
+    
+    // Capture the element as an image using html2canvas
+    const canvas = await html2canvas(clone, {
+      scale: PDF_CONFIG.quality.scale,
+      useCORS: PDF_CONFIG.quality.useCORS,
+      allowTaint: PDF_CONFIG.quality.allowTaint,
+      logging: PDF_CONFIG.quality.logging,
+    });
+    
+    // Calculate scaling factor to fit the canvas to PDF page
+    const imgWidth = pdfWidth - 20; // 10mm margins on each side
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Create PDF document
+    const pdf = new jsPDF({
+      orientation: PDF_CONFIG.format.orientation,
+      unit: PDF_CONFIG.format.unit,
+      format: PDF_CONFIG.format.format,
+    });
+    
+    // Add the image to the PDF
+    pdf.addImage(
+      canvas.toDataURL('image/jpeg', 0.95),
+      'JPEG',
+      10, // x position (10mm margin)
+      10, // y position (10mm margin)
+      imgWidth,
+      imgHeight
+    );
+    
+    // Handle multi-page PDF if content is too long
+    let heightLeft = imgHeight;
+    let position = 10; // Initial position
+    
+    while (heightLeft > pdfHeight - 20) { // 20mm total margin (10mm top + 10mm bottom)
+      // Add a new page
+      pdf.addPage();
       
-      // Apply print-specific styles to the clone
-      printContent.classList.add('print-content');
-      printContent.style.width = '100%';
-      printContent.style.maxWidth = '21cm'; // A4 width
-      printContent.style.margin = '0 auto';
-      printContent.style.backgroundColor = 'white';
+      // Calculate remaining height
+      position = -(pdfHeight - 20 - position);
       
-      // Create a new print window/iframe
-      const printFrame = document.createElement('iframe');
+      // Add the image to the new page, shifted upward
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 0.95),
+        'JPEG',
+        10,
+        position,
+        imgWidth,
+        imgHeight
+      );
       
-      // Hide the iframe (it's just used for printing)
-      printFrame.style.position = 'fixed';
-      printFrame.style.right = '0';
-      printFrame.style.bottom = '0';
-      printFrame.style.width = '0';
-      printFrame.style.height = '0';
-      printFrame.style.border = 'none';
-      
-      // Append the iframe to the document
-      document.body.appendChild(printFrame);
-      
-      // Get the iframe document and write the print content
-      const frameDoc = printFrame.contentDocument || printFrame.contentWindow?.document;
-      
-      if (!frameDoc) {
-        throw new Error('Failed to access print frame document');
-      }
-      
-      // Generate a filename from user data
-      // Generate a professional filename based on user's name
-      const firstName = data.personal.firstName || '';
-      const lastName = data.personal.lastName || '';
-      const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-      
-      // Create filename with name and date, falling back to "Professional_CV" if no name provided
-      const filenamePart = firstName || lastName 
-        ? `${firstName}${lastName ? '_' + lastName : ''}_CV_${date}`
-        : `Professional_CV_${date}`;
-        
-      // Clean the filename by removing spaces and special characters
-      const filename = filenamePart.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
-      
-      // Write the print document with proper styling
-      frameDoc.open();
-      frameDoc.write(`<!DOCTYPE html>
-        <html>
-          <head>
-            <title>${filename}</title>
-            <style>
-              @page {
-                size: A4 portrait;
-                margin: 0.7cm;
-              }
-              body {
-                margin: 0;
-                padding: 0;
-                font-family: Arial, Helvetica, sans-serif;
-                color: #333;
-                background: white;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              .print-wrapper {
-                width: 100%;
-                max-width: 100%;
-                margin: 0 auto;
-                padding: 0;
-                box-sizing: border-box;
-              }
-              /* Ensure proper page breaks */
-              .cv-section {
-                page-break-inside: avoid;
-              }
-              /* Avoid page breaks after headings */
-              h1, h2, h3, h4 {
-                page-break-after: avoid;
-              }
-              /* Make sure background colors appear in print */
-              * {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              /* Copy embedded fonts and styles from the main page */
-              ${Array.from(document.styleSheets)
-                .filter(sheet => !sheet.href || sheet.href.startsWith(window.location.origin))
-                .map(sheet => {
-                  try {
-                    return Array.from(sheet.cssRules)
-                      .map(rule => rule.cssText)
-                      .join('\n');
-                  } catch (e) {
-                    console.warn('Could not access cssRules for stylesheet', e);
-                    return '';
-                  }
-                })
-                .join('\n')}
-            </style>
-          </head>
-          <body>
-            <div class="print-wrapper">
-              ${printContent.outerHTML}
-            </div>
-          </body>
-        </html>`);
-      frameDoc.close();
-      
-      // Remove loading indicator once the document is ready
-      document.body.removeChild(loadingEl);
-      
-      // Add event listener for after print to clean up
-      const handlePrintComplete = () => {
-        if (printFrame.parentNode) {
-          printFrame.parentNode.removeChild(printFrame);
-        }
-        window.removeEventListener('focus', handlePrintComplete);
-      };
-      
-      window.addEventListener('focus', handlePrintComplete);
-      
-      // Use setTimeout to ensure the document is fully loaded before printing
-      setTimeout(() => {
-        // Print the document (this opens the print dialog)
-        if (printFrame.contentWindow) {
-          printFrame.contentWindow.focus();
-          printFrame.contentWindow.print();
-        }
-      }, 500);
-      
-    } catch (error) {
-      console.error('Error in print preparation:', error);
-      throw error;
+      // Update the remaining height
+      heightLeft -= (pdfHeight - 20);
     }
+    
+    // Cleanup: remove the temporary clone
+    document.body.removeChild(clone);
+    
+    // Generate the filename from user data
+    const firstName = data.personal.firstName || 'CV';
+    const lastName = data.personal.lastName || '';
+    const filename = `${firstName}_${lastName}_CV.pdf`.replace(/\s+/g, '_');
+    
+    // Download the PDF
+    pdf.save(filename);
+    
+    // Remove loading indicator
+    document.body.removeChild(loadingEl);
+    
   } catch (error) {
     // Remove loading indicator in case of error
     const loadingEl = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
