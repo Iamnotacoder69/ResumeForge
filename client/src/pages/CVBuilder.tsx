@@ -424,14 +424,16 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                          className="border-gray-300 hover:bg-gray-100 font-medium"
                         >
-                          Back
+                          <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                          className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
-                          Next: Key Competencies <Check className="ml-2 h-4 w-4" />
+                          Next: Key Competencies <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>
