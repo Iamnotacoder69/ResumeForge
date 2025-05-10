@@ -50,26 +50,25 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   };
 
   return (
-    <Card className="shadow-lg border-0 rounded-xl overflow-hidden">
-      <CardContent className="pt-6 sm:pt-8 px-6 sm:px-8">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Choose Your Template</h2>
-        <p className="text-gray-500 mb-6">Select the design that best represents your professional style</p>
+    <Card className="shadow-sm">
+      <CardContent className="pt-5 sm:pt-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Choose a Template</h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {templates.map((template) => (
             <div
               key={template.id}
               className={`
-                border-2 rounded-xl p-5 cursor-pointer transition-all duration-300
+                border rounded-md p-4 cursor-pointer transition-all
                 ${selectedTemplate === template.id
-                  ? 'border-primary bg-primary/5 shadow-md'
-                  : 'border-gray-100 hover:border-primary/30 hover:shadow-md hover:bg-gray-50'
+                  ? 'border-primary bg-primary/5 shadow-sm'
+                  : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
                 }
               `}
               onClick={() => handleTemplateSelect(template.id)}
             >
-              <div className="h-40 mb-4 bg-white rounded-lg flex items-center justify-center border border-gray-100">
-                <div className={`w-24 h-32 border-2 ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-200'} rounded-md relative overflow-hidden shadow-sm`}>
+              <div className="h-32 mb-3 bg-gray-100 rounded flex items-center justify-center">
+                <div className={`w-20 h-24 border ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-300'} rounded relative overflow-hidden`}>
                   {/* Professional template preview */}
                   {template.id === 'professional' && (
                     <>
@@ -148,52 +147,27 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   )}
                 </div>
               </div>
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{template.description}</p>
-                </div>
-                {selectedTemplate === template.id && (
-                  <div className="bg-primary/10 rounded-full p-1 mt-1">
-                    <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <h3 className="font-medium text-gray-900">{template.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">{template.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-100">
-          <div className="bg-primary/5 p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3">
-                <Switch
-                  id="photo-toggle"
-                  checked={includePhoto}
-                  onCheckedChange={handlePhotoToggle}
-                  className="data-[state=checked]:bg-primary"
-                />
-                <Label htmlFor="photo-toggle" className="font-medium cursor-pointer text-gray-900">
-                  Include photo in CV
-                </Label>
-              </div>
-              <p className="text-sm text-gray-500 mt-1 ml-10 sm:ml-11">
-                Adding a photo is optional and depends on region and industry standards
-              </p>
-            </div>
-            
-            <div className="mt-4 sm:mt-0">
-              <div className={`w-12 h-12 rounded-full border-2 ${includePhoto ? 'border-primary bg-primary/10' : 'border-gray-200 bg-gray-50'} flex items-center justify-center`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${includePhoto ? 'text-primary' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            </div>
+        <div className="mt-6 border-t pt-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="photo-toggle"
+              checked={includePhoto}
+              onCheckedChange={handlePhotoToggle}
+              className="data-[state=checked]:bg-primary"
+            />
+            <Label htmlFor="photo-toggle" className="cursor-pointer">
+              Include photo in CV
+            </Label>
           </div>
+          <p className="text-xs text-gray-500 mt-1 ml-10">
+            Adding a photo is optional and depends on the region and industry standards
+          </p>
         </div>
       </CardContent>
     </Card>

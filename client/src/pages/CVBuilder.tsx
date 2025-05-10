@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check, Download } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -99,7 +99,7 @@ const CVBuilder = () => {
   ];
   
   // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('professional');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('executive');
   const [includePhoto, setIncludePhoto] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>(
     form.getValues().templateSettings?.sectionOrder || defaultSectionOrder
@@ -107,8 +107,7 @@ const CVBuilder = () => {
   
   // Update form when template settings change
   useEffect(() => {
-    // Explicitly type the template as TemplateType to fix type errors
-    form.setValue('templateSettings.template', selectedTemplate as TemplateType);
+    form.setValue('templateSettings.template', selectedTemplate);
     form.setValue('templateSettings.includePhoto', includePhoto);
   }, [selectedTemplate, includePhoto, form]);
   
@@ -277,23 +276,19 @@ const CVBuilder = () => {
     }
   };
 
-  // Function to handle preview button click
-  const handlePreview = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    // Prevent default button behavior
-    event.preventDefault();
-    
+  const handlePreview = () => {
     // Always show preview regardless of validation state
     setShowPreview(true);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-primary/5">
+    <div className="min-h-screen bg-gray-100">
       {showPreview ? (
         <PDFPreview 
           data={{
             ...form.getValues(),
             templateSettings: {
-              template: selectedTemplate as TemplateType,
+              template: selectedTemplate,
               includePhoto: includePhoto,
               sectionOrder: sectionOrder
             }
@@ -302,54 +297,33 @@ const CVBuilder = () => {
         />
       ) : (
         <>
-          <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-            <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-white font-bold">Q</div>
-                <span className="text-xl font-bold text-gray-900">Qwalify</span>
-              </div>
-              <div className="flex gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => toast({
-                    title: "Help",
-                    description: "Help documentation will be available soon",
-                  })}
-                  className="text-xs sm:text-sm"
-                >
-                  <HelpCircle className="mr-1 h-4 w-4" /> Help
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={handlePreview}
-                  className="text-xs sm:text-sm relative group"
-                >
-                  <Eye className="mr-1 h-4 w-4" /> Preview
-                  <span className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
-                    Preview available with incomplete fields
-                  </span>
-                </Button>
-              </div>
-            </div>
-          </nav>
-          
-          <header className="bg-white border-b mt-1">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <header className="bg-white shadow-sm sticky top-0 z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
-                  <div className="rounded-full bg-primary/10 p-2 mr-3">
-                    <FileText className="text-primary h-5 w-5" />
-                  </div>
-                  <h1 className="text-2xl font-bold text-gray-900">CV Builder</h1>
+                  <FileText className="text-primary text-2xl mr-3" />
+                  <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-sm text-gray-500 hidden sm:block">Complete all sections for best results</p>
+                <div className="flex space-x-2">
                   <Button 
+                    variant="outline" 
                     onClick={handlePreview}
-                    className="bg-primary hover:bg-primary/90"
+                    className="text-xs sm:text-sm relative group"
                   >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
+                    <Eye className="mr-1 h-4 w-4" /> Preview
+                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
+                      Preview available with incomplete fields
+                    </span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => toast({
+                      title: "Help",
+                      description: "Help documentation will be available soon",
+                    })}
+                    className="text-xs sm:text-sm"
+                  >
+                    <HelpCircle className="mr-1 h-4 w-4" /> Help
                   </Button>
                 </div>
               </div>
@@ -357,37 +331,18 @@ const CVBuilder = () => {
           </header>
           
           <div className="bg-white border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="mb-2 flex justify-between items-center">
-                <div className="text-sm font-medium text-gray-700">
-                  Step {Object.values(CVTabs).indexOf(activeTab) + 1} of {Object.values(CVTabs).length}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {progressMap[activeTab]}% Complete
-                </div>
-              </div>
-              <Progress value={progressMap[activeTab]} className="h-2.5 bg-gray-100" />
-              
-              <div className="flex justify-between mt-4 overflow-x-auto hide-scrollbar pb-2">
-                <div className="flex space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-6">
-                  {Object.entries(CVTabs).map(([key, value]) => (
-                    <div 
-                      key={key} 
-                      onClick={() => setActiveTab(value)}
-                      className={`
-                        cursor-pointer px-3 py-2 rounded-md text-sm transition-colors
-                        ${activeTab === value ? 
-                          'bg-primary/10 text-primary font-medium' : 
-                          'hover:bg-gray-50 text-gray-600'}
-                      `}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {activeTab === value && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                        <span>{key.split('_').map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(' ')}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+              <Progress value={progressMap[activeTab]} className="h-2.5" />
+              <div className="flex justify-between text-xs text-gray-500 mt-1 flex-wrap">
+                <span>Template</span>
+                <span>Personal</span>
+                <span className="hidden sm:inline">Summary</span>
+                <span className="hidden md:inline">Key Skills</span>
+                <span>Experience</span>
+                <span>Education</span>
+                <span className="hidden md:inline">Extracurricular</span>
+                <span>Additional</span>
+                <span>Organize</span>
               </div>
             </div>
           </div>
