@@ -1,0 +1,61 @@
+/* Paged media styles */
+.paged-container {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.cv-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Add space between pages */
+.cv-page + .cv-page {
+  margin-top: 20px;
+}
+
+/* Preview page breaks and ensure content stays on right pages */
+@media screen {
+  .cv-template-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Define sections that should stay together */
+  .cv-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Force page breaks before certain sections if needed */
+  .cv-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+}
+
+/* Print styles */
+@media print {
+  .paged-container {
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .cv-page {
+    width: 100%;
+    min-height: auto;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+}

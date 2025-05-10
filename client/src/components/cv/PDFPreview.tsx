@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import CVTemplate from './templates/CVTemplate';
+import '@/styles/pdf-page.css';
 
 interface PDFPreviewProps {
   data: CompleteCV;
