@@ -77,7 +77,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
           switch (section.id) {
             case 'summary':
               return data.professional?.summary ? (
-                <section key="summary" className="mb-6">
+                <section key="summary" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Professional Summary</h2>
                   <p className="text-gray-700 whitespace-pre-line">{data.professional.summary}</p>
                 </section>
@@ -85,7 +85,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'keyCompetencies':
               return (data.keyCompetencies?.technicalSkills?.length || data.keyCompetencies?.softSkills?.length) ? (
-                <section key="keyCompetencies" className="mb-6">
+                <section key="keyCompetencies" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Key Competencies</h2>
                   
                   {data.keyCompetencies?.technicalSkills?.length > 0 && (
@@ -124,12 +124,12 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'experience':
               return data.experience?.length ? (
-                <section key="experience" className="mb-6">
+                <section key="experience" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Professional Experience</h2>
                   
                   <div className="space-y-4">
                     {data.experience.map((exp: Experience, index: number) => (
-                      <div key={index} className="mb-4">
+                      <div key={index} className="mb-4 cv-section">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">{exp.jobTitle}</h3>
                           <span className="text-sm text-gray-600">
@@ -161,12 +161,12 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'education':
               return data.education?.length ? (
-                <section key="education" className="mb-6">
+                <section key="education" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Education</h2>
                   
                   <div className="space-y-4">
                     {data.education.map((edu: Education, index: number) => (
-                      <div key={index} className="mb-4">
+                      <div key={index} className="mb-4 cv-section">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">{edu.major}</h3>
                           <span className="text-sm text-gray-600">
