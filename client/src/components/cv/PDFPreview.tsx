@@ -84,58 +84,84 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   }, [data.personal]);
   
   return (
-    <div className="pdf-preview-container space-y-6">
-      <div className="flex justify-between items-center mb-4 print:hidden">
-        <Button 
-          onClick={onClose}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5"></path>
-            <path d="M12 19l-7-7 7-7"></path>
-          </svg>
-          Back to Editor
-        </Button>
-        
-        <Button 
-          onClick={handlePrintPDF}
-          className="flex items-center gap-2"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download as PDF
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Preview header */}
+      <header className="qwalify-header sticky top-0 z-10 print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold flex items-center">
+                <span className="qwalify-logo">Qwalify</span>
+                <span className="text-white">CV Preview</span>
+              </h1>
+            </div>
+            <div className="flex space-x-3">
+              <Button 
+                onClick={onClose}
+                variant="outline"
+                className="text-xs sm:text-sm bg-white text-secondary hover:bg-white/90 hover:text-secondary flex items-center gap-2"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 12H5"></path>
+                  <path d="M12 19l-7-7 7-7"></path>
+                </svg>
+                Back to Editor
+              </Button>
+              
+              <Button 
+                onClick={handlePrintPDF}
+                className="text-xs sm:text-sm qwalify-primary-btn flex items-center gap-2"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download as PDF
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
       
-      <div className="pdf-preview-content">
-        <div className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full">
+      <div className="container mx-auto px-4 sm:px-6 py-8 print:p-0">
+        <div className="max-w-[210mm] mx-auto bg-white shadow-lg rounded-lg overflow-hidden print:shadow-none print:mx-0 print:max-w-full">
           <CVTemplate data={data} templateRef={printRef} />
         </div>
+        
+        <div className="mt-6 text-center text-gray-500 text-sm print:hidden">
+          <p>Click "Download as PDF" to save your CV. You can go back to make further edits if needed.</p>
+        </div>
       </div>
+      
+      {/* Footer */}
+      <footer className="qwalify-footer py-4 mt-10 print:hidden">
+        <div className="container mx-auto px-4">
+          <p className="text-sm text-white/70">
+            © 2025 Qwalify. Create professional CVs that get noticed.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

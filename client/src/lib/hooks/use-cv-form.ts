@@ -19,6 +19,7 @@ export function useCVForm(initialData?: Partial<CompleteCV>) {
     personal: {
       firstName: "",
       lastName: "",
+      professionalTitle: "",
       email: "",
       phone: "",
       linkedin: "",
