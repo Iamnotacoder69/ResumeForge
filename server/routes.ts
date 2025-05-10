@@ -120,7 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Validate CV Data 
+  // Validate CV Data for PDF Generation (client-side PDF generation)
   app.post("/api/validate-cv", async (req: Request, res: Response) => {
     try {
       console.log("CV Validation - Request received");
@@ -181,7 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
-      // Return validated data
+      // Return validated data for client-side PDF generation
       res.status(200).json({
         success: true,
         message: "CV data validated successfully",
@@ -204,47 +204,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "Failed to validate CV data", 
         error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-  
-  // Generate and download PDF using Playwright
-  app.post("/api/print-cv", async (req: Request, res: Response) => {
-    try {
-      console.log("PDF Print - Request received");
-      
-      // Get HTML content and CV data from request
-      const { htmlContent, cvData } = req.body;
-      
-      if (!htmlContent || !cvData) {
-        return res.status(400).json({
-          success: false,
-          message: "HTML content and CV data are required"
-        });
-      }
-      
-      // Import dynamically to avoid issues during server startup
-      const { generatePDF } = await import('./pdf-printer');
-      
-      // Generate PDF using Playwright
-      const pdfBuffer = await generatePDF(htmlContent, cvData);
-      
-      // Set response headers for PDF download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${cvData.personal.firstName}_${cvData.personal.lastName}_CV.pdf"`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-      
-      // Send the PDF
-      res.status(200).send(pdfBuffer);
-      console.log("PDF Print - PDF sent successfully");
-      
-    } catch (error) {
-      console.error("PDF Print - Error:", error);
-      
-      res.status(500).json({
-        success: false,
-        message: "Failed to generate PDF",
-        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });

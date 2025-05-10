@@ -1,17 +1,25 @@
-import { CompleteCV } from '@shared/types';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { CompleteCV } from '@shared/types';
 
 /**
  * Configuration for PDF generation
  */
-export interface PDFGenerationOptions {
-  fileName?: string;
-  showProgress?: boolean;
-  onProgress?: (progress: number) => void;
-  onComplete?: () => void;
-  onError?: (error: Error) => void;
-}
+const PDF_CONFIG = {
+  // PDF format configuration
+  format: {
+    unit: 'mm' as const,
+    format: 'a4' as const, // A4 format
+    orientation: 'portrait' as const,
+  },
+  // Image quality settings
+  quality: {
+    scale: 2, // Higher scale for better quality
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+  }
+};
 
 /**
  * Generates a PDF from an HTML element
@@ -21,105 +29,118 @@ export interface PDFGenerationOptions {
  */
 export async function generatePDFFromHTML(
   element: HTMLElement,
-  data: CompleteCV,
-  options: PDFGenerationOptions = {}
+  data: CompleteCV
 ): Promise<void> {
-  // Set default options
-  const fileName = options.fileName || `${data.personal.firstName}_${data.personal.lastName}_CV.pdf`;
-  const showProgress = options.showProgress !== false;
-  
   try {
-    if (showProgress && options.onProgress) {
-      options.onProgress(10);
-    }
+    // Show a loading indicator or message
+    const loadingEl = document.createElement('div');
+    loadingEl.className = 
+      'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    loadingEl.innerHTML = `
+      <div class="bg-white p-4 rounded-md shadow-xl">
+        <div class="flex items-center space-x-3">
+          <div class="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full"></div>
+          <p class="text-lg font-medium">Generating PDF...</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(loadingEl);
+
+    // Create a clone of the element to avoid modifying the original
+    const clone = element.cloneNode(true) as HTMLElement;
     
-    // Clone the element to avoid modifying the original
-    const elementClone = element.cloneNode(true) as HTMLElement;
+    // Temporarily append the clone to the body but make it invisible
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    document.body.appendChild(clone);
     
-    // Set styles for better rendering
-    const originalStyle = window.getComputedStyle(element);
-    elementClone.style.width = originalStyle.width;
-    elementClone.style.margin = '0';
+    // Calculate PDF dimensions
+    const pdfWidth = 210; // A4 width in mm
+    const pdfHeight = 297; // A4 height in mm
     
-    // Temporarily add to body but hidden
-    elementClone.style.position = 'absolute';
-    elementClone.style.left = '-9999px';
-    elementClone.style.top = '-9999px';
-    document.body.appendChild(elementClone);
-    
-    if (showProgress && options.onProgress) {
-      options.onProgress(20);
-    }
-    
-    // Set up PDF document - A4 size
-    const pdfWidth = 210; // mm
-    const pdfHeight = 297; // mm
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
+    // Capture the element as an image using html2canvas
+    const canvas = await html2canvas(clone, {
+      scale: PDF_CONFIG.quality.scale,
+      useCORS: PDF_CONFIG.quality.useCORS,
+      allowTaint: PDF_CONFIG.quality.allowTaint,
+      logging: PDF_CONFIG.quality.logging,
     });
     
-    if (showProgress && options.onProgress) {
-      options.onProgress(30);
-    }
-    
-    // Render the element to canvas
-    const canvas = await html2canvas(elementClone, {
-      scale: 2, // Higher scale for better quality
-      useCORS: true,
-      logging: false,
-      allowTaint: true,
-      backgroundColor: '#ffffff', // White background
-    });
-    
-    if (showProgress && options.onProgress) {
-      options.onProgress(70);
-    }
-    
-    // Calculate the proper width and height ratio
-    const imgWidth = pdfWidth;
+    // Calculate scaling factor to fit the canvas to PDF page
+    const imgWidth = pdfWidth - 20; // 10mm margins on each side
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
+    // Create PDF document
+    const pdf = new jsPDF({
+      orientation: PDF_CONFIG.format.orientation,
+      unit: PDF_CONFIG.format.unit,
+      format: PDF_CONFIG.format.format,
+    });
+    
     // Add the image to the PDF
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.addImage(
+      canvas.toDataURL('image/jpeg', 0.95),
+      'JPEG',
+      10, // x position (10mm margin)
+      10, // y position (10mm margin)
+      imgWidth,
+      imgHeight
+    );
     
-    // If content height exceeds page, add more pages
-    if (imgHeight > pdfHeight) {
-      let heightLeft = imgHeight - pdfHeight;
-      let position = -pdfHeight; // Starting position for each new page
+    // Handle multi-page PDF if content is too long
+    let heightLeft = imgHeight;
+    let position = 10; // Initial position
+    
+    while (heightLeft > pdfHeight - 20) { // 20mm total margin (10mm top + 10mm bottom)
+      // Add a new page
+      pdf.addPage();
       
-      while (heightLeft > 0) {
-        position -= pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-      }
+      // Calculate remaining height
+      position = -(pdfHeight - 20 - position);
+      
+      // Add the image to the new page, shifted upward
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 0.95),
+        'JPEG',
+        10,
+        position,
+        imgWidth,
+        imgHeight
+      );
+      
+      // Update the remaining height
+      heightLeft -= (pdfHeight - 20);
     }
     
-    if (showProgress && options.onProgress) {
-      options.onProgress(90);
-    }
+    // Cleanup: remove the temporary clone
+    document.body.removeChild(clone);
     
-    // Clean up the temporary element
-    document.body.removeChild(elementClone);
+    // Generate the filename from user data
+    const firstName = data.personal.firstName || 'CV';
+    const lastName = data.personal.lastName || '';
+    const filename = `${firstName}_${lastName}_CV.pdf`.replace(/\s+/g, '_');
     
-    // Save and download the PDF
-    pdf.save(fileName);
+    // Download the PDF
+    pdf.save(filename);
     
-    if (showProgress && options.onProgress) {
-      options.onProgress(100);
-    }
+    // Remove loading indicator
+    document.body.removeChild(loadingEl);
     
-    if (options.onComplete) {
-      options.onComplete();
-    }
   } catch (error) {
+    // Remove loading indicator in case of error
+    const loadingEl = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+    if (loadingEl && loadingEl.parentNode) {
+      loadingEl.parentNode.removeChild(loadingEl);
+    }
+    
+    // Handle error
     console.error('Error generating PDF:', error);
     
-    if (options.onError) {
-      options.onError(error instanceof Error ? error : new Error('Unknown error generating PDF'));
-    }
+    // Show error message
+    const errorMessage = 
+      error instanceof Error ? error.message : 'Unknown error generating PDF';
+    
+    alert(`Failed to generate PDF: ${errorMessage}`);
   }
 }
