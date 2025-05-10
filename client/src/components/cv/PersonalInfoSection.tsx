@@ -172,6 +172,23 @@ const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
           
           <FormField
             control={form.control}
+            name="personal.professionalTitle"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Professional Title*</FormLabel>
+                <FormControl>
+                  <Input placeholder="Software Engineer" {...field} />
+                </FormControl>
+                <FormDescription className="text-xs">
+                  Your current job title or professional role (e.g., "Senior Project Manager")
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
             name="personal.email"
             render={({ field }) => (
               <FormItem>

@@ -23,6 +23,12 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
           {data.personal.firstName} {data.personal.lastName}
         </h1>
         
+        {data.personal.professionalTitle && (
+          <h2 className="text-xl font-medium text-gray-600 mb-3">
+            {data.personal.professionalTitle}
+          </h2>
+        )}
+        
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
           {data.personal.email && (
             <div className="flex items-center">

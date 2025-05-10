@@ -19,9 +19,15 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({ data }) => {
     <div className="cv-template bg-white text-gray-800 p-8 max-w-[210mm] mx-auto shadow-lg print:shadow-none">
       {/* Header */}
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-light text-gray-900 mb-2 tracking-wide uppercase">
+        <h1 className="text-3xl font-light text-gray-900 mb-1 tracking-wide uppercase">
           {data.personal.firstName} {data.personal.lastName}
         </h1>
+        
+        {data.personal.professionalTitle && (
+          <h2 className="text-lg mb-3 font-light text-gray-600 tracking-wider">
+            {data.personal.professionalTitle}
+          </h2>
+        )}
         
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-gray-500">
           {data.personal.email && (

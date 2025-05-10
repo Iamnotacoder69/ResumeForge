@@ -25,6 +25,12 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
               {data.personal.firstName} {data.personal.lastName}
             </h1>
             
+            {data.personal.professionalTitle && (
+              <h2 className="text-xl font-semibold opacity-90 mb-1">
+                {data.personal.professionalTitle}
+              </h2>
+            )}
+            
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm opacity-90 mt-2">
               {data.personal.email && (
                 <div className="flex items-center">
