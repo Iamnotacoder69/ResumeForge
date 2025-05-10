@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check, ArrowRight } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -282,7 +282,7 @@ const CVBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       {showPreview ? (
         <PDFPreview 
           data={{
@@ -310,7 +310,7 @@ const CVBuilder = () => {
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm relative bg-white text-secondary hover:bg-white/90 hover:text-secondary group"
+                    className="text-xs sm:text-sm relative bg-white text-secondary hover:bg-white/90 hover:text-secondary group border-2 border-primary"
                   >
                     <Eye className="mr-1 h-4 w-4" /> Preview CV
                     <span className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
@@ -378,15 +378,16 @@ const CVBuilder = () => {
                         onPhotoInclusionChange={handlePhotoInclusionChange}
                       />
                       
-                      <div className="flex justify-end">
+                      <div className="flex justify-end mt-6">
                         <Button 
-                          type="button" 
+                          type="button"
+                          className="qwalify-primary-btn"
                           onClick={() => {
                             console.log("Navigating to Personal Information tab");
                             setActiveTab(CVTabs.PERSONAL);
                           }}
                         >
-                          Next: Personal Information <Check className="ml-2 h-4 w-4" />
+                          Next: Personal Information <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </TabsContent>

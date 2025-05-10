@@ -50,7 +50,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   };
 
   return (
-    <Card className="qwalify-card shadow-sm">
+    <Card className="qwalify-card shadow-sm bg-white">
       <CardContent className="pt-5 sm:pt-6">
         <h2 className="text-xl sm:text-2xl font-semibold text-secondary mb-6">Choose Your Template</h2>
         
@@ -59,14 +59,19 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             <div
               key={template.id}
               className={`
-                qwalify-card-choice p-4 cursor-pointer transition-all
+                qwalify-card-choice p-4 cursor-pointer transition-all relative overflow-hidden
                 ${selectedTemplate === template.id
-                  ? 'border-primary shadow-md bg-accent'
-                  : 'border-gray-200 hover:border-primary/50'
+                  ? 'border-primary border-2 shadow-md bg-accent'
+                  : 'border-gray-200 hover:border-primary'
                 }
               `}
               onClick={() => handleTemplateSelect(template.id)}
             >
+              {selectedTemplate === template.id && (
+                <div className="absolute top-0 right-0 bg-primary text-white px-2 py-1 text-xs font-semibold rounded-bl">
+                  Selected
+                </div>
+              )}
               <div className="h-36 mb-4 bg-white rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
                 <div className={`w-24 h-28 border ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-300'} rounded relative overflow-hidden`}>
                   {/* Professional template preview */}
