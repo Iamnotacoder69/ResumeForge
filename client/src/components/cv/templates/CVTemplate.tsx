@@ -1,8 +1,9 @@
 import React from 'react';
 import { CompleteCV, TemplateType } from '@shared/types';
-import ProfessionalTemplate from './ProfessionalTemplate';
-import ModernTemplate from './ModernTemplate';
-import MinimalTemplate from './MinimalTemplate';
+// Import pure HTML templates
+import ProfessionalTemplateHTML from './ProfessionalTemplateHTML';
+import ModernTemplateHTML from './ModernTemplateHTML';
+import MinimalTemplateHTML from './MinimalTemplateHTML';
 
 interface CVTemplateProps {
   data: CompleteCV;
@@ -12,6 +13,7 @@ interface CVTemplateProps {
 /**
  * Dynamic CV template loader component
  * Renders the appropriate template based on the templateSettings.template value
+ * Using pure HTML versions of templates (no CSS)
  */
 const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
   // Determine which template to render based on the template type
@@ -20,12 +22,12 @@ const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
     
     // Explicitly type check to satisfy TypeScript
     if (templateType === 'modern') {
-      return <ModernTemplate data={data} />;
+      return <ModernTemplateHTML data={data} />;
     } else if (templateType === 'minimal') {
-      return <MinimalTemplate data={data} />;
+      return <MinimalTemplateHTML data={data} />;
     } else {
       // Default to professional template
-      return <ProfessionalTemplate data={data} />;
+      return <ProfessionalTemplateHTML data={data} />;
     }
   };
 
