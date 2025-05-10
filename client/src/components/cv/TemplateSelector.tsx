@@ -52,7 +52,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   return (
     <Card className="shadow-sm">
       <CardContent className="pt-5 sm:pt-6">
-        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Choose a Template</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-[#043e44] mb-4 sm:mb-6">Choose a Template</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {templates.map((template) => (
@@ -61,14 +61,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               className={`
                 border rounded-md p-4 cursor-pointer transition-all
                 ${selectedTemplate === template.id
-                  ? 'border-primary bg-primary/5 shadow-sm'
-                  : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+                  ? 'border-[#03d27c] bg-[#03d27c]/5 shadow-sm'
+                  : 'border-gray-200 hover:border-[#03d27c]/50 hover:bg-gray-50'
                 }
               `}
               onClick={() => handleTemplateSelect(template.id)}
             >
               <div className="h-32 mb-3 bg-gray-100 rounded flex items-center justify-center">
-                <div className={`w-20 h-24 border ${selectedTemplate === template.id ? 'border-primary' : 'border-gray-300'} rounded relative overflow-hidden`}>
+                <div className={`w-20 h-24 border ${selectedTemplate === template.id ? 'border-[#03d27c]' : 'border-gray-300'} rounded relative overflow-hidden`}>
                   {/* Professional template preview */}
                   {template.id === 'professional' && (
                     <>
@@ -159,9 +159,9 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               id="photo-toggle"
               checked={includePhoto}
               onCheckedChange={handlePhotoToggle}
-              className="data-[state=checked]:bg-primary"
+              className="data-[state=checked]:bg-[#03d27c]"
             />
-            <Label htmlFor="photo-toggle" className="cursor-pointer">
+            <Label htmlFor="photo-toggle" className="cursor-pointer text-[#043e44] font-medium">
               Include photo in CV
             </Label>
           </div>

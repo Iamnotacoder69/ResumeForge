@@ -586,6 +586,7 @@ const CVBuilder = () => {
                             </div>
                             <Button 
                               type="button"
+                              className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
                               onClick={() => {
                                 const dataWithTemplateSettings = {
                                   ...form.getValues(),

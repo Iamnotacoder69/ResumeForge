@@ -89,7 +89,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         <Button 
           onClick={onClose}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -97,7 +97,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
             height="16" 
             viewBox="0 0 24 24" 
             fill="none" 
-            stroke="currentColor" 
+            stroke="#03d27c" 
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round"
@@ -110,7 +110,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         
         <Button 
           onClick={handlePrintPDF}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
