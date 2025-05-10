@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
-import { generatePDFFromHTML } from '@/lib/pdf-generator';
 import CVTemplate from './templates/CVTemplate';
 
 interface PDFPreviewProps {
@@ -9,28 +8,67 @@ interface PDFPreviewProps {
 }
 
 /**
- * PDF Preview component that allows for downloading the CV as a PDF
+ * PDF Preview component that allows for printing/downloading the CV as a PDF
+ * using the browser's built-in print functionality
  */
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
-  const templateRef = useRef<HTMLDivElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
   
-  const handleDownloadPDF = useCallback(async () => {
-    if (!templateRef.current) return;
+  const handlePrintPDF = useCallback(() => {
+    // Create a print-friendly stylesheet
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        /* Hide everything except the CV template */
+        body * {
+          visibility: hidden;
+        }
+        .cv-template-wrapper, .cv-template-wrapper * {
+          visibility: visible;
+        }
+        .cv-template-wrapper {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          box-shadow: none !important;
+        }
+        
+        /* Remove backgrounds from certain elements when printing */
+        .cv-template-wrapper * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        /* Page settings for PDF output */
+        @page {
+          size: A4 portrait;
+          margin: 0mm;
+        }
+        
+        /* Ensure text colors print properly */
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    `;
+    document.head.appendChild(style);
     
-    try {
-      // Generate the PDF using the HTML content
-      await generatePDFFromHTML(templateRef.current, data);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
-    }
-  }, [data]);
+    // Trigger the print dialog
+    window.print();
+    
+    // Remove the print-specific styles after printing
+    setTimeout(() => {
+      document.head.removeChild(style);
+    }, 1000);
+  }, []);
   
   return (
     <div className="pdf-preview-container space-y-6">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 print:hidden">
         <Button 
-          onClick={handleDownloadPDF}
+          onClick={handlePrintPDF}
           className="flex items-center gap-2"
         >
           <svg 
@@ -53,8 +91,8 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data }) => {
       </div>
       
       <div className="pdf-preview-content">
-        <div className="max-w-[210mm] mx-auto bg-white shadow-lg">
-          <CVTemplate data={data} templateRef={templateRef} />
+        <div ref={printRef} className="max-w-[210mm] mx-auto bg-white shadow-lg print:shadow-none print:mx-0 print:max-w-full">
+          <CVTemplate data={data} />
         </div>
       </div>
     </div>
