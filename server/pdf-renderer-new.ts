@@ -1,10 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 // @ts-ignore
 import wkhtmltopdf from 'wkhtmltopdf';
 import { CompleteCV } from '@shared/types';
 // @ts-ignore
 import * as wkhtmlPath from 'wkhtmltopdf-installer';
+
+// Get current filename and directory in ESM context
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure binary path is set correctly
 const wkhtmltopdfPath = wkhtmlPath.path;

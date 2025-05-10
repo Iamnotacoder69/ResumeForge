@@ -1,8 +1,9 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import CVTemplate from './templates/CVTemplate';
 import { Loader2 } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 interface PDFPreviewProps {
   data: CompleteCV;
@@ -11,58 +12,61 @@ interface PDFPreviewProps {
 
 /**
  * PDF Preview component that allows for downloading the CV as a PDF
- * using the wkhtmltopdf server-side PDF generation
+ * using html2pdf.js client-side PDF generation library
  */
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   const printRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   
+  // Initialize html2pdf options
+  const html2pdfOptions = {
+    margin: 10,
+    filename: `${data.personal?.firstName || ''}_${data.personal?.lastName || ''}_CV.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      letterRendering: true
+    },
+    jsPDF: { 
+      unit: 'mm', 
+      format: 'a4', 
+      orientation: 'portrait' 
+    }
+  };
+  
   const handleGeneratePDF = useCallback(async () => {
+    if (!printRef.current) return;
+    
     try {
       setIsGenerating(true);
       
-      // Define a filename for the PDF based on the user's name
-      const firstName = data.personal?.firstName || '';
-      const lastName = data.personal?.lastName || '';
-      const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
+      // Get a clone of the template element to avoid modifying the original DOM
+      const element = printRef.current.cloneNode(true) as HTMLElement;
       
-      // Send the CV data to the server for PDF generation
-      const response = await fetch('/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      // Ensure all images are loaded
+      const images = element.querySelectorAll('img');
+      await Promise.all(Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      }));
       
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF');
-      }
-      
-      // Get the PDF file as a blob
-      const blob = await response.blob();
-      
-      // Create a download link for the PDF
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = pdfFileName;
-      
-      // Trigger the download
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
+      // Generate PDF using html2pdf
+      await html2pdf()
+        .set(html2pdfOptions)
+        .from(element)
+        .save();
+        
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
-  }, [data]);
+  }, [data, html2pdfOptions, printRef]);
   
   return (
     <div className="pdf-preview-container space-y-6">
