@@ -22,6 +22,11 @@
   margin-top: 20px;
 }
 
+/* Hide screen-only elements during printing */
+.screen-only {
+  display: block;
+}
+
 /* Preview page breaks and ensure content stays on right pages */
 @media screen {
   .cv-template-wrapper {
@@ -40,22 +45,63 @@
     page-break-before: always;
     break-before: page;
   }
+  
+  /* Page number display (only in screen preview) */
+  .cv-page::after {
+    content: 'Page ' counter(page);
+    position: absolute;
+    bottom: 10mm;
+    right: 10mm;
+    font-size: 8pt;
+    color: #777;
+  }
+  
+  .cv-page {
+    counter-increment: page;
+  }
 }
 
 /* Print styles */
 @media print {
+  .screen-only {
+    display: none !important;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+  
   .paged-container {
     background-color: transparent;
     padding: 0;
   }
   
   .cv-page {
-    width: 100%;
-    min-height: auto;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
     page-break-after: always;
     break-after: page;
+  }
+  
+  /* Make sure all content is visible when printed */
+  .cv-template-wrapper {
+    overflow: visible !important;
+  }
+  
+  /* Define sections that should stay together */
+  .cv-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Print backgrounds and colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
