@@ -422,12 +422,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.PERSONAL)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Key Competencies <Check className="ml-2 h-4 w-4" />
                         </Button>
@@ -443,12 +445,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.SUMMARY)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Work Experience <Check className="ml-2 h-4 w-4" />
                         </Button>
@@ -464,12 +468,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.KEY_COMPETENCIES)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Education <Check className="ml-2 h-4 w-4" />
                         </Button>
