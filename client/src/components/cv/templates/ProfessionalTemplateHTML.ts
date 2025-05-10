@@ -6,8 +6,46 @@ import { formatDate } from '@/lib/date-utils';
  * This function constructs raw HTML without any CSS styles using tables for layout
  */
 export default function generateProfessionalHTML(data: CompleteCV): string {
+  // Create safe defaults for all data sections  
+  const personal = data?.personal || {
+    firstName: '',
+    lastName: '',
+    professionalTitle: '',
+    email: '',
+    phone: '',
+    linkedin: '',
+    photoUrl: ''
+  };
+  
+  const templateSettings = data?.templateSettings || {
+    includePhoto: false,
+    template: 'professional',
+    sectionOrder: []
+  };
+  
+  const professional = data?.professional || { 
+    summary: '' 
+  };
+  
+  const keyCompetencies = data?.keyCompetencies || { 
+    technicalSkills: [], 
+    softSkills: [] 
+  };
+  
+  const experience = data?.experience || [];
+  
+  const education = data?.education || [];
+  
+  const certificates = data?.certificates || [];
+  
+  const extracurricular = data?.extracurricular || [];
+  
+  const additional = data?.additional || { 
+    skills: [] 
+  };
+  
   // Get visible sections and sort by order
-  const visibleSections = data.templateSettings?.sectionOrder
+  const visibleSections = templateSettings.sectionOrder
     ?.filter(section => section.visible)
     .sort((a, b) => a.order - b.order) || [];
   
@@ -17,14 +55,14 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
       <tr>
         <td>
           <font face="Arial, sans-serif" size="6" color="#043e44">
-            <b>${data.personal.firstName} ${data.personal.lastName}</b>
+            <b>${personal.firstName} ${personal.lastName}</b>
           </font>
         </td>
-        ${data.templateSettings?.includePhoto && data.personal.photoUrl ? `
+        ${templateSettings.includePhoto && personal.photoUrl ? `
           <td align="right" width="120">
             <img 
-              src="${data.personal.photoUrl}" 
-              alt="${data.personal.firstName} ${data.personal.lastName}"
+              src="${personal.photoUrl}" 
+              alt="${personal.firstName} ${personal.lastName}"
               width="100" 
               height="100" 
               style="object-fit: cover;"
@@ -33,25 +71,25 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
         ` : ''}
       </tr>
       
-      ${data.personal.professionalTitle ? `
+      ${personal.professionalTitle ? `
         <tr>
-          <td colspan="${data.templateSettings?.includePhoto && data.personal.photoUrl ? 2 : 1}">
+          <td colspan="${templateSettings.includePhoto && personal.photoUrl ? 2 : 1}">
             <font face="Arial, sans-serif" size="4" color="#666666">
-              ${data.personal.professionalTitle}
+              ${personal.professionalTitle}
             </font>
           </td>
         </tr>
       ` : ''}
       
       <tr>
-        <td colspan="${data.templateSettings?.includePhoto && data.personal.photoUrl ? 2 : 1}" height="20"></td>
+        <td colspan="${templateSettings.includePhoto && personal.photoUrl ? 2 : 1}" height="20"></td>
       </tr>
       
       <tr>
-        <td colspan="${data.templateSettings?.includePhoto && data.personal.photoUrl ? 2 : 1}">
+        <td colspan="${templateSettings.includePhoto && personal.photoUrl ? 2 : 1}">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
-              ${data.personal.email ? `
+              ${personal.email ? `
                 <td align="left" valign="middle" width="200">
                   <table cellpadding="4" cellspacing="0" border="0">
                     <tr>
@@ -60,7 +98,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                       </td>
                       <td valign="middle">
                         <font face="Arial, sans-serif" size="2" color="#666666">
-                          ${data.personal.email}
+                          ${personal.email}
                         </font>
                       </td>
                     </tr>
@@ -68,7 +106,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                 </td>
               ` : ''}
               
-              ${data.personal.phone ? `
+              ${personal.phone ? `
                 <td align="left" valign="middle" width="200">
                   <table cellpadding="4" cellspacing="0" border="0">
                     <tr>
@@ -77,7 +115,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                       </td>
                       <td valign="middle">
                         <font face="Arial, sans-serif" size="2" color="#666666">
-                          ${data.personal.phone}
+                          ${personal.phone}
                         </font>
                       </td>
                     </tr>
@@ -85,7 +123,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                 </td>
               ` : ''}
               
-              ${data.personal.linkedin ? `
+              ${personal.linkedin ? `
                 <td align="left" valign="middle">
                   <table cellpadding="4" cellspacing="0" border="0">
                     <tr>
@@ -94,7 +132,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                       </td>
                       <td valign="middle">
                         <font face="Arial, sans-serif" size="2" color="#666666">
-                          ${data.personal.linkedin}
+                          ${personal.linkedin}
                         </font>
                       </td>
                     </tr>
@@ -114,7 +152,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
   visibleSections.forEach(section => {
     switch (section.id) {
       case 'summary':
-        if (data.professional?.summary) {
+        if (professional.summary) {
           contentHTML += `
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
               <tr>
@@ -135,7 +173,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
               <tr>
                 <td>
                   <font face="Arial, sans-serif" size="2" color="#333333">
-                    ${data.professional.summary.split('\n').map(paragraph => 
+                    ${professional.summary.split('\n').map(paragraph => 
                       `${paragraph}<br/><br/>`
                     ).join('')}
                   </font>
@@ -147,11 +185,11 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
         break;
         
       case 'keyCompetencies':
-        if (data.keyCompetencies?.technicalSkills?.length || data.keyCompetencies?.softSkills?.length) {
+        if (keyCompetencies.technicalSkills.length || keyCompetencies.softSkills.length) {
           let techSkillsHTML = '';
           let softSkillsHTML = '';
           
-          if (data.keyCompetencies?.technicalSkills?.length > 0) {
+          if (keyCompetencies.technicalSkills.length > 0) {
             techSkillsHTML = `
               <tr>
                 <td>
@@ -167,7 +205,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                 <td>
                   <table cellpadding="5" cellspacing="5" border="0">
                     <tr>
-                      ${data.keyCompetencies.technicalSkills.map(skill => `
+                      ${keyCompetencies.technicalSkills.map(skill => `
                         <td bgcolor="#f2f2f2" align="center">
                           <font face="Arial, sans-serif" size="2" color="#333333">
                             ${skill}
@@ -184,7 +222,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
             `;
           }
           
-          if (data.keyCompetencies?.softSkills?.length > 0) {
+          if (keyCompetencies.softSkills.length > 0) {
             softSkillsHTML = `
               <tr>
                 <td>
@@ -200,7 +238,7 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
                 <td>
                   <table cellpadding="5" cellspacing="5" border="0">
                     <tr>
-                      ${data.keyCompetencies.softSkills.map(skill => `
+                      ${keyCompetencies.softSkills.map(skill => `
                         <td bgcolor="#f2f2f2" align="center">
                           <font face="Arial, sans-serif" size="2" color="#333333">
                             ${skill}
@@ -239,10 +277,10 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
         break;
         
       case 'experience':
-        if (data.experience?.length) {
+        if (experience.length) {
           let experiencesHTML = '';
           
-          data.experience.forEach(exp => {
+          experience.forEach(exp => {
             let responsibilitiesHTML = '';
             
             if (exp.responsibilities) {
@@ -329,10 +367,10 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
         break;
         
       case 'education':
-        if (data.education?.length) {
+        if (education.length) {
           let educationsHTML = '';
           
-          data.education.forEach(edu => {
+          education.forEach(edu => {
             let achievementsHTML = '';
             
             if (edu.achievements) {
@@ -419,13 +457,13 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
         break;
         
       case 'certificates':
-        if (data.certificates?.length) {
+        if (certificates.length) {
           let certificatesHTML = '';
           
           // Create rows with two certificates per row
-          for (let i = 0; i < data.certificates.length; i += 2) {
-            const cert1 = data.certificates[i];
-            const cert2 = i + 1 < data.certificates.length ? data.certificates[i + 1] : null;
+          for (let i = 0; i < certificates.length; i += 2) {
+            const cert1 = certificates[i];
+            const cert2 = i + 1 < certificates.length ? certificates[i + 1] : null;
             
             certificatesHTML += `
               <tr>
@@ -516,7 +554,111 @@ export default function generateProfessionalHTML(data: CompleteCV): string {
         }
         break;
         
-      // Additional cases for other sections as needed
+      case 'extracurricular':
+        if (extracurricular.length) {
+          let extracurricularHTML = '';
+          
+          extracurricular.forEach(extra => {
+            extracurricularHTML += `
+              <tr>
+                <td style="padding-bottom: 20px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td>
+                        <font face="Arial, sans-serif" size="3" color="#043e44">
+                          <b>${extra.role}</b>
+                        </font>
+                      </td>
+                      <td align="right">
+                        <font face="Arial, sans-serif" size="2" color="#666666">
+                          ${formatDate(extra.startDate)} - ${extra.isCurrent ? 'Present' : formatDate(extra.endDate || '')}
+                        </font>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        <font face="Arial, sans-serif" size="3" color="#333333">
+                          ${extra.organization}
+                        </font>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" height="10"></td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        <font face="Arial, sans-serif" size="2" color="#333333">
+                          ${extra.description}
+                        </font>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            `;
+          });
+          
+          contentHTML += `
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
+              <tr>
+                <td>
+                  <font face="Arial, sans-serif" size="4" color="#043e44">
+                    <b>Extracurricular Activities</b>
+                  </font>
+                </td>
+              </tr>
+              <tr>
+                <td height="5" bgcolor="#03d27c">
+                  <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="1" height="1" alt="" />
+                </td>
+              </tr>
+              <tr>
+                <td height="10"></td>
+              </tr>
+              ${extracurricularHTML}
+            </table>
+          `;
+        }
+        break;
+        
+      case 'additional':
+        if (additional.skills && additional.skills.length > 0) {
+          contentHTML += `
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
+              <tr>
+                <td>
+                  <font face="Arial, sans-serif" size="4" color="#043e44">
+                    <b>Additional Skills</b>
+                  </font>
+                </td>
+              </tr>
+              <tr>
+                <td height="5" bgcolor="#03d27c">
+                  <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="1" height="1" alt="" />
+                </td>
+              </tr>
+              <tr>
+                <td height="10"></td>
+              </tr>
+              <tr>
+                <td>
+                  <table cellpadding="5" cellspacing="5" border="0">
+                    <tr>
+                      ${additional.skills.map(skill => `
+                        <td bgcolor="#f2f2f2" align="center">
+                          <font face="Arial, sans-serif" size="2" color="#333333">
+                            ${skill}
+                          </font>
+                        </td>
+                      `).join('')}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          `;
+        }
+        break;
     }
   });
   
