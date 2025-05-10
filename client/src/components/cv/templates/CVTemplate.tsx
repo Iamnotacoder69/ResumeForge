@@ -18,16 +18,16 @@ const CVTemplate: React.FC<CVTemplateProps> = ({ data, templateRef }) => {
   const renderTemplate = () => {
     const templateType = data.templateSettings?.template || 'professional';
     
-    // Explicitly type check to satisfy TypeScript
-    if (templateType === 'modern') {
-      return <ModernTemplate data={data} />;
-    } else if (templateType === 'minimal') {
-      return <MinimalTemplate data={data} />;
-    } else if (templateType === 'professional') {
-      return <ProfessionalTemplate data={data} />;
-    } else {
-      // Default to professional template if an invalid type is provided
-      return <ProfessionalTemplate data={data} />;
+    // Use a switch statement for better type safety
+    switch (templateType) {
+      case 'modern':
+        return <ModernTemplate data={data} />;
+      case 'minimal':
+        return <MinimalTemplate data={data} />;
+      case 'professional':
+      default:
+        // Default to professional template
+        return <ProfessionalTemplate data={data} />;
     }
   };
 
