@@ -107,7 +107,8 @@ const CVBuilder = () => {
   
   // Update form when template settings change
   useEffect(() => {
-    form.setValue('templateSettings.template', selectedTemplate);
+    // Explicitly type the template as TemplateType to fix type errors
+    form.setValue('templateSettings.template', selectedTemplate as TemplateType);
     form.setValue('templateSettings.includePhoto', includePhoto);
   }, [selectedTemplate, includePhoto, form]);
   
@@ -292,7 +293,7 @@ const CVBuilder = () => {
           data={{
             ...form.getValues(),
             templateSettings: {
-              template: selectedTemplate,
+              template: selectedTemplate as TemplateType,
               includePhoto: includePhoto,
               sectionOrder: sectionOrder
             }
