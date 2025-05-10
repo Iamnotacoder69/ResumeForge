@@ -153,30 +153,33 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto py-12 px-4 sm:px-6">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          CV Builder Pro
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Create a professional CV in minutes. Upload your existing CV for intelligent parsing, or start from scratch.
-        </p>
-      </div>
+    <div className="qwalify-welcome-container">
+      {/* Header */}
+      <header className="qwalify-header py-5 mb-8">
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-center">
+            <span className="qwalify-logo">Qwalify</span>
+            CV Builder
+          </h1>
+          <p className="text-center text-white/80 mt-2 max-w-2xl mx-auto">
+            Create a professional CV in minutes. Upload your existing CV for intelligent parsing, or start from scratch.
+          </p>
+        </div>
+      </header>
 
-      <div className="grid md:grid-cols-2 gap-8 mt-8">
-        {/* Upload Option Card */}
-        <Card className="relative overflow-hidden">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Upload className="h-5 w-5" />
-              <span>Upload Your Existing CV</span>
-            </CardTitle>
-            <CardDescription>
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid md:grid-cols-2 gap-8 mt-8">
+          {/* Upload Option Card */}
+          <div className="qwalify-card qwalify-card-choice" onClick={() => !isUploading && document.getElementById('cv-upload')?.click()}>
+            <div className="qwalify-icon-circle">
+              <Upload className="h-10 w-10" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">Upload Your CV</h3>
+            <p className="text-gray-600 mb-6">
               Upload your existing CV in PDF or DOCX format. We'll extract the information automatically.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border border-dashed border-primary/50 rounded-lg p-6 text-center bg-muted/50">
+            </p>
+            
+            <div className="relative">
               <input
                 type="file"
                 id="cv-upload"
@@ -185,129 +188,125 @@ export default function WelcomePage() {
                 onChange={handleFileChange}
                 disabled={isUploading}
               />
-              <label 
-                htmlFor="cv-upload"
-                className="cursor-pointer block mb-4"
-              >
-                <FileText className="h-12 w-12 mx-auto mb-3 text-primary/70" />
-                <p className="text-sm text-muted-foreground">
-                  Click to browse for your CV file (PDF or DOCX)
-                </p>
-              </label>
               
-              {file && (
-                <div className="mt-4 p-2 bg-primary/10 rounded flex items-center justify-between">
+              {file ? (
+                <div className="p-3 bg-accent rounded-md flex items-center justify-between mb-4">
                   <span className="text-sm font-medium truncate max-w-[200px]">{file.name}</span>
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm"
-                    onClick={() => setFile(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFile(null);
+                    }}
+                    className="ml-2"
                   >
                     Change
                   </Button>
                 </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-200 rounded-md p-4 text-center mb-4">
+                  <p className="text-sm text-gray-500">
+                    Click anywhere to browse for your CV file
+                  </p>
+                </div>
               )}
               
               {uploadError && (
-                <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md flex items-start gap-2">
+                <div className="mt-4 p-3 bg-red-50 text-red-500 rounded-md flex items-start gap-2">
                   <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                   <span className="text-sm">{uploadError}</span>
                 </div>
               )}
+              
+              <Button 
+                className="w-full qwalify-primary-btn"
+                disabled={!file || isUploading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUpload();
+                }}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Upload & Extract Data
+                  </>
+                )}
+              </Button>
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col items-stretch gap-4">
-            <Button 
-              className="w-full"
-              disabled={!file || isUploading}
-              onClick={handleUpload}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Upload & Extract Data
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
+          </div>
 
-        {/* Start from Scratch Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span>Start From Scratch</span>
-            </CardTitle>
-            <CardDescription>
-              Build your CV step by step using our guided process with professional templates.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
-                  </div>
-                  <span className="text-sm">Choose from professional templates</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
-                  </div>
-                  <span className="text-sm">Fill in your information step by step</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
-                  </div>
-                  <span className="text-sm">Use AI to enhance your content</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
-                  </div>
-                  <span className="text-sm">Customize the order of your sections</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
-                  </div>
-                  <span className="text-sm">Download your finished CV as a PDF</span>
-                </li>
-              </ul>
+          {/* Start from Scratch Card */}
+          <div className="qwalify-card qwalify-card-choice" onClick={handleStartFromScratch}>
+            <div className="qwalify-icon-circle">
+              <FileText className="h-10 w-10" />
             </div>
-          </CardContent>
-          <CardFooter>
+            <h3 className="text-xl font-semibold mb-3">Start From Scratch</h3>
+            <p className="text-gray-600 mb-6">
+              Build your CV step by step using our guided process with professional templates.
+            </p>
+            
+            <div className="space-y-3 text-left mb-6">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/20 p-1 mt-1 flex-shrink-0">
+                  <div className="rounded-full bg-primary h-2 w-2"></div>
+                </div>
+                <span className="text-sm text-gray-600">Choose from professional templates</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/20 p-1 mt-1 flex-shrink-0">
+                  <div className="rounded-full bg-primary h-2 w-2"></div>
+                </div>
+                <span className="text-sm text-gray-600">Fill in your information step by step</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/20 p-1 mt-1 flex-shrink-0">
+                  <div className="rounded-full bg-primary h-2 w-2"></div>
+                </div>
+                <span className="text-sm text-gray-600">Use AI to enhance your content</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/20 p-1 mt-1 flex-shrink-0">
+                  <div className="rounded-full bg-primary h-2 w-2"></div>
+                </div>
+                <span className="text-sm text-gray-600">Customize the order of your sections</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/20 p-1 mt-1 flex-shrink-0">
+                  <div className="rounded-full bg-primary h-2 w-2"></div>
+                </div>
+                <span className="text-sm text-gray-600">Download your finished CV as a PDF</span>
+              </div>
+            </div>
+            
             <Button 
-              className="w-full" 
-              variant="outline"
-              onClick={handleStartFromScratch}
+              className="w-full qwalify-primary-btn" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStartFromScratch();
+              }}
             >
               Start Building Your CV
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
       
-      {/* Random button that does nothing */}
-      <div className="mt-12 text-center">
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          className="rounded-full h-8 w-8 p-0"
-          onClick={() => console.log("This button does nothing")}
-        >
-          ✨
-        </Button>
-      </div>
+      {/* Footer */}
+      <footer className="qwalify-footer py-4 mt-10">
+        <div className="container mx-auto px-4">
+          <p className="text-sm text-white/70">
+            © 2025 Qwalify. Create professional CVs that get noticed.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

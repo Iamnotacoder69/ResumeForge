@@ -297,21 +297,23 @@ const CVBuilder = () => {
         />
       ) : (
         <>
-          <header className="bg-white shadow-sm sticky top-0 z-10">
+          <header className="qwalify-header sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="flex items-center">
-                  <FileText className="text-primary text-2xl mr-3" />
-                  <h1 className="text-2xl font-bold text-neutral-dark">CV Builder</h1>
+                  <h1 className="text-2xl font-bold flex items-center">
+                    <span className="qwalify-logo">Qwalify</span>
+                    <span className="text-white">CV Builder</span>
+                  </h1>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm relative group"
+                    className="text-xs sm:text-sm relative bg-white text-secondary hover:bg-white/90 hover:text-secondary group"
                   >
-                    <Eye className="mr-1 h-4 w-4" /> Preview
-                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
+                    <Eye className="mr-1 h-4 w-4" /> Preview CV
+                    <span className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
                       Preview available with incomplete fields
                     </span>
                   </Button>
@@ -321,7 +323,7 @@ const CVBuilder = () => {
                       title: "Help",
                       description: "Help documentation will be available soon",
                     })}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm bg-white/20 hover:bg-white/30 text-white border-white/30"
                   >
                     <HelpCircle className="mr-1 h-4 w-4" /> Help
                   </Button>
