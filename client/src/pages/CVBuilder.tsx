@@ -310,7 +310,7 @@ const CVBuilder = () => {
                   <Button 
                     variant="outline" 
                     onClick={handlePreview}
-                    className="text-xs sm:text-sm relative bg-white text-secondary hover:bg-white/90 hover:text-secondary group border-2 border-primary"
+                    className="text-xs sm:text-sm relative bg-primary text-white hover:bg-primary/90 hover:text-white font-bold group border-2 border-secondary"
                   >
                     <Eye className="mr-1 h-4 w-4" /> Preview CV
                     <span className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
@@ -323,7 +323,7 @@ const CVBuilder = () => {
                       title: "Help",
                       description: "Help documentation will be available soon",
                     })}
-                    className="text-xs sm:text-sm bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    className="text-xs sm:text-sm bg-white/30 hover:bg-white/40 text-white border-2 border-white/50 font-semibold"
                   >
                     <HelpCircle className="mr-1 h-4 w-4" /> Help
                   </Button>
@@ -378,16 +378,18 @@ const CVBuilder = () => {
                         onPhotoInclusionChange={handlePhotoInclusionChange}
                       />
                       
-                      <div className="flex justify-end mt-6">
+                      <div className="flex justify-center mt-6">
                         <Button 
                           type="button"
-                          className="qwalify-primary-btn"
+                          className="qwalify-primary-btn px-6 py-5 text-lg font-bold shadow-lg"
                           onClick={() => {
                             console.log("Navigating to Personal Information tab");
                             setActiveTab(CVTabs.PERSONAL);
                           }}
+                          disabled={!selectedTemplate}
                         >
-                          Next: Personal Information <ArrowRight className="ml-2 h-4 w-4" />
+                          Continue with {selectedTemplate ? (selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1)) : ""} Template
+                          <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                       </div>
                     </TabsContent>
