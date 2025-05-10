@@ -153,12 +153,12 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto py-12 px-4 sm:px-6">
+    <div className="container max-w-6xl mx-auto py-12 px-4 sm:px-6 min-h-[calc(100vh-15rem)]">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          CV Builder Pro
+        <h1 className="text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-[#03d27c] to-[#03d27c]/70 bg-clip-text text-transparent">
+          Qwalify
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-xl text-[#043e44] max-w-2xl mx-auto">
           Create a professional CV in minutes. Upload your existing CV for intelligent parsing, or start from scratch.
         </p>
       </div>
@@ -167,16 +167,16 @@ export default function WelcomePage() {
         {/* Upload Option Card */}
         <Card className="relative overflow-hidden">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Upload className="h-5 w-5" />
+            <CardTitle className="flex items-center space-x-2 text-[#043e44]">
+              <Upload className="h-5 w-5 text-[#03d27c]" />
               <span>Upload Your Existing CV</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-[#043e44]/80">
               Upload your existing CV in PDF or DOCX format. We'll extract the information automatically.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="border border-dashed border-primary/50 rounded-lg p-6 text-center bg-muted/50">
+            <div className="border border-dashed border-[#03d27c]/50 rounded-lg p-6 text-center bg-[#03d27c]/5">
               <input
                 type="file"
                 id="cv-upload"
@@ -189,8 +189,8 @@ export default function WelcomePage() {
                 htmlFor="cv-upload"
                 className="cursor-pointer block mb-4"
               >
-                <FileText className="h-12 w-12 mx-auto mb-3 text-primary/70" />
-                <p className="text-sm text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-3 text-[#03d27c]/70" />
+                <p className="text-sm text-[#043e44]">
                   Click to browse for your CV file (PDF or DOCX)
                 </p>
               </label>
@@ -218,7 +218,7 @@ export default function WelcomePage() {
           </CardContent>
           <CardFooter className="flex flex-col items-stretch gap-4">
             <Button 
-              className="w-full"
+              className="w-full bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
               disabled={!file || isUploading}
               onClick={handleUpload}
             >
@@ -240,11 +240,11 @@ export default function WelcomePage() {
         {/* Start from Scratch Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
+            <CardTitle className="flex items-center space-x-2 text-[#043e44]">
+              <FileText className="h-5 w-5 text-[#03d27c]" />
               <span>Start From Scratch</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-[#043e44]/80">
               Build your CV step by step using our guided process with professional templates.
             </CardDescription>
           </CardHeader>
@@ -252,46 +252,46 @@ export default function WelcomePage() {
             <div className="space-y-4">
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  <div className="rounded-full bg-[#03d27c]/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-[#03d27c] h-1.5 w-1.5"></div>
                   </div>
-                  <span className="text-sm">Choose from professional templates</span>
+                  <span className="text-sm text-[#043e44]">Choose from professional templates</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  <div className="rounded-full bg-[#03d27c]/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-[#03d27c] h-1.5 w-1.5"></div>
                   </div>
-                  <span className="text-sm">Fill in your information step by step</span>
+                  <span className="text-sm text-[#043e44]">Fill in your information step by step</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  <div className="rounded-full bg-[#03d27c]/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-[#03d27c] h-1.5 w-1.5"></div>
                   </div>
-                  <span className="text-sm">Use AI to enhance your content</span>
+                  <span className="text-sm text-[#043e44]">Use AI to enhance your content</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  <div className="rounded-full bg-[#03d27c]/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-[#03d27c] h-1.5 w-1.5"></div>
                   </div>
-                  <span className="text-sm">Customize the order of your sections</span>
+                  <span className="text-sm text-[#043e44]">Customize the order of your sections</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="rounded-full bg-primary/20 p-1 mt-0.5">
-                    <div className="rounded-full bg-primary h-1.5 w-1.5"></div>
+                  <div className="rounded-full bg-[#03d27c]/20 p-1 mt-0.5">
+                    <div className="rounded-full bg-[#03d27c] h-1.5 w-1.5"></div>
                   </div>
-                  <span className="text-sm">Download your finished CV as a PDF</span>
+                  <span className="text-sm text-[#043e44]">Download your finished CV as a PDF</span>
                 </li>
               </ul>
             </div>
           </CardContent>
           <CardFooter>
             <Button 
-              className="w-full" 
+              className="w-full border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10" 
               variant="outline"
               onClick={handleStartFromScratch}
             >
               Start Building Your CV
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-4 w-4 text-[#03d27c]" />
             </Button>
           </CardFooter>
         </Card>

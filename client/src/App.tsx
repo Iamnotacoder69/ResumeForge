@@ -1,4 +1,4 @@
-import { Switch, Route as WouterRoute, useLocation } from "wouter";
+import { Switch, Route as WouterRoute } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -20,15 +20,25 @@ function RouteWithLayout({ component: Component }: RouteWithLayoutProps) {
   );
 }
 
-function Route({ component, ...rest }: { component: React.ComponentType<any>, path?: string }) {
-  return <WouterRoute {...rest} component={(props: any) => <RouteWithLayout component={() => <component {...props} />} />} />;
-}
-
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={WelcomePage} />
-      <Route path="/cv-builder" component={CVBuilder} />
+      <WouterRoute 
+        path="/" 
+        component={() => (
+          <Layout>
+            <WelcomePage />
+          </Layout>
+        )} 
+      />
+      <WouterRoute 
+        path="/cv-builder" 
+        component={() => (
+          <Layout>
+            <CVBuilder />
+          </Layout>
+        )} 
+      />
       <WouterRoute component={NotFound} />
     </Switch>
   );

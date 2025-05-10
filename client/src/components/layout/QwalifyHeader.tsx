@@ -8,7 +8,7 @@ const QwalifyHeader: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link href="/">
-              <a className="flex items-center">
+              <div className="flex items-center cursor-pointer">
                 <svg 
                   width="36" 
                   height="36" 
@@ -24,19 +24,19 @@ const QwalifyHeader: React.FC = () => {
                   />
                 </svg>
                 <span className="text-[#043e44] font-bold text-2xl tracking-tight">Qwalify</span>
-              </a>
+              </div>
             </Link>
           </div>
           <nav className="flex space-x-4">
             <Link href="/">
-              <a className="text-[#043e44] hover:text-[#03d27c] px-3 py-2 text-sm font-medium transition-colors">
+              <div className="text-[#043e44] hover:text-[#03d27c] px-3 py-2 text-sm font-medium transition-colors cursor-pointer">
                 Home
-              </a>
+              </div>
             </Link>
             <Link href="/cv-builder">
-              <a className="text-[#043e44] hover:text-[#03d27c] px-3 py-2 text-sm font-medium transition-colors">
+              <div className="text-[#043e44] hover:text-[#03d27c] px-3 py-2 text-sm font-medium transition-colors cursor-pointer">
                 Create CV
-              </a>
+              </div>
             </Link>
           </nav>
         </div>
