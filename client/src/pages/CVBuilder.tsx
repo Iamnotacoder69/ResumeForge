@@ -451,6 +451,7 @@ const CVBuilder = () => {
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                          className="qwalify-primary-btn font-semibold"
                         >
                           Next: Work Experience <Check className="ml-2 h-4 w-4" />
                         </Button>
