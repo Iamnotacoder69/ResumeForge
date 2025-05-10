@@ -198,12 +198,12 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'certificates':
               return data.certificates?.length ? (
-                <section key="certificates" className="mb-6">
+                <section key="certificates" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Certifications</h2>
                   
                   <div className="space-y-4">
                     {data.certificates.map((cert: Certificate, index: number) => (
-                      <div key={index} className="mb-4">
+                      <div key={index} className="mb-4 cv-section">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">{cert.name}</h3>
                           <span className="text-sm text-gray-600">
@@ -236,12 +236,12 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'extracurricular':
               return data.extracurricular?.length ? (
-                <section key="extracurricular" className="mb-6">
+                <section key="extracurricular" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Extracurricular Activities</h2>
                   
                   <div className="space-y-4">
                     {data.extracurricular.map((extra: Extracurricular, index: number) => (
-                      <div key={index} className="mb-4">
+                      <div key={index} className="mb-4 cv-section">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">{extra.role}</h3>
                           <span className="text-sm text-gray-600">
@@ -273,7 +273,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({ data }) => 
               
             case 'additional':
               return (data.languages?.length || data.additional?.skills?.length) ? (
-                <section key="additional" className="mb-6">
+                <section key="additional" className="mb-6 cv-section">
                   <h2 className="text-xl font-semibold text-gray-900 border-b pb-1 mb-3">Additional Information</h2>
                   
                   {data.languages?.length > 0 && (
