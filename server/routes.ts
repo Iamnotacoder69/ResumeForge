@@ -284,8 +284,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const cvData = req.body;
       
-      // Import dynamically to avoid issues with circular dependencies
-      const { renderCVToPDF } = await import('./pdf-renderer');
+      // Import from the new PDF renderer
+      const { renderCVToPDF } = await import('./pdf-renderer-new');
       
       // Get template type from the request
       const templateType = cvData.templateSettings?.template || 'professional';

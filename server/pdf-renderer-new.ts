@@ -46,9 +46,9 @@ export async function renderCVToPDF(
         pageSize: 'A4',
         orientation: 'Portrait',
         marginTop: '10mm',
+        marginRight: '10mm',
         marginBottom: '10mm',
         marginLeft: '10mm',
-        marginRight: '10mm',
         enableSmartShrinking: true,
         printMediaType: true,
         noBackground: false,
@@ -62,18 +62,21 @@ export async function renderCVToPDF(
         } catch (e) {
           console.error('Error cleaning up HTML file:', e);
         }
-
+        
         if (err) {
           console.error('Error generating PDF:', err);
           reject(err);
         } else {
-          resolve({ filePath: pdfPath, fileName });
+          resolve({ 
+            filePath: pdfPath,
+            fileName
+          });
         }
       });
     });
-  } catch (err) {
-    console.error('Error in renderCVToPDF:', err);
-    throw err;
+  } catch (error) {
+    console.error('Error rendering CV to PDF:', error);
+    throw error;
   }
 }
 
@@ -198,23 +201,12 @@ function generateTemplateHtml(cv: CompleteCV, templateType: string): string {
         }
         .header h1 {
           color: white;
-          font-size: 18pt;
-          margin-bottom: 2pt;
         }
         .professional-title {
-          color: white;
+          color: rgba(255, 255, 255, 0.9);
           font-size: 12pt;
-          opacity: 0.9;
-          margin-bottom: 10pt;
-        }
-        .photo {
-          border-radius: 5pt;
-          border: 2pt solid white;
         }
         .contact-info {
-          margin-top: 10pt;
-        }
-        .contact-info > div {
           color: white;
         }
         .main-content {
@@ -223,77 +215,53 @@ function generateTemplateHtml(cv: CompleteCV, templateType: string): string {
         h2 {
           color: #03d27c;
           border-bottom: none;
-          position: relative;
-          padding-left: 10pt;
+          padding-bottom: 0;
+          margin-bottom: 10pt;
         }
-        h2:before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 25%;
-          height: 50%;
-          width: 4pt;
-          background-color: #03d27c;
-        }
-        .item {
-          position: relative;
-          padding-left: 15pt;
-        }
-        .item:before {
-          content: '';
-          position: absolute;
-          left: 3pt;
-          top: 5pt;
-          width: 6pt;
-          height: 6pt;
-          border-radius: 50%;
-          background-color: #03d27c;
-        }
-      `;
-      break;
-    
-    case 'minimal':
-      templateStyles = `
-        body {
-          font-family: 'Georgia', serif;
-        }
-        .cv-container {
-          text-align: center;
-        }
-        .header {
-          margin-bottom: 20pt;
-        }
-        .header h1 {
-          font-size: 18pt;
-          margin-bottom: 0;
-        }
-        .professional-title {
-          font-size: 12pt;
-          font-style: italic;
-          margin-bottom: 15pt;
-        }
-        .photo {
-          float: none;
-          margin: 0 auto 15pt;
-          border-radius: 0;
-          border: 1pt solid #eee;
-        }
-        .contact-info {
-          justify-content: center;
-          margin-bottom: 20pt;
-        }
-        .section h2 {
-          text-transform: uppercase;
-          letter-spacing: 2pt;
-          font-size: 11pt;
-          text-align: center;
-          border-bottom: none;
-          margin-bottom: 15pt;
-        }
-        .section h2:after {
+        h2:after {
           content: '';
           display: block;
           width: 50pt;
+          height: 3pt;
+          background-color: #03d27c;
+          margin-top: 5pt;
+        }
+        .photo {
+          border: 3pt solid white;
+        }
+      `;
+      break;
+      
+    case 'minimal':
+      templateStyles = `
+        body {
+          font-family: 'Helvetica', sans-serif;
+        }
+        .cv-container {
+          max-width: 190mm;
+          padding: 15mm;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 20pt;
+        }
+        .photo {
+          float: none;
+          margin: 0 auto 10pt;
+          display: block;
+        }
+        .contact-info {
+          justify-content: center;
+        }
+        h2 {
+          text-align: center;
+          border-bottom: none;
+          margin-bottom: 10pt;
+        }
+        h2:after {
+          content: '';
+          display: block;
+          width: 30pt;
           height: 1pt;
           background-color: #03d27c;
           margin: 5pt auto 0;
@@ -415,6 +383,30 @@ function renderHeader(cv: CompleteCV, templateType: string): string {
         ${photoHtml}
       </div>
     `;
+  }
+}
+
+/**
+ * Renders a specific CV section based on the section ID
+ */
+function renderSection(sectionId: string, cv: CompleteCV): string {
+  switch (sectionId) {
+    case 'summary':
+      return renderSummarySection(cv);
+    case 'keyCompetencies':
+      return renderKeyCompetenciesSection(cv);
+    case 'experience':
+      return renderExperienceSection(cv);
+    case 'education':
+      return renderEducationSection(cv);
+    case 'certificates':
+      return renderCertificatesSection(cv);
+    case 'extracurricular':
+      return renderExtracurricularSection(cv);
+    case 'additional':
+      return renderAdditionalSection(cv);
+    default:
+      return '';
   }
 }
 
@@ -572,159 +564,3 @@ function renderAdditionalSection(cv: CompleteCV): string {
     </div>
   `;
 }
-
-/**
- * Renders a specific CV section based on the section ID
- */
-function renderSection(sectionId: string, cv: CompleteCV): string {
-  switch (sectionId) {
-    case 'summary':
-      return renderSummarySection(cv);
-    case 'keyCompetencies':
-      return renderKeyCompetenciesSection(cv);
-    case 'experience':
-      return renderExperienceSection(cv);
-    case 'education':
-      return renderEducationSection(cv);
-    case 'certificates':
-      return renderCertificatesSection(cv);
-    case 'extracurricular':
-      return renderExtracurricularSection(cv);
-    case 'additional':
-      return renderAdditionalSection(cv);
-    default:
-      return '';
-  }
-}
-  if (!cv.professional?.summary) return '';
-
-  return `
-    <div class="section">
-      <h2>Professional Summary</h2>
-      <p>${cv.professional.summary}</p>
-    </div>
-  `;
-}
-
-function renderKeyCompetenciesSection(cv: CompleteCV): string {
-  if (!cv.keyCompetencies) return '';
-
-  const { technicalSkills = [], softSkills = [] } = cv.keyCompetencies;
-  
-  if (technicalSkills.length === 0 && softSkills.length === 0) return '';
-
-  const renderSkills = (skills: string[], title: string) => {
-    if (skills.length === 0) return '';
-    
-    return `
-      <div>
-        <h3>${title}</h3>
-        <div class="skills-list">
-          ${skills.map(skill => `<span class="skill">${skill}</span>`).join('')}
-        </div>
-      </div>
-    `;
-  };
-
-  return `
-    <div class="section">
-      <h2>Key Competencies</h2>
-      ${renderSkills(technicalSkills, 'Technical Skills')}
-      ${renderSkills(softSkills, 'Soft Skills')}
-    </div>
-  `;
-}
-
-function renderExperienceSection(cv: CompleteCV): string {
-  if (!cv.experience || cv.experience.length === 0) return '';
-
-  const experienceItems = cv.experience.map(exp => {
-    const dateRange = exp.isCurrent
-      ? `${exp.startDate} - Present`
-      : `${exp.startDate} - ${exp.endDate || ''}`;
-    
-    return `
-      <div class="item">
-        <div class="job-title">${exp.jobTitle}</div>
-        <div class="company">${exp.companyName}</div>
-        <div class="date-range">${dateRange}</div>
-        <div class="responsibilities">${exp.responsibilities}</div>
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div class="section">
-      <h2>Professional Experience</h2>
-      ${experienceItems}
-    </div>
-  `;
-}
-
-function renderEducationSection(cv: CompleteCV): string {
-  if (!cv.education || cv.education.length === 0) return '';
-
-  const educationItems = cv.education.map(edu => {
-    const achievements = edu.achievements
-      ? `<div>${edu.achievements}</div>`
-      : '';
-    
-    return `
-      <div class="item">
-        <div class="degree">${edu.major}</div>
-        <div class="school">${edu.schoolName}</div>
-        <div class="date-range">${edu.startDate} - ${edu.endDate || ''}</div>
-        ${achievements}
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div class="section">
-      <h2>Education</h2>
-      ${educationItems}
-    </div>
-  `;
-}
-
-
-
-function renderExtracurricularSection(cv: CompleteCV): string {
-  if (!cv.extracurricular || cv.extracurricular.length === 0) return '';
-
-  const extraItems = cv.extracurricular.map(extra => {
-    const dateRange = extra.isCurrent
-      ? `${extra.startDate} - Present`
-      : `${extra.startDate} - ${extra.endDate || ''}`;
-    
-    return `
-      <div class="item">
-        <div class="job-title">${extra.role}</div>
-        <div class="company">${extra.organization}</div>
-        <div class="date-range">${dateRange}</div>
-        <div class="responsibilities">${extra.description}</div>
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div class="section">
-      <h2>Extracurricular Activities</h2>
-      ${extraItems}
-    </div>
-  `;
-}
-
-function renderAdditionalSection(cv: CompleteCV): string {
-  if (!cv.additional?.skills || cv.additional.skills.length === 0) return '';
-
-  return `
-    <div class="section">
-      <h2>Additional Skills</h2>
-      <div class="skills-list">
-        ${cv.additional.skills.map(skill => `<span class="skill">${skill}</span>`).join('')}
-      </div>
-    </div>
-  `;
-}
-
