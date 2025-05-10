@@ -492,12 +492,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EXPERIENCE)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Extracurricular Activities <Check className="ml-2 h-4 w-4" />
                         </Button>
@@ -513,12 +515,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EDUCATION)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Additional Information <Check className="ml-2 h-4 w-4" />
                         </Button>
@@ -534,12 +538,14 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.EXTRACURRICULAR)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
                         <Button 
                           type="button" 
                           onClick={() => setActiveTab(CVTabs.REORDER)}
+                          className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white"
                         >
                           Next: Organize Sections <Check className="ml-2 h-4 w-4" />
                         </Button>
@@ -559,6 +565,7 @@ const CVBuilder = () => {
                           type="button" 
                           variant="outline"
                           onClick={() => setActiveTab(CVTabs.ADDITIONAL)}
+                          className="border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                         >
                           Back
                         </Button>
@@ -568,11 +575,11 @@ const CVBuilder = () => {
                               <Button 
                                 type="button" 
                                 variant="outline"
-                                className="relative"
+                                className="relative border-[#03d27c] text-[#043e44] hover:bg-[#03d27c]/10"
                                 onClick={handlePreview}
                               >
-                                <Eye className="mr-2 h-4 w-4" /> Preview CV
-                                <span className="absolute bottom-0 left-0 right-0 -mb-5 text-xs text-gray-500">
+                                <Eye className="mr-2 h-4 w-4 text-[#03d27c]" /> Preview CV
+                                <span className="absolute bottom-0 left-0 right-0 -mb-5 text-xs text-[#043e44]/70">
                                   Preview available with incomplete fields
                                 </span>
                               </Button>
