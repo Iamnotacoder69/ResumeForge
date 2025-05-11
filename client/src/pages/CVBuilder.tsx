@@ -327,15 +327,16 @@ const CVBuilder = () => {
               color: #333;
             }
             
-            .cv-template-wrapper {
+            .cv-template {
               width: 210mm;
               min-height: 297mm;
               box-shadow: none !important;
               background-color: white !important;
-              padding: 20mm;
+              padding: 30px;
               box-sizing: border-box;
             }
             
+            /* Headers */
             h1, h2, h3, h4, h5, h6 {
               margin-top: 0.5em;
               margin-bottom: 0.5em;
@@ -344,11 +345,12 @@ const CVBuilder = () => {
             }
             
             h1 {
-              font-size: 24pt;
+              font-size: 24px;
+              color: #043e44;
             }
             
             h2 {
-              font-size: 16pt;
+              font-size: 18px;
               color: #043e44;
               border-bottom: 1px solid #03d27c;
               padding-bottom: 5px;
@@ -356,13 +358,41 @@ const CVBuilder = () => {
             }
             
             h3 {
-              font-size: 14pt;
+              font-size: 16px;
+              color: #043e44;
             }
             
+            /* Content styling */
             p {
               margin-bottom: 0.5em;
+              color: #333;
             }
             
+            .text-gray-700 {
+              color: #333;
+            }
+            
+            .text-gray-800 {
+              color: #043e44;
+            }
+            
+            .text-gray-900 {
+              color: #043e44;
+            }
+            
+            .text-gray-600 {
+              color: #666;
+            }
+            
+            .font-medium {
+              font-weight: 500;
+            }
+            
+            .font-semibold {
+              font-weight: 600;
+            }
+            
+            /* Lists */
             ul, ol {
               padding-left: 20px;
               margin-top: 0.5em;
@@ -373,56 +403,122 @@ const CVBuilder = () => {
               margin-bottom: 0.3em;
             }
             
+            .pl-4 {
+              padding-left: 1rem;
+            }
+            
+            .mb-1 {
+              margin-bottom: 0.25rem;
+            }
+            
+            .mb-2 {
+              margin-bottom: 0.5rem;
+            }
+            
+            .mb-3 {
+              margin-bottom: 0.75rem;
+            }
+            
+            .mb-4 {
+              margin-bottom: 1rem;
+            }
+            
+            .mb-6 {
+              margin-bottom: 1.5rem;
+            }
+            
+            .relative {
+              position: relative;
+            }
+            
+            .absolute {
+              position: absolute;
+            }
+            
+            .left-0 {
+              left: 0;
+            }
+            
+            /* Section styling */
             section {
               margin-bottom: 20px;
             }
             
-            .section-title {
-              color: #043e44;
-              font-weight: bold;
-            }
-            
-            .skills-list {
+            /* Flexbox utilities */
+            .flex {
               display: flex;
-              flex-wrap: wrap;
-              gap: 10px;
             }
             
-            .skill-item {
-              background-color: rgba(3, 210, 124, 0.1);
-              color: #043e44;
-              padding: 5px 10px;
-              border-radius: 4px;
-              font-size: 12px;
-            }
-            
-            .experience-item, .education-item, .certificate-item {
-              margin-bottom: 15px;
-            }
-            
-            .item-header {
-              display: flex;
+            .justify-between {
               justify-content: space-between;
-              margin-bottom: 5px;
             }
             
-            .item-title {
-              font-weight: 600;
-              color: #043e44;
+            .items-start {
+              align-items: flex-start;
             }
             
-            .item-dates {
-              color: #666;
-              font-size: 0.9em;
+            .flex-wrap {
+              flex-wrap: wrap;
             }
             
-            .item-subtitle {
-              font-style: italic;
-              margin-bottom: 5px;
+            .gap-2 {
+              gap: 0.5rem;
             }
             
-            .item-description {
-              margin-top: 5px;
+            .gap-4 {
+              gap: 1rem;
+            }
+            
+            /* SVG Icons */
+            svg {
+              width: 16px;
+              height: 16px;
+              margin-right: 4px;
+            }
+            
+            /* Button and tag styling */
+            .bg-gray-100 {
+              background-color: rgba(3, 210, 124, 0.1);
+            }
+            
+            .text-sm {
+              font-size: 0.875rem;
+            }
+            
+            .rounded {
+              border-radius: 0.25rem;
+            }
+            
+            .px-2 {
+              padding-left: 0.5rem;
+              padding-right: 0.5rem;
+            }
+            
+            .py-1 {
+              padding-top: 0.25rem;
+              padding-bottom: 0.25rem;
+            }
+            
+            /* Space utilities */
+            .space-y-1 > * + * {
+              margin-top: 0.25rem;
+            }
+            
+            .space-y-4 > * + * {
+              margin-top: 1rem;
+            }
+            
+            /* List styling */
+            .list-disc {
+              list-style-type: disc;
+            }
+            
+            .pl-5 {
+              padding-left: 1.25rem;
+            }
+            
+            /* Whitespace */
+            .whitespace-pre-line {
               white-space: pre-line;
             }
             
