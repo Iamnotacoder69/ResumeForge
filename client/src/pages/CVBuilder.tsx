@@ -152,45 +152,6 @@ const CVBuilder = () => {
       )
     );
   };
-  
-  // Handle section deletion
-  const handleDeleteSection = (sectionId: string) => {
-    // Get a friendly section name for the message
-    const sectionName = sectionOrder.find(s => s.id === sectionId)?.name || sectionId;
-    
-    // Confirm deletion with the user
-    if (window.confirm(`Are you sure you want to delete the "${sectionName}" section? This action will remove all data in this section and cannot be undone.`)) {
-      // Clear the data for this section in the form
-      if (sectionId === 'summary') {
-        form.setValue('professional.summary', '');
-      } else if (sectionId === 'keyCompetencies') {
-        form.setValue('keyCompetencies.technicalSkills', []);
-        form.setValue('keyCompetencies.softSkills', []);
-      } else if (sectionId === 'experience') {
-        form.setValue('experience', []);
-      } else if (sectionId === 'education') {
-        form.setValue('education', []);
-      } else if (sectionId === 'certificates') {
-        form.setValue('certificates', []);
-      } else if (sectionId === 'extracurricular') {
-        form.setValue('extracurricular', []);
-      } else if (sectionId === 'additional') {
-        form.setValue('additional.skills', []);
-      } else if (sectionId === 'languages') {
-        form.setValue('languages', []);
-      }
-      
-      // Set section visibility to false
-      handleSectionVisibilityToggle(sectionId, false);
-      
-      // Show success toast
-      toast({
-        title: "Section Deleted",
-        description: `The "${sectionName}" section has been removed from your CV.`,
-        variant: "default",
-      });
-    }
-  };
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -679,7 +640,6 @@ const CVBuilder = () => {
                         sections={sectionOrder}
                         onReorder={handleSectionReorder}
                         onToggleVisibility={handleSectionVisibilityToggle}
-                        onDeleteSection={handleDeleteSection}
                       />
                       
                       <div className="flex justify-between">
