@@ -96,6 +96,21 @@ const SectionOrderer: React.FC<SectionOrdererProps> = ({
                   <ArrowDown className="h-4 w-4" />
                   <span className="sr-only">Move Down</span>
                 </Button>
+                {onDeleteSection && section.id !== 'personal' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDeleteSection(section.id)}
+                    className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:text-red-600 group relative"
+                  >
+                    <Trash2 className="h-4 w-4 group-hover:text-red-600" />
+                    <span className="sr-only">Delete Section</span>
+                    <span className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-md p-2 text-xs hidden group-hover:block z-10">
+                      Delete this section and its data
+                    </span>
+                  </Button>
+                )}
               </div>
             </div>
           ))}
