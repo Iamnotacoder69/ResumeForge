@@ -348,6 +348,13 @@ const CVBuilder = () => {
       // Trigger the print dialog
       window.print();
       
+      // Show a success toast
+      toast({
+        title: "PDF Generation",
+        description: "Your CV has been prepared for printing/download",
+        variant: "default",
+      });
+      
       // Restore the original title and remove the print-specific styles
       setTimeout(() => {
         document.title = originalTitle;
@@ -662,17 +669,7 @@ const CVBuilder = () => {
                             <Button 
                               type="button"
                               className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                              onClick={() => {
-                                const dataWithTemplateSettings = {
-                                  ...form.getValues(),
-                                  templateSettings: {
-                                    template: selectedTemplate,
-                                    includePhoto: includePhoto,
-                                    sectionOrder: sectionOrder
-                                  }
-                                };
-                                submitMutation.mutate(dataWithTemplateSettings);
-                              }}
+                              onClick={handleDirectPrint}
                             >
                               <FileText className="mr-2 h-4 w-4" /> Generate PDF
                             </Button>
