@@ -319,11 +319,111 @@ const CVBuilder = () => {
               margin: 0mm;
             }
             
+            body {
+              margin: 0;
+              padding: 0;
+              font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+              line-height: 1.5;
+              color: #333;
+            }
+            
             .cv-template-wrapper {
               width: 210mm;
               min-height: 297mm;
               box-shadow: none !important;
               background-color: white !important;
+              padding: 20mm;
+              box-sizing: border-box;
+            }
+            
+            h1, h2, h3, h4, h5, h6 {
+              margin-top: 0.5em;
+              margin-bottom: 0.5em;
+              font-weight: 600;
+              color: #043e44;
+            }
+            
+            h1 {
+              font-size: 24pt;
+            }
+            
+            h2 {
+              font-size: 16pt;
+              color: #043e44;
+              border-bottom: 1px solid #03d27c;
+              padding-bottom: 5px;
+              margin-top: 20px;
+            }
+            
+            h3 {
+              font-size: 14pt;
+            }
+            
+            p {
+              margin-bottom: 0.5em;
+            }
+            
+            ul, ol {
+              padding-left: 20px;
+              margin-top: 0.5em;
+              margin-bottom: 0.5em;
+            }
+            
+            li {
+              margin-bottom: 0.3em;
+            }
+            
+            section {
+              margin-bottom: 20px;
+            }
+            
+            .section-title {
+              color: #043e44;
+              font-weight: bold;
+            }
+            
+            .skills-list {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 10px;
+            }
+            
+            .skill-item {
+              background-color: rgba(3, 210, 124, 0.1);
+              color: #043e44;
+              padding: 5px 10px;
+              border-radius: 4px;
+              font-size: 12px;
+            }
+            
+            .experience-item, .education-item, .certificate-item {
+              margin-bottom: 15px;
+            }
+            
+            .item-header {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 5px;
+            }
+            
+            .item-title {
+              font-weight: 600;
+              color: #043e44;
+            }
+            
+            .item-dates {
+              color: #666;
+              font-size: 0.9em;
+            }
+            
+            .item-subtitle {
+              font-style: italic;
+              margin-bottom: 5px;
+            }
+            
+            .item-description {
+              margin-top: 5px;
+              white-space: pre-line;
             }
             
             /* Force background colors and images to print */
@@ -331,7 +431,6 @@ const CVBuilder = () => {
               -webkit-print-color-adjust: exact !important;
               color-adjust: exact !important;
               print-color-adjust: exact !important;
-              font-family: 'Inter', 'Helvetica', sans-serif !important;
             }
             
             /* Fix any text overflow issues */

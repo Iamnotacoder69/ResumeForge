@@ -98,51 +98,48 @@ export async function captureElementAsPDF(
   }
 
   try {
-    // Get the HTML content and computed styles
+    // Get the HTML content
     const html = element.outerHTML;
     
-    // Create a style element with all the styles from the document
-    let css = '';
-    
-    // Get all the stylesheet rules
-    for (let i = 0; i < document.styleSheets.length; i++) {
-      try {
-        const styleSheet = document.styleSheets[i];
-        if (styleSheet.cssRules) {
-          for (let j = 0; j < styleSheet.cssRules.length; j++) {
-            css += styleSheet.cssRules[j].cssText + '\n';
-          }
-        }
-      } catch (e) {
-        console.warn('Error accessing stylesheet:', e);
+    // Basic CSS for the CV along with the additional CSS
+    let css = `
+      @page {
+        size: A4 portrait;
+        margin: 0;
       }
-    }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      }
+      
+      * {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        print-color-adjust: exact;
+        box-sizing: border-box;
+      }
+    `;
     
     // Add additional CSS if provided
     if (options.additionalCSS) {
       css += options.additionalCSS;
     }
     
-    // Add print-specific CSS
-    css += `
-      @page {
-        size: A4;
-        margin: 0;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-      }
-      * {
-        -webkit-print-color-adjust: exact;
-        color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    `;
-    
-    // Generate the PDF
+    // Generate the PDF with a complete HTML document
     await generatePDF(
-      `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV</title><style>${css}</style></head><body>${html}</body></html>`,
+      `<!DOCTYPE html>
+       <html>
+         <head>
+           <meta charset="UTF-8">
+           <title>CV</title>
+           <style>${css}</style>
+         </head>
+         <body>
+           ${html}
+         </body>
+       </html>`,
       undefined,
       options.fileName
     );
