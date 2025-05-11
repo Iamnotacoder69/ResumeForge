@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { captureElementAsPDF } from '@/lib/pdf-utils';
 import { FileText, Eye, HelpCircle, Check } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
@@ -282,85 +283,110 @@ const CVBuilder = () => {
     setShowPreview(true);
   };
   
-  // Function to directly trigger browser print dialog
-  const handleDirectPrint = () => {
+  // Function to generate PDF using WeasyPrint
+  const handleGeneratePDF = async () => {
     // First show the preview
     setShowPreview(true);
     
-    // Then trigger the print dialog with a slight delay to ensure the preview loads
-    setTimeout(() => {
-      // Define a filename for the PDF
-      const firstName = form.getValues().personal?.firstName || '';
-      const lastName = form.getValues().personal?.lastName || '';
-      const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
-      
-      // Create a print-friendly stylesheet
-      const style = document.createElement('style');
-      style.innerHTML = `
-        @media print {
-          /* Hide everything except the CV template */
-          body * {
-            visibility: hidden;
-          }
-          .cv-template-wrapper, .cv-template-wrapper * {
-            visibility: visible;
-          }
-          .cv-template-wrapper {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            box-shadow: none !important;
-            background-color: white !important;
-          }
-          
-          /* Force background colors and images to print */
-          .cv-template-wrapper * {
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          /* Page settings for PDF output */
-          @page {
-            size: A4 portrait;
-            margin: 0mm;
-          }
-          
-          /* Ensure proper font rendering */
-          * {
-            font-family: 'Inter', 'Helvetica', sans-serif !important;
-            -webkit-font-smoothing: antialiased;
-          }
-          
-          /* Fix any text overflow issues */
-          p, h1, h2, h3 {
-            overflow: visible !important;
-            white-space: normal !important;
-          }
+    // Then generate the PDF with a slight delay to ensure the preview loads
+    setTimeout(async () => {
+      try {
+        // Define a filename for the PDF
+        const firstName = form.getValues().personal?.firstName || '';
+        const lastName = form.getValues().personal?.lastName || '';
+        const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
+        
+        // Add loading state
+        toast({
+          title: "Generating PDF",
+          description: "Please wait while we prepare your CV...",
+          variant: "default",
+        });
+        
+        // Find the CV template element
+        const templateElement = document.querySelector('.cv-template-wrapper') as HTMLElement;
+        
+        if (!templateElement) {
+          throw new Error('CV template not found');
         }
-      `;
-      document.head.appendChild(style);
-      
-      // Set the document title to improve the suggested filename
-      const originalTitle = document.title;
-      document.title = pdfFileName;
-      
-      // Trigger the print dialog
-      window.print();
-      
-      // Show a success toast
-      toast({
-        title: "PDF Generation",
-        description: "Your CV has been prepared for printing/download",
-        variant: "default",
-      });
-      
-      // Restore the original title and remove the print-specific styles
-      setTimeout(() => {
-        document.title = originalTitle;
+        
+        // Generate the PDF
+        await captureElementAsPDF(templateElement, {
+          fileName: pdfFileName,
+          additionalCSS: `
+            @page {
+              size: A4 portrait;
+              margin: 0mm;
+            }
+            
+            .cv-template-wrapper {
+              width: 210mm;
+              min-height: 297mm;
+              box-shadow: none !important;
+              background-color: white !important;
+            }
+            
+            /* Force background colors and images to print */
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              font-family: 'Inter', 'Helvetica', sans-serif !important;
+            }
+            
+            /* Fix any text overflow issues */
+            p, h1, h2, h3 {
+              overflow: visible !important;
+              white-space: normal !important;
+            }
+          `
+        });
+        
+        // Show a success toast
+        toast({
+          title: "PDF Generated",
+          description: "Your CV has been downloaded successfully",
+          variant: "default",
+        });
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        
+        // Show error toast
+        toast({
+          title: "PDF Generation Failed",
+          description: error instanceof Error ? error.message : "Unknown error occurred",
+          variant: "destructive",
+        });
+        
+        // Fallback to browser printing if WeasyPrint fails
+        const style = document.createElement('style');
+        style.innerHTML = `
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .cv-template-wrapper, .cv-template-wrapper * {
+              visibility: visible;
+            }
+            .cv-template-wrapper {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              box-shadow: none !important;
+              background-color: white !important;
+            }
+            
+            @page {
+              size: A4 portrait;
+              margin: 0mm;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+        window.print();
         document.head.removeChild(style);
-      }, 1000);
+      }
     }, 500); // Half-second delay to ensure preview is rendered
   };
 
@@ -748,7 +774,7 @@ const CVBuilder = () => {
                             <Button 
                               type="button"
                               className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                              onClick={handleDirectPrint}
+                              onClick={handleGeneratePDF}
                             >
                               <FileText className="mr-2 h-4 w-4" /> Generate PDF
                             </Button>

@@ -281,6 +281,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate PDF using WeasyPrint
+  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+    try {
+      const { html, css, fileName } = req.body;
+      
+      if (!html) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "HTML content is required" 
+        });
+      }
+      
+      // For direct download - generate and send the file
+      const outputPath = createTempPDFPath(fileName ? `${fileName.replace(/\s+/g, '_')}-` : 'cv-');
+      
+      try {
+        const filePath = await generatePDFFile(html, outputPath, css);
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+        
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+        
+        // Clean up temp file after sending
+        fileStream.on('end', () => {
+          fs.unlink(filePath, (err) => {
+            if (err) console.error(`Error removing temp file: ${err}`);
+          });
+        });
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        
+        // Fallback to base64 if file generation fails
+        try {
+          const base64PDF = await generatePDFBase64(html, css);
+          res.json({
+            success: true,
+            message: "PDF generated as base64",
+            data: { base64: base64PDF }
+          });
+        } catch (error) {
+          const fallbackError = error instanceof Error 
+            ? error.message 
+            : 'Unknown error generating PDF';
+          throw new Error(`PDF generation failed: ${fallbackError}`);
+        }
+      }
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to generate PDF", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

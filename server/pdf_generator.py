@@ -48,7 +48,11 @@ def html_to_pdf(html_content, css_content=None, output_path=None):
             return {"success": True, "file_path": output_path}
         else:
             pdf_bytes = html.write_pdf(stylesheets=stylesheets, font_config=font_config)
-            pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+            # Ensure pdf_bytes is not None before encoding
+            if pdf_bytes:
+                pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+            else:
+                raise Exception("Failed to generate PDF: Empty output")
             return {"success": True, "pdf_base64": pdf_base64}
             
     except Exception as e:
