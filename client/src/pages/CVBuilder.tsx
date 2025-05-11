@@ -486,47 +486,34 @@ const CVBuilder = () => {
               box-shadow: none !important;
             }
             
-            h2 {
-              font-size: 18px;
-              color: #043e44;
-              border-bottom: 1px solid #03d27c;
-              padding-bottom: 5px;
-              margin-top: 20px;
-            }
-            
-            h3 {
-              font-size: 16px;
-              color: #043e44;
-            }
-            
-            /* Content styling */
-            p {
-              margin-bottom: 0.5em;
-              color: #333;
-            }
-            
+            /* Text utilities */
             .text-gray-700 {
-              color: #333;
+              color: #374151;
             }
             
             .text-gray-800 {
-              color: #043e44;
+              color: #1f2937;
             }
             
             .text-gray-900 {
-              color: #043e44;
+              color: #111827;
             }
             
             .text-gray-600 {
-              color: #666;
+              color: #4b5563;
             }
             
+            /* Font weights */
             .font-medium {
               font-weight: 500;
             }
             
             .font-semibold {
               font-weight: 600;
+            }
+            
+            .font-bold {
+              font-weight: 700;
             }
             
             /* Lists */
