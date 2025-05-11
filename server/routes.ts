@@ -339,13 +339,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ${cvData.keyCompetencies.technicalSkills.length > 0 ? `
                 <h3>Technical Skills</h3>
                 <div class="skills-list">
-                  ${cvData.keyCompetencies.technicalSkills.map(skill => `<div class="skill-item">${skill}</div>`).join('')}
+                  ${cvData.keyCompetencies.technicalSkills.map((skill: string) => `<div class="skill-item">${skill}</div>`).join('')}
                 </div>
               ` : ''}
               ${cvData.keyCompetencies.softSkills.length > 0 ? `
                 <h3>Soft Skills</h3>
                 <div class="skills-list">
-                  ${cvData.keyCompetencies.softSkills.map(skill => `<div class="skill-item">${skill}</div>`).join('')}
+                  ${cvData.keyCompetencies.softSkills.map((skill: string) => `<div class="skill-item">${skill}</div>`).join('')}
                 </div>
               ` : ''}
             </div>
