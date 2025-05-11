@@ -8,6 +8,11 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+
+// Get current file's directory (equivalent to __dirname in CommonJS)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface WeasyPrintOptions {
   html: string;
