@@ -9,6 +9,7 @@ import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { generatePDFFromHTML } from "./pdf-generator";
 
 // Configure multer for memory storage (files stored in buffer)
 const upload = multer({
@@ -273,6 +274,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to extract data from CV",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // CloudConvert - Generate PDF using cloud service
+  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+    try {
+      const { html, options } = req.body;
+      
+      if (!html) {
+        return res.status(400).json({
+          success: false,
+          message: "HTML content is required"
+        });
+      }
+      
+      console.log("PDF Generation - Request received, generating PDF with CloudConvert");
+      
+      // Generate PDF using CloudConvert
+      const pdfBuffer = await generatePDFFromHTML(html, options || {});
+      
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${options?.filename || 'cv.pdf'}"`);
+      
+      // Send the PDF buffer as the response
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      console.error("PDF Generation - Error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate PDF",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

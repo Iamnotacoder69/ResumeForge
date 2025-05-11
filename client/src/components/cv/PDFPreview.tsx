@@ -2,6 +2,8 @@ import React, { useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import CVTemplate from './templates/CVTemplate';
+import { generatePDFWithCloudConvert } from '@/lib/pdf-utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface PDFPreviewProps {
   data: CompleteCV;

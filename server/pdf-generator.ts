@@ -9,6 +9,9 @@ const readFileAsync = promisify(fs.readFile);
 const unlinkAsync = promisify(fs.unlink);
 
 // Initialize CloudConvert with API key
+if (!process.env.CLOUDCONVERT_API_KEY) {
+  throw new Error('CLOUDCONVERT_API_KEY is not defined in environment variables');
+}
 const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY);
 
 /**
@@ -85,11 +88,17 @@ export async function generatePDFFromHTML(
     
     // Get the export task and URL to download the PDF
     const exportTask = jobWaitResult.tasks.filter(task => task.name === 'export-pdf')[0];
+    if (!exportTask || !exportTask.result || !exportTask.result.files || !exportTask.result.files.length) {
+      throw new Error('PDF generation failed: Export task did not produce any files');
+    }
+    
     const file = exportTask.result.files[0];
     
     // Download the PDF file
     const writeStream = fs.createWriteStream(pdfFilePath);
-    await cloudConvert.files.download(file.url, writeStream);
+    
+    // Use the cloudconvert API to download the file
+    await (cloudConvert as any).files.download(file.url, writeStream);
     
     // Wait for download to complete
     await new Promise<void>(resolve => {
@@ -106,8 +115,8 @@ export async function generatePDFFromHTML(
     ]);
     
     return pdfBuffer;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating PDF with CloudConvert:', error);
-    throw new Error(`Failed to generate PDF: ${error.message}`);
+    throw new Error(`Failed to generate PDF: ${error?.message || 'Unknown error'}`);
   }
 }
