@@ -278,6 +278,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Server-side PDF Generation using HTML2PDF API
+  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+    try {
+      const cvData = req.body;
+      console.log("Received request to generate PDF for CV", cvData.templateSettings?.template);
+      
+      // Get HTML2PDF API key from environment
+      const apiKey = process.env.HTML2PDF_API_KEY;
+      if (!apiKey) {
+        throw new Error("HTML2PDF_API_KEY environment variable is not set");
+      }
+      
+      // For this demo, we'll use html parameter instead of URL
+      // We'll create a simple HTML representation of the CV data
+      // In a real-world scenario, we would render a proper HTML template
+      
+      // Create a simplified HTML version of the CV
+      const html = `
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${cvData.personal?.firstName || ''} ${cvData.personal?.lastName || ''} - CV</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            h1 { color: #043e44; margin: 0; }
+            h2 { color: #043e44; border-bottom: 2px solid #03d27c; padding-bottom: 5px; margin-top: 20px; }
+            .contact-info { margin-bottom: 20px; }
+            .section { margin-bottom: 20px; }
+            .experience-item, .education-item { margin-bottom: 15px; }
+            .job-title, .degree { font-weight: bold; }
+            .company, .school { font-style: italic; }
+            .period { color: #666; }
+            .skills-list { display: flex; flex-wrap: wrap; gap: 10px; }
+            .skill-item { background: #f0f0f0; padding: 5px 10px; border-radius: 3px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${cvData.personal?.firstName || ''} ${cvData.personal?.lastName || ''}</h1>
+            <p>${cvData.personal?.professionalTitle || ''}</p>
+            <div class="contact-info">
+              ${cvData.personal?.email ? `<p>Email: ${cvData.personal.email}</p>` : ''}
+              ${cvData.personal?.phone ? `<p>Phone: ${cvData.personal.phone}</p>` : ''}
+              ${cvData.personal?.linkedin ? `<p>LinkedIn: ${cvData.personal.linkedin}</p>` : ''}
+            </div>
+          </div>
+          
+          ${cvData.professional?.summary ? `
+            <div class="section">
+              <h2>Professional Summary</h2>
+              <p>${cvData.professional.summary}</p>
+            </div>
+          ` : ''}
+          
+          ${cvData.keyCompetencies && (cvData.keyCompetencies.technicalSkills.length > 0 || cvData.keyCompetencies.softSkills.length > 0) ? `
+            <div class="section">
+              <h2>Key Competencies</h2>
+              ${cvData.keyCompetencies.technicalSkills.length > 0 ? `
+                <h3>Technical Skills</h3>
+                <div class="skills-list">
+                  ${cvData.keyCompetencies.technicalSkills.map(skill => `<div class="skill-item">${skill}</div>`).join('')}
+                </div>
+              ` : ''}
+              ${cvData.keyCompetencies.softSkills.length > 0 ? `
+                <h3>Soft Skills</h3>
+                <div class="skills-list">
+                  ${cvData.keyCompetencies.softSkills.map(skill => `<div class="skill-item">${skill}</div>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+          
+          ${cvData.experience && cvData.experience.length > 0 ? `
+            <div class="section">
+              <h2>Work Experience</h2>
+              ${cvData.experience.map(exp => `
+                <div class="experience-item">
+                  <div class="job-title">${exp.jobTitle}</div>
+                  <div class="company">${exp.companyName}</div>
+                  <div class="period">${exp.startDate} - ${exp.isCurrent ? 'Present' : exp.endDate || ''}</div>
+                  <p>${exp.responsibilities}</p>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+          
+          ${cvData.education && cvData.education.length > 0 ? `
+            <div class="section">
+              <h2>Education</h2>
+              ${cvData.education.map(edu => `
+                <div class="education-item">
+                  <div class="degree">${edu.major}</div>
+                  <div class="school">${edu.schoolName}</div>
+                  <div class="period">${edu.startDate} - ${edu.endDate || ''}</div>
+                  ${edu.achievements ? `<p>${edu.achievements}</p>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </body>
+        </html>
+      `;
+      
+      const response = await fetch('https://api.html2pdf.app/v1/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          html: html,
+          apiKey: apiKey,
+          // Optional parameters for PDF generation
+          paperWidth: 8.3, // A4 width in inches
+          paperHeight: 11.7, // A4 height in inches
+          marginTop: 0.4,
+          marginRight: 0.4,
+          marginBottom: 0.4,
+          marginLeft: 0.4
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTML2PDF API error: ${response.status} ${errorText}`);
+      }
+      
+      // Get the response as an ArrayBuffer
+      const pdfBuffer = await response.arrayBuffer();
+      
+      // Set headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${cvData.personal?.firstName || 'cv'}_${cvData.personal?.lastName || ''}.pdf"`);
+      
+      // Send the PDF data
+      res.send(Buffer.from(pdfBuffer));
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to generate PDF", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
