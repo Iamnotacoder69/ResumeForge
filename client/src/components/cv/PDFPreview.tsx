@@ -16,6 +16,7 @@ interface PDFPreviewProps {
  */
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   const handlePrintPDF = useCallback(() => {
     // Define a filename for the PDF
@@ -85,6 +86,40 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
     }, 1000);
   }, [data.personal]);
   
+  const handleCloudConvertPDF = useCallback(() => {
+    if (!printRef.current) {
+      toast({
+        title: "Error",
+        description: "Template reference is not available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "PDF Generation Started",
+      description: "Using CloudConvert to generate a high-quality PDF. This may take a moment...",
+    });
+    
+    generatePDFWithCloudConvert(
+      printRef, 
+      data.personal?.firstName || '', 
+      data.personal?.lastName || ''
+    ).then(() => {
+      toast({
+        title: "PDF Generated Successfully",
+        description: "Your PDF has been created and downloaded",
+        variant: "default",
+      });
+    }).catch((error) => {
+      toast({
+        title: "PDF Generation Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    });
+  }, [data.personal, toast, printRef]);
+  
   return (
     <div className="pdf-preview-container space-y-6">
       <div className="flex justify-between items-center mb-4 print:hidden">
@@ -110,27 +145,53 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
           Back to Editor
         </Button>
         
-        <Button 
-          onClick={handlePrintPDF}
-          className="flex items-center gap-2 bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleCloudConvertPDF}
+            className="flex items-center gap-2 bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
+            title="Generate a high-quality PDF using CloudConvert"
           >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download as PDF
-        </Button>
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            CloudConvert PDF
+          </Button>
+          
+          <Button 
+            onClick={handlePrintPDF}
+            className="flex items-center gap-2 bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+            title="Use browser's print function to save as PDF"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Browser PDF
+          </Button>
+        </div>
       </div>
       
       <div className="pdf-preview-content">

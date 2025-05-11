@@ -20,6 +20,7 @@ import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
+import { generatePDFWithCloudConvert } from '@/lib/pdf-utils';
 
 enum CVTabs {
   TEMPLATE = "template",
@@ -361,6 +362,44 @@ const CVBuilder = () => {
         document.head.removeChild(style);
       }, 1000);
     }, 500); // Half-second delay to ensure preview is rendered
+  };
+  
+  // Function to generate PDF with CloudConvert API
+  const handleCloudConvertPDF = () => {
+    // First validate and show the preview
+    setShowPreview(true);
+    
+    // Then generate PDF with a slight delay to ensure the preview is loaded
+    setTimeout(() => {
+      const templateRef = document.querySelector('.cv-template-wrapper') as HTMLDivElement;
+      const firstName = form.getValues().personal?.firstName || '';
+      const lastName = form.getValues().personal?.lastName || '';
+      
+      // Show initial toast
+      toast({
+        title: "PDF Generation Started",
+        description: "Using CloudConvert to generate a high-quality PDF. This may take a moment...",
+      });
+      
+      // Use CloudConvert to generate the PDF
+      generatePDFWithCloudConvert(
+        { current: templateRef }, 
+        firstName, 
+        lastName
+      ).then(() => {
+        toast({
+          title: "PDF Generated Successfully",
+          description: "Your PDF has been created and downloaded",
+          variant: "default",
+        });
+      }).catch((error) => {
+        toast({
+          title: "PDF Generation Failed",
+          description: error instanceof Error ? error.message : "Unknown error",
+          variant: "destructive",
+        });
+      });
+    }, 500);
   };
 
   return (
