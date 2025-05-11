@@ -391,12 +391,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           html: html,
           apiKey: apiKey,
           // Optional parameters for PDF generation
-          paperWidth: 8.3, // A4 width in inches
-          paperHeight: 11.7, // A4 height in inches
-          marginTop: 0.4,
-          marginRight: 0.4,
-          marginBottom: 0.4,
-          marginLeft: 0.4
+          paperWidth: 8, // A4 width in inches (rounded to integer)
+          paperHeight: 12, // A4 height in inches (rounded to integer)
+          marginTop: 40, // 0.4 inches in points (1 inch = 100 points)
+          marginRight: 40, // 0.4 inches in points
+          marginBottom: 40, // 0.4 inches in points
+          marginLeft: 40 // 0.4 inches in points
         })
       });
       
