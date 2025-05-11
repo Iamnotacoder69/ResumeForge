@@ -280,6 +280,81 @@ const CVBuilder = () => {
     // Always show preview regardless of validation state
     setShowPreview(true);
   };
+  
+  // Function to directly trigger browser print dialog
+  const handleDirectPrint = () => {
+    // First show the preview
+    setShowPreview(true);
+    
+    // Then trigger the print dialog with a slight delay to ensure the preview loads
+    setTimeout(() => {
+      // Define a filename for the PDF
+      const firstName = form.getValues().personal?.firstName || '';
+      const lastName = form.getValues().personal?.lastName || '';
+      const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
+      
+      // Create a print-friendly stylesheet
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @media print {
+          /* Hide everything except the CV template */
+          body * {
+            visibility: hidden;
+          }
+          .cv-template-wrapper, .cv-template-wrapper * {
+            visibility: visible;
+          }
+          .cv-template-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none !important;
+            background-color: white !important;
+          }
+          
+          /* Force background colors and images to print */
+          .cv-template-wrapper * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Page settings for PDF output */
+          @page {
+            size: A4 portrait;
+            margin: 0mm;
+          }
+          
+          /* Ensure proper font rendering */
+          * {
+            font-family: 'Inter', 'Helvetica', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+          }
+          
+          /* Fix any text overflow issues */
+          p, h1, h2, h3 {
+            overflow: visible !important;
+            white-space: normal !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Set the document title to improve the suggested filename
+      const originalTitle = document.title;
+      document.title = pdfFileName;
+      
+      // Trigger the print dialog
+      window.print();
+      
+      // Restore the original title and remove the print-specific styles
+      setTimeout(() => {
+        document.title = originalTitle;
+        document.head.removeChild(style);
+      }, 1000);
+    }, 500); // Half-second delay to ensure preview is rendered
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
