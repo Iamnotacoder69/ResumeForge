@@ -3,19 +3,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { SectionOrder } from "@shared/types";
 
 interface SectionOrdererProps {
   sections: SectionOrder[];
   onReorder: (sections: SectionOrder[]) => void;
   onToggleVisibility: (sectionId: string, visible: boolean) => void;
+  onDeleteSection?: (sectionId: string) => void;
 }
 
 const SectionOrderer: React.FC<SectionOrdererProps> = ({
   sections,
   onReorder,
-  onToggleVisibility
+  onToggleVisibility,
+  onDeleteSection
 }) => {
   const moveSection = (index: number, direction: 'up' | 'down') => {
     const newSections = [...sections];
