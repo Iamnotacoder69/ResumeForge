@@ -366,40 +366,15 @@ const CVBuilder = () => {
   
   // Function to generate PDF with CloudConvert API
   const handleCloudConvertPDF = () => {
-    // First validate and show the preview
-    setShowPreview(true);
+    // For now, we'll use the browser print method as CloudConvert integration needs more work
+    toast({
+      title: "Using Browser Print Method",
+      description: "CloudConvert integration is currently under development. Using browser print for now.",
+      variant: "default",
+    });
     
-    // Then generate PDF with a slight delay to ensure the preview is loaded
-    setTimeout(() => {
-      const templateRef = document.querySelector('.cv-template-wrapper') as HTMLDivElement;
-      const firstName = form.getValues().personal?.firstName || '';
-      const lastName = form.getValues().personal?.lastName || '';
-      
-      // Show initial toast
-      toast({
-        title: "PDF Generation Started",
-        description: "Using CloudConvert to generate a high-quality PDF. This may take a moment...",
-      });
-      
-      // Use CloudConvert to generate the PDF
-      generatePDFWithCloudConvert(
-        { current: templateRef }, 
-        firstName, 
-        lastName
-      ).then(() => {
-        toast({
-          title: "PDF Generated Successfully",
-          description: "Your PDF has been created and downloaded",
-          variant: "default",
-        });
-      }).catch((error) => {
-        toast({
-          title: "PDF Generation Failed",
-          description: error instanceof Error ? error.message : "Unknown error",
-          variant: "destructive",
-        });
-      });
-    }, 500);
+    // Call the browser print method instead
+    handleDirectPrint();
   };
 
   return (

@@ -87,38 +87,16 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   }, [data.personal]);
   
   const handleCloudConvertPDF = useCallback(() => {
-    if (!printRef.current) {
-      toast({
-        title: "Error",
-        description: "Template reference is not available",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+    // For now, we'll use the browser print method as CloudConvert integration needs more work
     toast({
-      title: "PDF Generation Started",
-      description: "Using CloudConvert to generate a high-quality PDF. This may take a moment...",
+      title: "Using Browser Print Method",
+      description: "CloudConvert integration is currently under development. Using browser print for now.",
+      variant: "default",
     });
     
-    generatePDFWithCloudConvert(
-      printRef, 
-      data.personal?.firstName || '', 
-      data.personal?.lastName || ''
-    ).then(() => {
-      toast({
-        title: "PDF Generated Successfully",
-        description: "Your PDF has been created and downloaded",
-        variant: "default",
-      });
-    }).catch((error) => {
-      toast({
-        title: "PDF Generation Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    });
-  }, [data.personal, toast, printRef]);
+    // Call the browser print method instead
+    handlePrintPDF();
+  }, [toast, handlePrintPDF]);
   
   return (
     <div className="pdf-preview-container space-y-6">
@@ -148,8 +126,8 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         <div className="flex gap-2">
           <Button 
             onClick={handleCloudConvertPDF}
-            className="flex items-center gap-2 bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
-            title="Generate a high-quality PDF using CloudConvert"
+            className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-medium"
+            title="CloudConvert PDF generation coming soon"
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -166,7 +144,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            CloudConvert PDF
+            CloudConvert PDF (Soon)
           </Button>
           
           <Button 
