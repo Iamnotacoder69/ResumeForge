@@ -310,7 +310,159 @@ const CVBuilder = () => {
           throw new Error('CV template not found');
         }
         
-        // Generate the PDF
+        // Get the current template type
+        const templateType = form.getValues().templateSettings?.template || 'professional';
+        
+        // Define template-specific CSS
+        let templateCSS = '';
+        
+        if (templateType === 'professional') {
+          // Professional template - classic styling
+          templateCSS = `
+            /* Professional template */
+            .cv-template {
+              width: 210mm;
+              min-height: 297mm;
+              background-color: white !important;
+              padding: 32px;
+              box-sizing: border-box;
+            }
+            
+            /* Headers */
+            h1, h2, h3, h4, h5, h6 {
+              font-weight: 600;
+              color: #333;
+            }
+            
+            h2 {
+              font-size: 18px;
+              color: #333;
+              border-bottom: 1px solid #999;
+              padding-bottom: 5px;
+              margin-top: 20px;
+            }
+            
+            /* Skill tags */
+            .bg-gray-100 {
+              background-color: #f3f4f6;
+            }
+            
+            /* Lists */
+            .pl-4 [class*="absolute left-0"] {
+              color: #333;
+            }
+          `;
+        } else if (templateType === 'modern') {
+          // Modern template - blue header and accent colors
+          templateCSS = `
+            /* Modern template */
+            .cv-template {
+              width: 210mm;
+              min-height: 297mm;
+              background-color: white !important;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            /* Blue header */
+            header.bg-blue-600 {
+              background-color: #2563eb !important;
+              color: white !important;
+              padding: 32px !important;
+              margin: 0 0 24px 0 !important;
+            }
+            
+            /* Section headers */
+            h2 {
+              color: #2563eb !important;
+              font-weight: bold !important;
+            }
+            
+            /* Accent colors */
+            .bg-blue-600, .text-blue-600 {
+              background-color: #2563eb !important;
+              color: #2563eb !important;
+            }
+            
+            .text-blue-500 {
+              color: #3b82f6 !important;
+            }
+            
+            .text-blue-700 {
+              color: #1d4ed8 !important;
+            }
+            
+            .bg-blue-500 {
+              background-color: #3b82f6 !important;
+            }
+            
+            .bg-blue-50 {
+              background-color: #eff6ff !important;
+            }
+            
+            .border-blue-200 {
+              border-color: #bfdbfe !important;
+            }
+            
+            /* Timeline dots */
+            .absolute.w-3.h-3.bg-blue-500 {
+              background-color: #3b82f6 !important;
+            }
+            
+            /* Lists */
+            .pl-4 [class*="absolute left-0"] {
+              color: #3b82f6 !important;
+            }
+          `;
+        } else if (templateType === 'minimal') {
+          // Minimal template - clean, minimal styling
+          templateCSS = `
+            /* Minimal template */
+            .cv-template {
+              width: 210mm;
+              min-height: 297mm;
+              background-color: white !important;
+              padding: 40px;
+              box-sizing: border-box;
+            }
+            
+            /* Headers */
+            h1, h2, h3 {
+              font-weight: 600;
+              color: #111;
+            }
+            
+            h2 {
+              font-size: 16px;
+              text-transform: uppercase;
+              letter-spacing: 2px;
+              color: #111;
+              margin-bottom: 16px;
+            }
+            
+            /* Skill tags */
+            .border.border-gray-200 {
+              border: 1px solid #e5e7eb !important;
+              border-radius: 2px !important;
+            }
+            
+            /* Fix any specific Minimal template elements */
+            .uppercase {
+              text-transform: uppercase;
+            }
+            
+            .tracking-wider {
+              letter-spacing: 0.05em;
+            }
+            
+            /* Lists */
+            .pl-4 [class*="absolute left-0"] {
+              color: #111 !important;
+            }
+          `;
+        }
+        
+        // Generate the PDF with template-specific styling
         await captureElementAsPDF(templateElement, {
           fileName: pdfFileName,
           additionalCSS: `
@@ -327,26 +479,11 @@ const CVBuilder = () => {
               color: #333;
             }
             
+            /* Base styling */
             .cv-template {
               width: 210mm;
               min-height: 297mm;
               box-shadow: none !important;
-              background-color: white !important;
-              padding: 30px;
-              box-sizing: border-box;
-            }
-            
-            /* Headers */
-            h1, h2, h3, h4, h5, h6 {
-              margin-top: 0.5em;
-              margin-bottom: 0.5em;
-              font-weight: 600;
-              color: #043e44;
-            }
-            
-            h1 {
-              font-size: 24px;
-              color: #043e44;
             }
             
             h2 {
