@@ -2,8 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CompleteCV } from '@shared/types';
 import CVTemplate from './templates/CVTemplate';
-import { generatePDFWithCloudConvert } from '@/lib/pdf-utils';
-import { useToast } from '@/hooks/use-toast';
 
 interface PDFPreviewProps {
   data: CompleteCV;
@@ -16,7 +14,6 @@ interface PDFPreviewProps {
  */
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   const printRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
   
   const handlePrintPDF = useCallback(() => {
     // Define a filename for the PDF
@@ -86,18 +83,6 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
     }, 1000);
   }, [data.personal]);
   
-  const handleCloudConvertPDF = useCallback(() => {
-    // For now, we'll use the browser print method as CloudConvert integration needs more work
-    toast({
-      title: "Using Browser Print Method",
-      description: "CloudConvert integration is currently under development. Using browser print for now.",
-      variant: "default",
-    });
-    
-    // Call the browser print method instead
-    handlePrintPDF();
-  }, [toast, handlePrintPDF]);
-  
   return (
     <div className="pdf-preview-container space-y-6">
       <div className="flex justify-between items-center mb-4 print:hidden">
@@ -123,53 +108,27 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
           Back to Editor
         </Button>
         
-        <div className="flex gap-2">
-          <Button 
-            onClick={handleCloudConvertPDF}
-            className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-medium"
-            title="CloudConvert PDF generation coming soon"
+        <Button 
+          onClick={handlePrintPDF}
+          className="flex items-center gap-2 bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            CloudConvert PDF (Soon)
-          </Button>
-          
-          <Button 
-            onClick={handlePrintPDF}
-            className="flex items-center gap-2 bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-            title="Use browser's print function to save as PDF"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Browser PDF
-          </Button>
-        </div>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download as PDF
+        </Button>
       </div>
       
       <div className="pdf-preview-content">

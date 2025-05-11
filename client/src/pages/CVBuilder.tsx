@@ -20,7 +20,6 @@ import PDFPreview from "@/components/cv/PDFPreview";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
-import { generatePDFWithCloudConvert } from '@/lib/pdf-utils';
 
 enum CVTabs {
   TEMPLATE = "template",
@@ -363,19 +362,6 @@ const CVBuilder = () => {
       }, 1000);
     }, 500); // Half-second delay to ensure preview is rendered
   };
-  
-  // Function to generate PDF with CloudConvert API
-  const handleCloudConvertPDF = () => {
-    // For now, we'll use the browser print method as CloudConvert integration needs more work
-    toast({
-      title: "Using Browser Print Method",
-      description: "CloudConvert integration is currently under development. Using browser print for now.",
-      variant: "default",
-    });
-    
-    // Call the browser print method instead
-    handleDirectPrint();
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -680,24 +666,13 @@ const CVBuilder = () => {
                                 </span>
                               </Button>
                             </div>
-                            <div className="flex gap-2">
-                              <Button 
-                                type="button"
-                                className="bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
-                                onClick={handleCloudConvertPDF}
-                                title="Generate a high-quality PDF using CloudConvert"
-                              >
-                                <FileText className="mr-2 h-4 w-4" /> CloudConvert PDF
-                              </Button>
-                              <Button 
-                                type="button"
-                                className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                                onClick={handleDirectPrint}
-                                title="Use browser's print function to save as PDF"
-                              >
-                                <FileText className="mr-2 h-4 w-4" /> Browser PDF
-                              </Button>
-                            </div>
+                            <Button 
+                              type="button"
+                              className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+                              onClick={handleDirectPrint}
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> Generate PDF
+                            </Button>
                           </div>
                         </div>
                       </div>
