@@ -1,17 +1,14 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import fs from "fs";
-import path from "path";
 import { storage } from "./storage";
 import { enhanceTextWithAI } from "./openai";
 import { processUploadedCV } from "./upload";
 import { extractDataFromCV } from "./cv-extractor";
 import { completeCvSchema } from "@shared/schema";
-import { AIRewriteRequest, CompleteCV } from "@shared/types";
+import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { generatePDFBase64, generatePDFFile, createTempPDFPath } from "./weasyprint-bridge";
 
 // Configure multer for memory storage (files stored in buffer)
 const upload = multer({
@@ -277,63 +274,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "Failed to extract data from CV",
         error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-
-  // Generate PDF using WeasyPrint
-  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
-    try {
-      const { html, css, fileName } = req.body;
-      
-      if (!html) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "HTML content is required" 
-        });
-      }
-      
-      // For direct download - generate and send the file
-      const outputPath = createTempPDFPath(fileName ? `${fileName.replace(/\s+/g, '_')}-` : 'cv-');
-      
-      try {
-        const filePath = await generatePDFFile(html, outputPath, css);
-        
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
-        
-        const fileStream = fs.createReadStream(filePath);
-        fileStream.pipe(res);
-        
-        // Clean up temp file after sending
-        fileStream.on('end', () => {
-          fs.unlink(filePath, (err) => {
-            if (err) console.error(`Error removing temp file: ${err}`);
-          });
-        });
-      } catch (pdfError) {
-        console.error('PDF generation error:', pdfError);
-        
-        // Fallback to base64 if file generation fails
-        try {
-          const base64PDF = await generatePDFBase64(html, css);
-          res.json({
-            success: true,
-            message: "PDF generated as base64",
-            data: { base64: base64PDF }
-          });
-        } catch (error) {
-          const fallbackError = error instanceof Error 
-            ? error.message 
-            : 'Unknown error generating PDF';
-          throw new Error(`PDF generation failed: ${fallbackError}`);
-        }
-      }
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: "Failed to generate PDF", 
-        error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
   });

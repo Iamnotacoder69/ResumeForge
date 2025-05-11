@@ -5,7 +5,6 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { captureElementAsPDF } from '@/lib/pdf-utils';
 import { FileText, Eye, HelpCircle, Check } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
@@ -18,7 +17,6 @@ import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
 import SectionOrderer from "@/components/cv/SectionOrderer";
 import TemplateSelector from "@/components/cv/TemplateSelector";
 import PDFPreview from "@/components/cv/PDFPreview";
-import SectionVisibilityToggle from "@/components/cv/SectionVisibilityToggle";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
@@ -283,429 +281,85 @@ const CVBuilder = () => {
     setShowPreview(true);
   };
   
-  // Function to generate PDF using WeasyPrint
-  const handleGeneratePDF = async () => {
+  // Function to directly trigger browser print dialog
+  const handleDirectPrint = () => {
     // First show the preview
     setShowPreview(true);
     
-    // Then generate the PDF with a slight delay to ensure the preview loads
-    setTimeout(async () => {
-      try {
-        // Define a filename for the PDF
-        const firstName = form.getValues().personal?.firstName || '';
-        const lastName = form.getValues().personal?.lastName || '';
-        const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
-        
-        // Add loading state
-        toast({
-          title: "Generating PDF",
-          description: "Please wait while we prepare your CV...",
-          variant: "default",
-        });
-        
-        // Find the CV template element
-        const templateElement = document.querySelector('.cv-template-wrapper') as HTMLElement;
-        
-        if (!templateElement) {
-          throw new Error('CV template not found');
-        }
-        
-        // Get the current template type
-        const templateType = form.getValues().templateSettings?.template || 'professional';
-        
-        // Define template-specific CSS
-        let templateCSS = '';
-        
-        if (templateType === 'professional') {
-          // Professional template - classic styling
-          templateCSS = `
-            /* Professional template */
-            .cv-template {
-              width: 210mm;
-              min-height: 297mm;
-              background-color: white !important;
-              padding: 32px;
-              box-sizing: border-box;
-            }
-            
-            /* Headers */
-            h1, h2, h3, h4, h5, h6 {
-              font-weight: 600;
-              color: #333;
-            }
-            
-            h2 {
-              font-size: 18px;
-              color: #333;
-              border-bottom: 1px solid #999;
-              padding-bottom: 5px;
-              margin-top: 20px;
-            }
-            
-            /* Skill tags */
-            .bg-gray-100 {
-              background-color: #f3f4f6;
-            }
-            
-            /* Lists */
-            .pl-4 [class*="absolute left-0"] {
-              color: #333;
-            }
-          `;
-        } else if (templateType === 'modern') {
-          // Modern template - blue header and accent colors
-          templateCSS = `
-            /* Modern template */
-            .cv-template {
-              width: 210mm;
-              min-height: 297mm;
-              background-color: white !important;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            /* Blue header */
-            header.bg-blue-600 {
-              background-color: #2563eb !important;
-              color: white !important;
-              padding: 32px !important;
-              margin: 0 0 24px 0 !important;
-            }
-            
-            /* Section headers */
-            h2 {
-              color: #2563eb !important;
-              font-weight: bold !important;
-            }
-            
-            /* Accent colors */
-            .bg-blue-600, .text-blue-600 {
-              background-color: #2563eb !important;
-              color: #2563eb !important;
-            }
-            
-            .text-blue-500 {
-              color: #3b82f6 !important;
-            }
-            
-            .text-blue-700 {
-              color: #1d4ed8 !important;
-            }
-            
-            .bg-blue-500 {
-              background-color: #3b82f6 !important;
-            }
-            
-            .bg-blue-50 {
-              background-color: #eff6ff !important;
-            }
-            
-            .border-blue-200 {
-              border-color: #bfdbfe !important;
-            }
-            
-            /* Timeline dots */
-            .absolute.w-3.h-3.bg-blue-500 {
-              background-color: #3b82f6 !important;
-            }
-            
-            /* Lists */
-            .pl-4 [class*="absolute left-0"] {
-              color: #3b82f6 !important;
-            }
-          `;
-        } else if (templateType === 'minimal') {
-          // Minimal template - clean, minimal styling
-          templateCSS = `
-            /* Minimal template */
-            .cv-template {
-              width: 210mm;
-              min-height: 297mm;
-              background-color: white !important;
-              padding: 40px;
-              box-sizing: border-box;
-            }
-            
-            /* Headers */
-            h1, h2, h3 {
-              font-weight: 600;
-              color: #111;
-            }
-            
-            h2 {
-              font-size: 16px;
-              text-transform: uppercase;
-              letter-spacing: 2px;
-              color: #111;
-              margin-bottom: 16px;
-            }
-            
-            /* Skill tags */
-            .border.border-gray-200 {
-              border: 1px solid #e5e7eb !important;
-              border-radius: 2px !important;
-            }
-            
-            /* Fix any specific Minimal template elements */
-            .uppercase {
-              text-transform: uppercase;
-            }
-            
-            .tracking-wider {
-              letter-spacing: 0.05em;
-            }
-            
-            /* Lists */
-            .pl-4 [class*="absolute left-0"] {
-              color: #111 !important;
-            }
-          `;
-        }
-        
-        // Generate the PDF with template-specific styling
-        await captureElementAsPDF(templateElement, {
-          fileName: pdfFileName,
-          additionalCSS: `
-            @page {
-              size: A4 portrait;
-              margin: 0mm;
-            }
-            
-            body {
-              margin: 0;
-              padding: 0;
-              font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-              line-height: 1.5;
-              color: #333;
-            }
-            
-            /* Base styling */
-            .cv-template {
-              width: 210mm;
-              min-height: 297mm;
-              box-shadow: none !important;
-            }
-            
-            /* Text utilities */
-            .text-gray-700 {
-              color: #374151;
-            }
-            
-            .text-gray-800 {
-              color: #1f2937;
-            }
-            
-            .text-gray-900 {
-              color: #111827;
-            }
-            
-            .text-gray-600 {
-              color: #4b5563;
-            }
-            
-            /* Font weights */
-            .font-medium {
-              font-weight: 500;
-            }
-            
-            .font-semibold {
-              font-weight: 600;
-            }
-            
-            .font-bold {
-              font-weight: 700;
-            }
-            
-            /* Lists */
-            ul, ol {
-              padding-left: 20px;
-              margin-top: 0.5em;
-              margin-bottom: 0.5em;
-            }
-            
-            li {
-              margin-bottom: 0.3em;
-            }
-            
-            .pl-4 {
-              padding-left: 1rem;
-            }
-            
-            .mb-1 {
-              margin-bottom: 0.25rem;
-            }
-            
-            .mb-2 {
-              margin-bottom: 0.5rem;
-            }
-            
-            .mb-3 {
-              margin-bottom: 0.75rem;
-            }
-            
-            .mb-4 {
-              margin-bottom: 1rem;
-            }
-            
-            .mb-6 {
-              margin-bottom: 1.5rem;
-            }
-            
-            .relative {
-              position: relative;
-            }
-            
-            .absolute {
-              position: absolute;
-            }
-            
-            .left-0 {
-              left: 0;
-            }
-            
-            /* Section styling */
-            section {
-              margin-bottom: 20px;
-            }
-            
-            /* Flexbox utilities */
-            .flex {
-              display: flex;
-            }
-            
-            .justify-between {
-              justify-content: space-between;
-            }
-            
-            .items-start {
-              align-items: flex-start;
-            }
-            
-            .flex-wrap {
-              flex-wrap: wrap;
-            }
-            
-            .gap-2 {
-              gap: 0.5rem;
-            }
-            
-            .gap-4 {
-              gap: 1rem;
-            }
-            
-            /* SVG Icons */
-            svg {
-              width: 16px;
-              height: 16px;
-              margin-right: 4px;
-            }
-            
-            /* Button and tag styling */
-            .bg-gray-100 {
-              background-color: rgba(3, 210, 124, 0.1);
-            }
-            
-            .text-sm {
-              font-size: 0.875rem;
-            }
-            
-            .rounded {
-              border-radius: 0.25rem;
-            }
-            
-            .px-2 {
-              padding-left: 0.5rem;
-              padding-right: 0.5rem;
-            }
-            
-            .py-1 {
-              padding-top: 0.25rem;
-              padding-bottom: 0.25rem;
-            }
-            
-            /* Space utilities */
-            .space-y-1 > * + * {
-              margin-top: 0.25rem;
-            }
-            
-            .space-y-4 > * + * {
-              margin-top: 1rem;
-            }
-            
-            /* List styling */
-            .list-disc {
-              list-style-type: disc;
-            }
-            
-            .pl-5 {
-              padding-left: 1.25rem;
-            }
-            
-            /* Whitespace */
-            .whitespace-pre-line {
-              white-space: pre-line;
-            }
-            
-            /* Force background colors and images to print */
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            
-            /* Fix any text overflow issues */
-            p, h1, h2, h3 {
-              overflow: visible !important;
-              white-space: normal !important;
-            }
-          `
-        });
-        
-        // Show a success toast
-        toast({
-          title: "PDF Generated",
-          description: "Your CV has been downloaded successfully",
-          variant: "default",
-        });
-      } catch (error) {
-        console.error('Error generating PDF:', error);
-        
-        // Show error toast
-        toast({
-          title: "PDF Generation Failed",
-          description: error instanceof Error ? error.message : "Unknown error occurred",
-          variant: "destructive",
-        });
-        
-        // Fallback to browser printing if WeasyPrint fails
-        const style = document.createElement('style');
-        style.innerHTML = `
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            .cv-template-wrapper, .cv-template-wrapper * {
-              visibility: visible;
-            }
-            .cv-template-wrapper {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-              box-shadow: none !important;
-              background-color: white !important;
-            }
-            
-            @page {
-              size: A4 portrait;
-              margin: 0mm;
-            }
+    // Then trigger the print dialog with a slight delay to ensure the preview loads
+    setTimeout(() => {
+      // Define a filename for the PDF
+      const firstName = form.getValues().personal?.firstName || '';
+      const lastName = form.getValues().personal?.lastName || '';
+      const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_');
+      
+      // Create a print-friendly stylesheet
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @media print {
+          /* Hide everything except the CV template */
+          body * {
+            visibility: hidden;
           }
-        `;
-        document.head.appendChild(style);
-        window.print();
+          .cv-template-wrapper, .cv-template-wrapper * {
+            visibility: visible;
+          }
+          .cv-template-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none !important;
+            background-color: white !important;
+          }
+          
+          /* Force background colors and images to print */
+          .cv-template-wrapper * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Page settings for PDF output */
+          @page {
+            size: A4 portrait;
+            margin: 0mm;
+          }
+          
+          /* Ensure proper font rendering */
+          * {
+            font-family: 'Inter', 'Helvetica', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+          }
+          
+          /* Fix any text overflow issues */
+          p, h1, h2, h3 {
+            overflow: visible !important;
+            white-space: normal !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Set the document title to improve the suggested filename
+      const originalTitle = document.title;
+      document.title = pdfFileName;
+      
+      // Trigger the print dialog
+      window.print();
+      
+      // Show a success toast
+      toast({
+        title: "PDF Generation",
+        description: "Your CV has been prepared for printing/download",
+        variant: "default",
+      });
+      
+      // Restore the original title and remove the print-specific styles
+      setTimeout(() => {
+        document.title = originalTitle;
         document.head.removeChild(style);
-      }
+      }, 1000);
     }, 500); // Half-second delay to ensure preview is rendered
   };
 
@@ -843,18 +497,7 @@ const CVBuilder = () => {
                     
                     {/* Summary Tab */}
                     <TabsContent value={CVTabs.SUMMARY} className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Professional Summary</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="summary"
-                            isVisible={sectionOrder.find(s => s.id === 'summary')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">Provide a concise professional summary highlighting your key attributes and career focus.</p>
-                        <SummarySection form={form} />
-                      </div>
+                      <SummarySection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -877,18 +520,7 @@ const CVBuilder = () => {
                     
                     {/* Key Competencies Tab */}
                     <TabsContent value={CVTabs.KEY_COMPETENCIES} className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Key Competencies</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="keyCompetencies"
-                            isVisible={sectionOrder.find(s => s.id === 'keyCompetencies')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">List your technical and soft skills to highlight your strengths.</p>
-                        <KeyCompetenciesSection form={form} />
-                      </div>
+                      <KeyCompetenciesSection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -911,18 +543,7 @@ const CVBuilder = () => {
                     
                     {/* Experience Tab */}
                     <TabsContent value={CVTabs.EXPERIENCE} className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Work Experience</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="experience"
-                            isVisible={sectionOrder.find(s => s.id === 'experience')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">Add your relevant work history with responsibilities and achievements.</p>
-                        <ExperienceSection form={form} />
-                      </div>
+                      <ExperienceSection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -945,31 +566,8 @@ const CVBuilder = () => {
                     
                     {/* Education Tab */}
                     <TabsContent value={CVTabs.EDUCATION} className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Education</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="education"
-                            isVisible={sectionOrder.find(s => s.id === 'education')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">Add your educational background, including degrees and achievements.</p>
-                        <EducationSection form={form} />
-                      </div>
-                      
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Certificates</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="certificates"
-                            isVisible={sectionOrder.find(s => s.id === 'certificates')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">Add professional certifications and qualifications you've earned.</p>
-                        <CertificatesSection form={form} />
-                      </div>
+                      <EducationSection form={form} />
+                      <CertificatesSection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -992,18 +590,7 @@ const CVBuilder = () => {
                     
                     {/* Extracurricular Tab */}
                     <TabsContent value={CVTabs.EXTRACURRICULAR} className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Extracurricular Activities</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="extracurricular"
-                            isVisible={sectionOrder.find(s => s.id === 'extracurricular')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">Add volunteer work, clubs, sports, or other activities outside of your professional experience.</p>
-                        <ExtracurricularSection form={form} />
-                      </div>
+                      <ExtracurricularSection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -1026,18 +613,7 @@ const CVBuilder = () => {
                     
                     {/* Additional Info Tab */}
                     <TabsContent value={CVTabs.ADDITIONAL} className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Additional Information</h2>
-                          <SectionVisibilityToggle 
-                            sectionId="additional"
-                            isVisible={sectionOrder.find(s => s.id === 'additional')?.visible ?? true}
-                            onToggle={handleSectionVisibilityToggle}
-                          />
-                        </div>
-                        <p className="text-gray-500 mb-6">Add other skills, interests, or relevant information that doesn't fit in the other sections.</p>
-                        <AdditionalInfoSection form={form} />
-                      </div>
+                      <AdditionalInfoSection form={form} />
                       
                       <div className="flex justify-between">
                         <Button 
@@ -1093,7 +669,7 @@ const CVBuilder = () => {
                             <Button 
                               type="button"
                               className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                              onClick={handleGeneratePDF}
+                              onClick={handleDirectPrint}
                             >
                               <FileText className="mr-2 h-4 w-4" /> Generate PDF
                             </Button>
