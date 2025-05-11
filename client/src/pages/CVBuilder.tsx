@@ -600,8 +600,31 @@ const CVBuilder = () => {
                     
                     {/* Education Tab */}
                     <TabsContent value={CVTabs.EDUCATION} className="space-y-8">
-                      <EducationSection form={form} />
-                      <CertificatesSection form={form} />
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Education</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="education"
+                            isVisible={sectionOrder.find(s => s.id === 'education')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">Add your educational background, including degrees and achievements.</p>
+                        <EducationSection form={form} />
+                      </div>
+                      
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Certificates</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="certificates"
+                            isVisible={sectionOrder.find(s => s.id === 'certificates')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">Add professional certifications and qualifications you've earned.</p>
+                        <CertificatesSection form={form} />
+                      </div>
                       
                       <div className="flex justify-between">
                         <Button 
@@ -624,7 +647,18 @@ const CVBuilder = () => {
                     
                     {/* Extracurricular Tab */}
                     <TabsContent value={CVTabs.EXTRACURRICULAR} className="space-y-8">
-                      <ExtracurricularSection form={form} />
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Extracurricular Activities</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="extracurricular"
+                            isVisible={sectionOrder.find(s => s.id === 'extracurricular')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">Add volunteer work, clubs, sports, or other activities outside of your professional experience.</p>
+                        <ExtracurricularSection form={form} />
+                      </div>
                       
                       <div className="flex justify-between">
                         <Button 
@@ -647,7 +681,18 @@ const CVBuilder = () => {
                     
                     {/* Additional Info Tab */}
                     <TabsContent value={CVTabs.ADDITIONAL} className="space-y-8">
-                      <AdditionalInfoSection form={form} />
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Additional Information</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="additional"
+                            isVisible={sectionOrder.find(s => s.id === 'additional')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">Add other skills, interests, or relevant information that doesn't fit in the other sections.</p>
+                        <AdditionalInfoSection form={form} />
+                      </div>
                       
                       <div className="flex justify-between">
                         <Button 
