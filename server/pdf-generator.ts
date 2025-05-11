@@ -36,12 +36,12 @@ export async function generatePDFFromHTML(
   try {
     // Create a temporary file with the HTML content
     const tempId = uuidv4();
-    const htmlFilePath = path.join(__dirname, `../temp/${tempId}.html`);
-    const pdfFilePath = path.join(__dirname, `../temp/${tempId}.pdf`);
+    const htmlFilePath = path.join(process.cwd(), `temp/${tempId}.html`);
+    const pdfFilePath = path.join(process.cwd(), `temp/${tempId}.pdf`);
     
     // Ensure temp directory exists
-    if (!fs.existsSync(path.join(__dirname, '../temp'))) {
-      fs.mkdirSync(path.join(__dirname, '../temp'), { recursive: true });
+    if (!fs.existsSync(path.join(process.cwd(), 'temp'))) {
+      fs.mkdirSync(path.join(process.cwd(), 'temp'), { recursive: true });
     }
     
     // Write HTML to temp file
