@@ -16,6 +16,7 @@ interface PDFPreviewProps {
 const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
   const { toast } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   // Generate PDF using browser print dialog
   const handlePrintPDF = useCallback(() => {
@@ -86,6 +87,67 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
     }, 1000);
   }, [data.personal]);
   
+  // Generate PDF using server-side HTML2PDF API
+  const handleServerPDFGeneration = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      
+      // Show a toast to indicate the PDF is being generated
+      toast({
+        title: "Generating PDF",
+        description: "Creating your professional PDF document...",
+        variant: "default",
+      });
+      
+      // Send request to server API
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate PDF');
+      }
+      
+      // Get the PDF data as a blob
+      const pdfBlob = await response.blob();
+      
+      // Create a download link for the PDF
+      const downloadUrl = URL.createObjectURL(pdfBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.download = `${data.personal?.firstName || 'cv'}_${data.personal?.lastName || ''}.pdf`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up the URL object
+      URL.revokeObjectURL(downloadUrl);
+      
+      // Show success toast
+      toast({
+        title: "PDF Generated",
+        description: "Your professional CV has been downloaded",
+        variant: "default",
+      });
+    } catch (error: unknown) {
+      console.error("Error generating PDF:", error);
+      
+      // Show error toast
+      toast({
+        title: "PDF Generation Failed",
+        description: error instanceof Error ? error.message : "Unable to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+  
   return (
     <div className="pdf-preview-container space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 mb-4 print:hidden">
@@ -135,30 +197,37 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
           </Button>
           
           <Button 
-            onClick={() => {
-              toast({
-                title: "Enhanced PDF Generation",
-                description: "This feature requires account activation. Please use the browser print option for now.",
-                variant: "default",
-              });
-            }}
+            onClick={handleServerPDFGeneration}
+            disabled={isGeneratingPDF}
             className="flex items-center gap-2 bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-              <polyline points="13 2 13 9 20 9"></polyline>
-            </svg>
-            Download Enhanced PDF
+            {isGeneratingPDF ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating...
+              </>
+            ) : (
+              <>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                  <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+                Download Enhanced PDF
+              </>
+            )}
           </Button>
         </div>
       </div>
