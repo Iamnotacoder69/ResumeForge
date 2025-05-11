@@ -498,7 +498,18 @@ const CVBuilder = () => {
                     
                     {/* Summary Tab */}
                     <TabsContent value={CVTabs.SUMMARY} className="space-y-8">
-                      <SummarySection form={form} />
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Professional Summary</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="summary"
+                            isVisible={sectionOrder.find(s => s.id === 'summary')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">Provide a concise professional summary highlighting your key attributes and career focus.</p>
+                        <SummarySection form={form} />
+                      </div>
                       
                       <div className="flex justify-between">
                         <Button 
@@ -521,7 +532,18 @@ const CVBuilder = () => {
                     
                     {/* Key Competencies Tab */}
                     <TabsContent value={CVTabs.KEY_COMPETENCIES} className="space-y-8">
-                      <KeyCompetenciesSection form={form} />
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Key Competencies</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="keyCompetencies"
+                            isVisible={sectionOrder.find(s => s.id === 'keyCompetencies')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">List your technical and soft skills to highlight your strengths.</p>
+                        <KeyCompetenciesSection form={form} />
+                      </div>
                       
                       <div className="flex justify-between">
                         <Button 
@@ -544,7 +566,18 @@ const CVBuilder = () => {
                     
                     {/* Experience Tab */}
                     <TabsContent value={CVTabs.EXPERIENCE} className="space-y-8">
-                      <ExperienceSection form={form} />
+                      <div className="bg-white rounded-lg shadow-sm p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#043e44]">Work Experience</h2>
+                          <SectionVisibilityToggle 
+                            sectionId="experience"
+                            isVisible={sectionOrder.find(s => s.id === 'experience')?.visible ?? true}
+                            onToggle={handleSectionVisibilityToggle}
+                          />
+                        </div>
+                        <p className="text-gray-500 mb-6">Add your relevant work history with responsibilities and achievements.</p>
+                        <ExperienceSection form={form} />
+                      </div>
                       
                       <div className="flex justify-between">
                         <Button 
