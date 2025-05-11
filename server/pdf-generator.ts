@@ -47,33 +47,33 @@ export async function generatePDFFromHTML(
     // Write HTML to temp file
     await writeFileAsync(htmlFilePath, html);
     
-    // Configure CloudConvert job
+    // Configure CloudConvert job using simpler format
+    console.log('Creating CloudConvert job for HTML to PDF conversion');
+    
     const job = await cloudConvert.jobs.create({
-      tasks: {
-        'import-html': {
+      tasks: [
+        {
+          name: 'import-html',
           operation: 'import/upload'
         },
-        'convert-to-pdf': {
+        {
+          name: 'convert-to-pdf',
           operation: 'convert',
           input: 'import-html',
           output_format: 'pdf',
-          engine: 'chromium',
+          engine: 'chrome',
           input_format: 'html',
-          page_width: options.pageSize || '8.27in', // A4 width
-          page_height: options.pageSize || '11.7in', // A4 height
-          margin_top: options.margin?.top || '0.5in',
-          margin_right: options.margin?.right || '0.5in',
-          margin_bottom: options.margin?.bottom || '0.5in',
-          margin_left: options.margin?.left || '0.5in',
           filename: options.filename || 'cv.pdf',
+          zoom: 1,
           print_background: true
         },
-        'export-pdf': {
+        {
+          name: 'export-pdf',
           operation: 'export/url',
           input: 'convert-to-pdf',
           archive_multiple_files: false
         }
-      },
+      ],
       tag: 'cv-generator'
     });
     
@@ -117,6 +117,18 @@ export async function generatePDFFromHTML(
     return pdfBuffer;
   } catch (error: any) {
     console.error('Error generating PDF with CloudConvert:', error);
+    
+    // Try to extract more detailed error information
+    if (error.cause && error.cause.json) {
+      try {
+        const jsonResponse = await error.cause.json();
+        console.error('CloudConvert API error details:', jsonResponse);
+        throw new Error(`Failed to generate PDF: ${jsonResponse.message || error?.message || 'Unknown error'}`);
+      } catch (jsonError) {
+        console.error('Failed to parse error response:', jsonError);
+      }
+    }
+    
     throw new Error(`Failed to generate PDF: ${error?.message || 'Unknown error'}`);
   }
 }
