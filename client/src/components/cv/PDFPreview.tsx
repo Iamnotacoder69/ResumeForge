@@ -134,13 +134,13 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
         description: "Your professional CV has been downloaded",
         variant: "default",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error generating PDF:", error);
       
       // Show error toast
       toast({
         title: "PDF Generation Failed",
-        description: error.message || "Unable to generate PDF. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to generate PDF. Please try again.",
         variant: "destructive",
       });
     } finally {

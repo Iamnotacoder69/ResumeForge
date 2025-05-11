@@ -354,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${cvData.experience && cvData.experience.length > 0 ? `
             <div class="section">
               <h2>Work Experience</h2>
-              ${cvData.experience.map(exp => `
+              ${cvData.experience.map((exp: { jobTitle: string; companyName: string; startDate: string; isCurrent?: boolean; endDate?: string; responsibilities: string; }) => `
                 <div class="experience-item">
                   <div class="job-title">${exp.jobTitle}</div>
                   <div class="company">${exp.companyName}</div>
@@ -368,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${cvData.education && cvData.education.length > 0 ? `
             <div class="section">
               <h2>Education</h2>
-              ${cvData.education.map(edu => `
+              ${cvData.education.map((edu: { major: string; schoolName: string; startDate: string; endDate?: string; achievements?: string; }) => `
                 <div class="education-item">
                   <div class="degree">${edu.major}</div>
                   <div class="school">${edu.schoolName}</div>
