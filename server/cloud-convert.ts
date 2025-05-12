@@ -15,6 +15,8 @@ const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY || 'dummy
  */
 export async function createHtmlToPdfJob(renderUrl: string) {
   try {
+    console.log('Creating CloudConvert job for render URL:', renderUrl);
+    
     // Create a job with import, convert, and export tasks
     const job = await cloudConvert.jobs.create({
       tasks: {
@@ -47,23 +49,38 @@ export async function createHtmlToPdfJob(renderUrl: string) {
         }
       }
     });
+    
+    console.log('CloudConvert job created with ID:', job.id);
 
     // Wait for job completion
+    console.log('Waiting for CloudConvert job to complete...');
     const jobResult = await cloudConvert.jobs.wait(job.id);
 
+    // Log the job result for debugging
+    console.log('CloudConvert job result:', JSON.stringify(jobResult, null, 2));
+    
     // Find the export task to get the file URL
     const exportTask = jobResult.tasks.find(task => task.operation === 'export/url');
     
-    if (!exportTask || exportTask.status !== 'finished') {
-      throw new Error('Export task failed or not found');
+    if (!exportTask) {
+      console.error('Export task not found in job result.');
+      throw new Error('Export task not found');
+    }
+    
+    if (exportTask.status !== 'finished') {
+      console.error('Export task status is not finished:', exportTask.status);
+      console.error('Export task details:', JSON.stringify(exportTask, null, 2));
+      throw new Error(`Export task failed with status: ${exportTask.status}`);
     }
 
     // Get the file URL
     if (!exportTask.result || !exportTask.result.files || !exportTask.result.files.length) {
+      console.error('No files found in export task result:', JSON.stringify(exportTask.result, null, 2));
       throw new Error('No files found in export task result');
     }
     
     const file = exportTask.result.files[0];
+    console.log('PDF file generated successfully:', file.url);
     
     return {
       success: true,
@@ -72,6 +89,14 @@ export async function createHtmlToPdfJob(renderUrl: string) {
     };
   } catch (error) {
     console.error('CloudConvert job failed:', error);
+    // Log the full error for debugging
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+    } else {
+      console.error('Unknown error type:', error);
+    }
+    
     const errorMessage = error instanceof Error ? error.message : 'PDF conversion failed';
     return {
       success: false,

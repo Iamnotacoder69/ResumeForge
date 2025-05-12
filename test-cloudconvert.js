@@ -79,8 +79,14 @@ const sampleCV = {
 // Test the render-template endpoint
 async function testCloudConvertPDF() {
   try {
-    console.log('Step 1: Creating render template...');
-    const renderRes = await fetch('http://localhost:5000/api/render-template', {
+    // Use the Replit domain for CloudConvert to access
+    // This ensures we're using the HTTPS domain that CloudConvert can access
+    const baseUrl = process.env.REPLIT_DOMAINS 
+      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+      : 'http://localhost:5000';
+    
+    console.log(`Step 1: Creating render template using ${baseUrl}...`);
+    const renderRes = await fetch(`${baseUrl}/api/render-template`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -97,7 +103,7 @@ async function testCloudConvertPDF() {
     console.log('Render URL:', renderData.renderUrl);
     
     console.log('\nStep 2: Generating PDF...');
-    const pdfRes = await fetch(`http://localhost:5000/api/render-template/${renderData.tempId}/pdf`, {
+    const pdfRes = await fetch(`${baseUrl}/api/render-template/${renderData.tempId}/pdf`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

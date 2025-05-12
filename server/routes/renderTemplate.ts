@@ -19,7 +19,12 @@ router.post('/', async (req: Request, res: Response) => {
     const tempId = storeTempCV(cvData);
     
     // Create a render URL (this URL will be accessed by CloudConvert)
-    const renderUrl = `${req.protocol}://${req.get('host')}/api/render-template/${tempId}`;
+    // We need to use a publicly accessible URL, not localhost
+    const host = req.get('host');
+    // Use https:// for CloudConvert to access our HTML
+    const renderUrl = `https://${host}/api/render-template/${tempId}`;
+    
+    console.log('Created render template with URL:', renderUrl);
     
     // Return the temporary ID and render URL
     res.json({
@@ -80,7 +85,11 @@ router.post('/:id/pdf', async (req: Request, res: Response) => {
     }
     
     // Create a render URL (this URL will be accessed by CloudConvert)
-    const renderUrl = `${req.protocol}://${req.get('host')}/api/render-template/${id}`;
+    const host = req.get('host');
+    // Use https:// for CloudConvert to access our HTML
+    const renderUrl = `https://${host}/api/render-template/${id}`;
+    
+    console.log('Generating PDF from render URL:', renderUrl);
     
     // Create a CloudConvert job to convert the HTML to PDF
     const result = await createHtmlToPdfJob(renderUrl);
