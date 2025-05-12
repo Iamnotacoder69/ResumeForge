@@ -94,15 +94,15 @@ export function renderCVToHTML(cv: CompleteCV): string {
  */
 function renderProfessionalTemplate(cv: CompleteCV): string {
   const { 
-    personalInfo, 
-    professionalSummary, 
+    personal: personalInfo, 
+    professional: professionalSummary, 
     keyCompetencies, 
-    experiences, 
-    educations, 
+    experience: experiences, 
+    education: educations, 
     certificates,
     languages,
     extracurricular,
-    additionalInfo,
+    additional: additionalInfo,
     templateSettings
   } = cv;
   
@@ -381,15 +381,15 @@ function renderProfessionalTemplate(cv: CompleteCV): string {
  */
 function renderModernTemplate(cv: CompleteCV): string {
   const { 
-    personalInfo, 
-    professionalSummary, 
+    personal: personalInfo, 
+    professional: professionalSummary, 
     keyCompetencies, 
-    experiences, 
-    educations, 
+    experience: experiences, 
+    education: educations, 
     certificates,
     languages,
     extracurricular,
-    additionalInfo,
+    additional: additionalInfo,
     templateSettings
   } = cv;
   
@@ -662,15 +662,15 @@ function renderModernTemplate(cv: CompleteCV): string {
  */
 function renderMinimalTemplate(cv: CompleteCV): string {
   const { 
-    personalInfo, 
-    professionalSummary, 
+    personal: personalInfo, 
+    professional: professionalSummary, 
     keyCompetencies, 
-    experiences, 
-    educations, 
+    experience: experiences, 
+    education: educations, 
     certificates,
     languages,
     extracurricular,
-    additionalInfo,
+    additional: additionalInfo,
     templateSettings
   } = cv;
   

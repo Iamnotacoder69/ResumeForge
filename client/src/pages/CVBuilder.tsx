@@ -737,8 +737,18 @@ const CVBuilder = () => {
                                 type="button"
                                 className="bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
                                 onClick={handleCloudConvertPDF}
+                                disabled={isGeneratingProfessionalPDF}
                               >
-                                <Printer className="mr-2 h-4 w-4" /> Professional PDF
+                                {isGeneratingProfessionalPDF ? (
+                                  <>
+                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Printer className="mr-2 h-4 w-4" /> Professional PDF
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </div>
