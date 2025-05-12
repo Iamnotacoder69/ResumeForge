@@ -12,8 +12,78 @@ const router = Router();
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    // Validate the CV data
-    const cvData = completeCvSchema.parse(req.body);
+    // Use a more flexible validation approach for PDF generation
+    // This allows extracted CV data to work even if it doesn't perfectly match the schema
+    let cvData;
+    
+    try {
+      // First try strict validation
+      cvData = completeCvSchema.parse(req.body);
+    } catch (validationError) {
+      console.log('Strict validation failed, attempting to sanitize data...');
+      
+      // If strict validation fails, create a sanitized version with defaults
+      const inputData = req.body;
+      
+      // Create a sanitized version with all required fields
+      cvData = {
+        personal: {
+          firstName: inputData.personal?.firstName || '',
+          lastName: inputData.personal?.lastName || '',
+          professionalTitle: inputData.personal?.professionalTitle || '',
+          email: inputData.personal?.email || '',
+          phone: inputData.personal?.phone || '',
+          linkedin: inputData.personal?.linkedin || '',
+          photoUrl: inputData.personal?.photoUrl,
+        },
+        professional: {
+          summary: inputData.professional?.summary || '',
+        },
+        keyCompetencies: {
+          technicalSkills: Array.isArray(inputData.keyCompetencies?.technicalSkills) ? 
+            inputData.keyCompetencies.technicalSkills : [],
+          softSkills: Array.isArray(inputData.keyCompetencies?.softSkills) ? 
+            inputData.keyCompetencies.softSkills : [],
+        },
+        experience: Array.isArray(inputData.experience) ? inputData.experience.map(exp => ({
+          companyName: exp.companyName || '',
+          jobTitle: exp.jobTitle || '',
+          startDate: exp.startDate || '',
+          endDate: exp.endDate,
+          isCurrent: exp.isCurrent || false,
+          responsibilities: exp.responsibilities || '',
+        })) : [],
+        education: Array.isArray(inputData.education) ? inputData.education.map(edu => ({
+          schoolName: edu.schoolName || '',
+          major: edu.major || '',
+          startDate: edu.startDate || '',
+          endDate: edu.endDate || '',
+          achievements: edu.achievements,
+        })) : [],
+        certificates: Array.isArray(inputData.certificates) ? inputData.certificates : [],
+        languages: Array.isArray(inputData.languages) ? inputData.languages : [],
+        extracurricular: Array.isArray(inputData.extracurricular) ? inputData.extracurricular : [],
+        additional: {
+          skills: Array.isArray(inputData.additional?.skills) ? inputData.additional.skills : [],
+        },
+        templateSettings: {
+          template: inputData.templateSettings?.template || 'professional',
+          includePhoto: inputData.templateSettings?.includePhoto || false,
+          sectionOrder: Array.isArray(inputData.templateSettings?.sectionOrder) ? 
+            inputData.templateSettings.sectionOrder : 
+            [
+              { id: 'personal', name: 'Personal Information', visible: true, order: 0 },
+              { id: 'summary', name: 'Professional Summary', visible: true, order: 1 },
+              { id: 'keyCompetencies', name: 'Key Competencies', visible: true, order: 2 },
+              { id: 'experience', name: 'Work Experience', visible: true, order: 3 },
+              { id: 'education', name: 'Education', visible: true, order: 4 },
+              { id: 'certificates', name: 'Certificates', visible: true, order: 5 },
+              { id: 'extracurricular', name: 'Extracurricular Activities', visible: true, order: 6 },
+              { id: 'additional', name: 'Additional Information', visible: true, order: 7 },
+            ],
+        },
+      };
+    }
     
     // Store the CV data temporarily and get an ID
     const tempId = storeTempCV(cvData);
