@@ -9,6 +9,7 @@ import { completeCvSchema } from "@shared/schema";
 import { AIRewriteRequest } from "@shared/types";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import renderTemplateRoutes from "./routes/renderTemplate";
 
 // Configure multer for memory storage (files stored in buffer)
 const upload = multer({
@@ -19,6 +20,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register template rendering routes
+  app.use('/api/render-template', renderTemplateRoutes);
+  
   // CV Routes
   
   // Submit CV - Create a new CV entry with all related data

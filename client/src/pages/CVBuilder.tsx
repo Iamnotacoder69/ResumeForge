@@ -666,13 +666,22 @@ const CVBuilder = () => {
                                 </span>
                               </Button>
                             </div>
-                            <Button 
-                              type="button"
-                              className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                              onClick={handleDirectPrint}
-                            >
-                              <FileText className="mr-2 h-4 w-4" /> Generate PDF
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                type="button"
+                                className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+                                onClick={handleDirectPrint}
+                              >
+                                <FileText className="mr-2 h-4 w-4" /> Quick PDF
+                              </Button>
+                              <Button 
+                                type="button"
+                                className="bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
+                                onClick={handleCloudConvertPDF}
+                              >
+                                <Printer className="mr-2 h-4 w-4" /> Professional PDF
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -1,7 +1,12 @@
 import CloudConvert from 'cloudconvert';
 
+// Check if CloudConvert API key is available
+if (!process.env.CLOUDCONVERT_API_KEY) {
+  console.warn('CloudConvert API key not found. PDF generation via CloudConvert will not work.');
+}
+
 // Initialize the CloudConvert SDK
-const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY);
+const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY || 'dummy-key-for-type-checking');
 
 /**
  * Create a CloudConvert job to convert HTML to PDF
@@ -54,6 +59,10 @@ export async function createHtmlToPdfJob(renderUrl: string) {
     }
 
     // Get the file URL
+    if (!exportTask.result || !exportTask.result.files || !exportTask.result.files.length) {
+      throw new Error('No files found in export task result');
+    }
+    
     const file = exportTask.result.files[0];
     
     return {
@@ -63,9 +72,10 @@ export async function createHtmlToPdfJob(renderUrl: string) {
     };
   } catch (error) {
     console.error('CloudConvert job failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'PDF conversion failed';
     return {
       success: false,
-      error: error.message || 'PDF conversion failed'
+      error: errorMessage
     };
   }
 }
