@@ -888,7 +888,7 @@ function renderMinimalTemplate(cv: CompleteCV): string {
     
     <div class="section education ${getCSSClasses('education')}">
       <h2>Education</h2>
-      ${educations?.map(edu => `
+      ${educations?.map((edu: { major: string; schoolName: string; startDate: string; endDate: string; achievements?: string; }) => `
         <div class="education-item">
           <div class="item-header">
             <div>
