@@ -16,11 +16,12 @@ const tempCVStorage = new Map<string, TemporaryCV>();
 // Clean up expired temporary CVs
 setInterval(() => {
   const now = Date.now();
-  for (const [id, data] of tempCVStorage.entries()) {
+  // Convert to array for iteration to avoid MapIterator type issues
+  Array.from(tempCVStorage.entries()).forEach(([id, data]) => {
     if (data.expiresAt < now) {
       tempCVStorage.delete(id);
     }
-  }
+  });
 }, 5 * 60 * 1000); // Clean up every 5 minutes
 
 /**

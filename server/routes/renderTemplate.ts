@@ -93,7 +93,7 @@ router.post('/:id/pdf', async (req: Request, res: Response) => {
     res.json({
       success: true,
       downloadUrl: result.downloadUrl,
-      fileName: result.fileName || `${cvData.personalInfo?.firstName || 'CV'}_${cvData.personalInfo?.lastName || ''}.pdf`
+      fileName: result.fileName || `${cvData.personal?.firstName || 'CV'}_${cvData.personal?.lastName || ''}.pdf`
     });
     
     // Clean up the temporary CV data after successful conversion
