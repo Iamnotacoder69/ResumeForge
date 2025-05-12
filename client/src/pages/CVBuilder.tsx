@@ -369,9 +369,24 @@ const CVBuilder = () => {
     try {
       setIsGeneratingProfessionalPDF(true);
       
+      // Get current form values
+      const formValues = form.getValues();
+      
+      // Ensure all required sections are present and formatted correctly
       // Prepare the CV data with template settings
       const cvData = {
-        ...form.getValues(),
+        personal: formValues.personal || {},
+        professional: formValues.professional || { summary: '' },
+        keyCompetencies: formValues.keyCompetencies || { 
+          technicalSkills: [], 
+          softSkills: [] 
+        },
+        experience: Array.isArray(formValues.experience) ? formValues.experience : [],
+        education: Array.isArray(formValues.education) ? formValues.education : [],
+        certificates: Array.isArray(formValues.certificates) ? formValues.certificates : [],
+        languages: Array.isArray(formValues.languages) ? formValues.languages : [],
+        extracurricular: Array.isArray(formValues.extracurricular) ? formValues.extracurricular : [],
+        additional: formValues.additional || { skills: [] },
         templateSettings: {
           template: selectedTemplate,
           includePhoto: includePhoto,
@@ -412,9 +427,24 @@ const CVBuilder = () => {
       });
     } catch (error) {
       console.error("Error generating professional PDF:", error);
+      
+      // Provide a more helpful error message based on the error type
+      let errorMessage = "Failed to generate professional PDF";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error instanceof Response) {
+        errorMessage = `Server error: ${error.status} ${error.statusText}`;
+      }
+      
+      // If it's a validation error, provide a more helpful message
+      if (errorMessage.includes("Invalid CV data format")) {
+        errorMessage = "Please ensure all sections of your CV are properly filled out before generating a PDF";
+      }
+      
       toast({
         title: "PDF Generation Failed",
-        description: error instanceof Error ? error.message : "Failed to generate professional PDF",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
