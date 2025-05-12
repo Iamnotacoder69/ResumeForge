@@ -282,7 +282,7 @@ function renderProfessionalTemplate(cv: CompleteCV): string {
     
     <div class="section experience ${getCSSClasses('experience')}">
       <h2>Professional Experience</h2>
-      ${experiences?.map(exp => `
+      ${experiences?.map((exp: { jobTitle: string; companyName: string; startDate: string; endDate?: string; isCurrent?: boolean; responsibilities: string; }) => `
         <div class="experience-item">
           <div class="item-header">
             <div>
@@ -302,7 +302,7 @@ function renderProfessionalTemplate(cv: CompleteCV): string {
     
     <div class="section education ${getCSSClasses('education')}">
       <h2>Education</h2>
-      ${educations?.map(edu => `
+      ${educations?.map((edu: { major: string; schoolName: string; startDate: string; endDate: string; achievements?: string; }) => `
         <div class="education-item">
           <div class="item-header">
             <div>
@@ -369,7 +369,7 @@ function renderProfessionalTemplate(cv: CompleteCV): string {
     <div class="section additional-skills ${getCSSClasses('additional')}">
       <h2>Additional Skills</h2>
       <ul>
-        ${additionalInfo?.skills?.map(skill => `<li>${skill}</li>`).join('') || ''}
+        ${additionalInfo?.skills?.map((skill: string) => `<li>${skill}</li>`).join('') || ''}
       </ul>
     </div>
   </div>
@@ -574,7 +574,7 @@ function renderModernTemplate(cv: CompleteCV): string {
       <div class="section additional-skills ${getCSSClasses('additional')}">
         <h2>Additional Skills</h2>
         <ul>
-          ${additionalInfo?.skills?.map(skill => `<li>${skill}</li>`).join('') || ''}
+          ${additionalInfo?.skills?.map((skill: string) => `<li>${skill}</li>`).join('') || ''}
         </ul>
       </div>
     </div>
