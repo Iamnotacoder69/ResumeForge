@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { FileText, Eye, HelpCircle, Check, Printer } from "lucide-react";
+import { FileText, Eye, HelpCircle, Check } from "lucide-react";
 import PersonalInfoSection from "@/components/cv/PersonalInfoSection";
 import SummarySection from "@/components/cv/SummarySection";
 import KeyCompetenciesSection from "@/components/cv/KeyCompetenciesSection";
@@ -38,7 +38,6 @@ const CVBuilder = () => {
   const [activeTab, setActiveTab] = useState<CVTabs>(CVTabs.TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGeneratingProfessionalPDF, setIsGeneratingProfessionalPDF] = useState(false);
   
   // Check if there's extracted CV data from the upload process
   const extractedCVDataFromStorage = (() => {
@@ -363,94 +362,6 @@ const CVBuilder = () => {
       }, 1000);
     }, 500); // Half-second delay to ensure preview is rendered
   };
-  
-  // Function to handle professional PDF generation via CloudConvert
-  const handleCloudConvertPDF = async () => {
-    try {
-      setIsGeneratingProfessionalPDF(true);
-      
-      // Get current form values
-      const formValues = form.getValues();
-      
-      // Ensure all required sections are present and formatted correctly
-      // Prepare the CV data with template settings
-      const cvData = {
-        personal: formValues.personal || {},
-        professional: formValues.professional || { summary: '' },
-        keyCompetencies: formValues.keyCompetencies || { 
-          technicalSkills: [], 
-          softSkills: [] 
-        },
-        experience: Array.isArray(formValues.experience) ? formValues.experience : [],
-        education: Array.isArray(formValues.education) ? formValues.education : [],
-        certificates: Array.isArray(formValues.certificates) ? formValues.certificates : [],
-        languages: Array.isArray(formValues.languages) ? formValues.languages : [],
-        extracurricular: Array.isArray(formValues.extracurricular) ? formValues.extracurricular : [],
-        additional: formValues.additional || { skills: [] },
-        templateSettings: {
-          template: selectedTemplate,
-          includePhoto: includePhoto,
-          sectionOrder: sectionOrder
-        }
-      };
-      
-      // Step 1: Create a render template
-      const renderResponse = await apiRequest("POST", "/api/render-template", cvData);
-      const renderData = await renderResponse.json();
-      
-      if (!renderData.success) {
-        throw new Error(renderData.error || "Failed to create render template");
-      }
-      
-      // Step 2: Generate PDF from the template
-      toast({
-        title: "Generating Professional PDF",
-        description: "Please wait while we generate a high-quality PDF...",
-        variant: "default",
-      });
-      
-      const pdfResponse = await apiRequest("POST", `/api/render-template/${renderData.tempId}/pdf`, {});
-      const pdfData = await pdfResponse.json();
-      
-      if (!pdfData.success) {
-        throw new Error(pdfData.error || "Failed to generate PDF");
-      }
-      
-      // Step 3: Open the download link in a new tab
-      window.open(pdfData.downloadUrl, '_blank');
-      
-      // Show success toast
-      toast({
-        title: "PDF Generated Successfully",
-        description: "Your professional CV has been generated and is ready to download",
-        variant: "default",
-      });
-    } catch (error) {
-      console.error("Error generating professional PDF:", error);
-      
-      // Provide a more helpful error message based on the error type
-      let errorMessage = "Failed to generate professional PDF";
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (error instanceof Response) {
-        errorMessage = `Server error: ${error.status} ${error.statusText}`;
-      }
-      
-      // If it's a validation error, provide a more helpful message
-      if (errorMessage.includes("Invalid CV data format")) {
-        errorMessage = "Please ensure all sections of your CV are properly filled out before generating a PDF";
-      }
-      
-      toast({
-        title: "PDF Generation Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingProfessionalPDF(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -755,32 +666,13 @@ const CVBuilder = () => {
                                 </span>
                               </Button>
                             </div>
-                            <div className="flex gap-2">
-                              <Button 
-                                type="button"
-                                className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                                onClick={handleDirectPrint}
-                              >
-                                <FileText className="mr-2 h-4 w-4" /> Quick PDF
-                              </Button>
-                              <Button 
-                                type="button"
-                                className="bg-[#043e44] hover:bg-[#043e44]/90 text-white font-medium"
-                                onClick={handleCloudConvertPDF}
-                                disabled={isGeneratingProfessionalPDF}
-                              >
-                                {isGeneratingProfessionalPDF ? (
-                                  <>
-                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Printer className="mr-2 h-4 w-4" /> Professional PDF
-                                  </>
-                                )}
-                              </Button>
-                            </div>
+                            <Button 
+                              type="button"
+                              className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+                              onClick={handleDirectPrint}
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> Generate PDF
+                            </Button>
                           </div>
                         </div>
                       </div>
