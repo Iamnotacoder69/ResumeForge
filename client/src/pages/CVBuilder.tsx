@@ -673,10 +673,10 @@ const CVBuilder = () => {
                                 className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
                                 onClick={handleDirectPrint}
                               >
-                                <FileText className="mr-2 h-4 w-4" /> Browser Print PDF
+                                <FileText className="mr-2 h-4 w-4" /> Print PDF
                               </Button>
                               
-                              {/* React PDF Generator Button */}
+                              {/* HTML to PDF Download Button */}
                               <ReactPdfGenerator 
                                 data={{
                                   ...form.getValues(),

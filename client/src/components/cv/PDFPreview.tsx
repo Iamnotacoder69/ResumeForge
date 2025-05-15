@@ -129,10 +129,10 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, onClose }) => {
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Download as PDF (Browser Print)
+            Print PDF
           </Button>
           
-          {/* React PDF Generator Button */}
+          {/* PDF Download Button */}
           <ReactPdfGenerator data={data} />
         </div>
       </div>
