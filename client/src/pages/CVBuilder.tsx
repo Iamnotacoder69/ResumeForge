@@ -17,6 +17,7 @@ import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
 import SectionOrderer from "@/components/cv/SectionOrderer";
 import TemplateSelector from "@/components/cv/TemplateSelector";
 import PDFPreview from "@/components/cv/PDFPreview";
+import ReactPdfGenerator from "@/components/cv/ReactPdfGenerator";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
