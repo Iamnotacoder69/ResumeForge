@@ -666,13 +666,28 @@ const CVBuilder = () => {
                                 </span>
                               </Button>
                             </div>
-                            <Button 
-                              type="button"
-                              className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                              onClick={handleDirectPrint}
-                            >
-                              <FileText className="mr-2 h-4 w-4" /> Generate PDF
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                type="button"
+                                className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+                                onClick={handleDirectPrint}
+                              >
+                                <FileText className="mr-2 h-4 w-4" /> Browser Print PDF
+                              </Button>
+                              
+                              {/* React PDF Generator Button */}
+                              <ReactPdfGenerator 
+                                data={{
+                                  ...form.getValues(),
+                                  templateSettings: {
+                                    template: selectedTemplate,
+                                    includePhoto: includePhoto,
+                                    sectionOrder: sectionOrder
+                                  }
+                                }} 
+                                showLabel={false}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
