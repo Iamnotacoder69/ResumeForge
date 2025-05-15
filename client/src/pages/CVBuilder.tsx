@@ -17,7 +17,6 @@ import AdditionalInfoSection from "@/components/cv/AdditionalInfoSection";
 import SectionOrderer from "@/components/cv/SectionOrderer";
 import TemplateSelector from "@/components/cv/TemplateSelector";
 import PDFPreview from "@/components/cv/PDFPreview";
-import ReactPdfGenerator from "@/components/cv/ReactPdfGenerator";
 import { useCVForm } from "@/lib/hooks/use-cv-form";
 import { FormProvider } from "react-hook-form";
 import { SectionOrder, TemplateType } from "@shared/types";
@@ -667,28 +666,13 @@ const CVBuilder = () => {
                                 </span>
                               </Button>
                             </div>
-                            <div className="flex gap-2">
-                              <Button 
-                                type="button"
-                                className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
-                                onClick={handleDirectPrint}
-                              >
-                                <FileText className="mr-2 h-4 w-4" /> Print PDF
-                              </Button>
-                              
-                              {/* HTML to PDF Download Button */}
-                              <ReactPdfGenerator 
-                                data={{
-                                  ...form.getValues(),
-                                  templateSettings: {
-                                    template: selectedTemplate,
-                                    includePhoto: includePhoto,
-                                    sectionOrder: sectionOrder
-                                  }
-                                }} 
-                                showLabel={false}
-                              />
-                            </div>
+                            <Button 
+                              type="button"
+                              className="bg-[#03d27c] hover:bg-[#03d27c]/90 text-white font-medium"
+                              onClick={handleDirectPrint}
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> Generate PDF
+                            </Button>
                           </div>
                         </div>
                       </div>
