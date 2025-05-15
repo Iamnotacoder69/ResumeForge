@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { PDFDownloadLink, Document } from '@react-pdf/renderer';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import { CompleteCV } from '@shared/types';
 import ProfessionalPdfTemplate from '../pdf-templates/ProfessionalPdfTemplate';
 
@@ -19,13 +19,8 @@ const PDFDownloader: React.FC<PDFDownloaderProps> = ({
   const lastName = data.personal?.lastName || '';
   const pdfFileName = `${firstName}_${lastName}_CV`.replace(/\s+/g, '_') + '.pdf';
   
-  // Select the appropriate template based on the setting
-  const getTemplate = () => {
-    const templateType = data.templateSettings?.template || 'professional';
-    
-    // In the future, we can add more template types here
-    return <ProfessionalPdfTemplate data={data} />;
-  };
+  // Create the document once to avoid re-renders
+  const pdfDocument = <ProfessionalPdfTemplate data={data} />;
 
   useEffect(() => {
     // The component has mounted - trigger the download
@@ -41,24 +36,30 @@ const PDFDownloader: React.FC<PDFDownloaderProps> = ({
         }
       }, 100);
     }
+    
+    // Cleanup function
+    return () => {
+      // Any cleanup if needed
+    };
   }, [onSuccess, onError]);
 
   return (
-    <PDFDownloadLink 
-      document={getTemplate()}
-      fileName={pdfFileName}
-      className="auto-pdf-download"
-      style={{ display: 'none' }}
-    >
-      {({ loading, error }) => {
-        if (error) {
-          console.error("Error in PDF generation:", error);
-          onError(error instanceof Error ? error : new Error('Failed to generate PDF'));
-        }
-        
-        return <span>{loading ? 'Loading document...' : 'Download'}</span>;
-      }}
-    </PDFDownloadLink>
+    <div style={{ display: 'none' }}>
+      <PDFDownloadLink 
+        document={pdfDocument}
+        fileName={pdfFileName}
+        className="auto-pdf-download"
+      >
+        {({ loading, error }) => {
+          if (error) {
+            console.error("Error in PDF generation:", error);
+            onError(error instanceof Error ? error : new Error('Failed to generate PDF'));
+          }
+          
+          return loading ? "Loading..." : "Download";
+        }}
+      </PDFDownloadLink>
+    </div>
   );
 };
 

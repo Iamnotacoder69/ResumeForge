@@ -23,6 +23,7 @@ const ReactPdfGenerator: React.FC<ReactPdfGeneratorProps> = ({
     
     // Create a temporary container for the PDF renderer
     const container = document.createElement('div');
+    container.id = 'pdf-container-' + Date.now(); // Unique ID
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     document.body.appendChild(container);
@@ -30,6 +31,26 @@ const ReactPdfGenerator: React.FC<ReactPdfGeneratorProps> = ({
     // Create a React root in this container
     const root = document.createElement('div');
     container.appendChild(root);
+    
+    // Track if container was removed to prevent duplicate removal attempts
+    let isContainerRemoved = false;
+    
+    // Safe container removal function
+    const safeRemoveContainer = () => {
+      if (isContainerRemoved) return;
+      
+      try {
+        if (container && container.parentNode === document.body) {
+          document.body.removeChild(container);
+          isContainerRemoved = true;
+        }
+      } catch (e) {
+        console.warn('Container already removed:', e);
+      }
+    };
+    
+    // Set a backup timeout to ensure cleanup
+    const backupTimeout = setTimeout(safeRemoveContainer, 30000);
     
     // Dynamically load dependencies
     Promise.all([
@@ -53,7 +74,8 @@ const ReactPdfGenerator: React.FC<ReactPdfGeneratorProps> = ({
                 // Clean up
                 setTimeout(() => {
                   reactRoot.unmount();
-                  document.body.removeChild(container);
+                  safeRemoveContainer();
+                  clearTimeout(backupTimeout);
                 }, 1000);
               }}
               onError={(error: Error) => {
@@ -65,7 +87,8 @@ const ReactPdfGenerator: React.FC<ReactPdfGeneratorProps> = ({
                 });
                 // Clean up
                 reactRoot.unmount();
-                document.body.removeChild(container);
+                safeRemoveContainer();
+                clearTimeout(backupTimeout);
               }}
             />
           </React.Suspense>
@@ -78,7 +101,8 @@ const ReactPdfGenerator: React.FC<ReactPdfGeneratorProps> = ({
         description: "Failed to load PDF generator. Please try again.",
         variant: "destructive",
       });
-      document.body.removeChild(container);
+      safeRemoveContainer();
+      clearTimeout(backupTimeout);
     });
   };
 
