@@ -297,17 +297,6 @@ export default function WelcomePage() {
         </Card>
       </div>
       
-      {/* Random button that does nothing */}
-      <div className="mt-12 text-center">
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          className="rounded-full h-8 w-8 p-0"
-          onClick={() => console.log("This button does nothing")}
-        >
-          ✨
-        </Button>
-      </div>
     </div>
   );
 }
