@@ -318,7 +318,7 @@ function generateProfessionalTemplateHtml(cvData: CompleteCV): string {
             ${visibleSections.includes('certificates') && certificates && certificates.length > 0 ? `
             <div class="section">
               <h3 class="section-title">Certifications</h3>
-              ${certificates.map(cert => `
+              ${certificates.map((cert: Certificate) => `
                 <div class="education-item">
                   <div class="item-header">
                     <h4>${cert.name} - ${cert.institution}</h4>
@@ -355,7 +355,7 @@ function generateProfessionalTemplateHtml(cvData: CompleteCV): string {
             ${visibleSections.includes('extracurricular') && extracurricular && extracurricular.length > 0 ? `
             <div class="section">
               <h3 class="section-title">Extracurricular Activities</h3>
-              ${extracurricular.map(extra => `
+              ${extracurricular.map((extra: Extracurricular) => `
                 <div class="experience-item">
                   <div class="item-header">
                     <h4>${extra.role} at ${extra.organization}</h4>
@@ -658,7 +658,11 @@ function generateModernTemplateHtml(cvData: CompleteCV): string {
  * Generate HTML for the minimal template
  */
 function generateMinimalTemplateHtml(cvData: CompleteCV): string {
-  const { personal, professional, keyCompetencies, experiences, educations, certificates, extracurricular, templateSettings } = cvData;
+  const { personal, professional, keyCompetencies, templateSettings } = cvData;
+  const experiences = 'experiences' in cvData ? (cvData as any).experiences as Experience[] : [];
+  const educations = 'educations' in cvData ? (cvData as any).educations as Education[] : [];
+  const certificates = 'certificates' in cvData ? (cvData as any).certificates as Certificate[] : [];
+  const extracurricular = 'extracurricular' in cvData ? (cvData as any).extracurricular as Extracurricular[] : [];
   
   // Determine which sections to display based on section order
   const sectionOrder = templateSettings?.sectionOrder || [];
