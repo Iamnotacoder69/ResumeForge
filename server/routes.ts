@@ -122,6 +122,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Validate CV Data for PDF Generation (client-side PDF generation)
+  // Generate PDF with Puppeteer (server-side)
+  app.post("/api/generate-pdf", async (req: Request, res: Response) => {
+    try {
+      console.log("PDF Generation - Request received");
+      
+      // Validate the CV data
+      let cvData;
+      try {
+        // Try to validate with the schema
+        cvData = completeCvSchema.parse(req.body);
+        console.log("PDF Generation - CV data passed validation");
+      } catch (validationError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid CV data",
+          error: validationError instanceof Error ? validationError.message : "Unknown validation error"
+        });
+      }
+      
+      // Generate PDF using Puppeteer
+      const pdfBuffer = await generatePDF(cvData);
+      
+      // Set appropriate headers for PDF download
+      const firstName = cvData.personal?.firstName || 'CV';
+      const lastName = cvData.personal?.lastName || 'Document';
+      const filename = `${firstName}_${lastName}_CV.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      // Send the PDF
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("PDF Generation - Error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate PDF",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   app.post("/api/validate-cv", async (req: Request, res: Response) => {
     try {
       console.log("CV Validation - Request received");

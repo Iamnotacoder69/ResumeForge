@@ -88,10 +88,8 @@ export async function generatePDF(cvData: CompleteCV): Promise<Buffer> {
  * @returns HTML string
  */
 function generateCVHtml(cvData: CompleteCV): string {
-  const { personal, professional, keyCompetencies, experiences, educations, certificates, extracurricular, templateSettings } = cvData;
-  
   // Default to the professional template if none specified
-  const template = templateSettings?.template || 'professional';
+  const template = cvData.templateSettings?.template || 'professional';
   
   // Generate HTML based on template type
   switch (template) {
@@ -109,7 +107,11 @@ function generateCVHtml(cvData: CompleteCV): string {
  * Generate HTML for the professional template
  */
 function generateProfessionalTemplateHtml(cvData: CompleteCV): string {
-  const { personal, professional, keyCompetencies, experiences, educations, certificates, extracurricular, templateSettings } = cvData;
+  const { personal, professional, keyCompetencies, templateSettings } = cvData;
+  const experiences = 'experiences' in cvData ? (cvData as any).experiences : [];
+  const educations = 'educations' in cvData ? (cvData as any).educations : [];
+  const certificates = 'certificates' in cvData ? (cvData as any).certificates : [];
+  const extracurricular = 'extracurricular' in cvData ? (cvData as any).extracurricular : [];
   
   // Determine which sections to display based on section order
   const sectionOrder = templateSettings?.sectionOrder || [];
@@ -286,7 +288,7 @@ function generateProfessionalTemplateHtml(cvData: CompleteCV): string {
             ${visibleSections.includes('experience') && experiences && experiences.length > 0 ? `
             <div class="section">
               <h3 class="section-title">Professional Experience</h3>
-              ${experiences.map(exp => `
+              ${experiences.map((exp: Experience) => `
                 <div class="experience-item">
                   <div class="item-header">
                     <h4>${exp.jobTitle} at ${exp.companyName}</h4>
@@ -301,7 +303,7 @@ function generateProfessionalTemplateHtml(cvData: CompleteCV): string {
             ${visibleSections.includes('education') && educations && educations.length > 0 ? `
             <div class="section">
               <h3 class="section-title">Education</h3>
-              ${educations.map(edu => `
+              ${educations.map((edu: Education) => `
                 <div class="education-item">
                   <div class="item-header">
                     <h4>${edu.major} at ${edu.schoolName}</h4>
@@ -375,7 +377,11 @@ function generateProfessionalTemplateHtml(cvData: CompleteCV): string {
  * Generate HTML for the modern template
  */
 function generateModernTemplateHtml(cvData: CompleteCV): string {
-  const { personal, professional, keyCompetencies, experiences, educations, certificates, extracurricular, templateSettings } = cvData;
+  const { personal, professional, keyCompetencies, templateSettings } = cvData;
+  const experiences = 'experiences' in cvData ? (cvData as any).experiences as Experience[] : [];
+  const educations = 'educations' in cvData ? (cvData as any).educations as Education[] : [];
+  const certificates = 'certificates' in cvData ? (cvData as any).certificates as Certificate[] : [];
+  const extracurricular = 'extracurricular' in cvData ? (cvData as any).extracurricular as Extracurricular[] : [];
   
   // Determine which sections to display based on section order
   const sectionOrder = templateSettings?.sectionOrder || [];
