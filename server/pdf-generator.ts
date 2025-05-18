@@ -4,10 +4,37 @@ import puppeteer from 'puppeteer';
 import { CompleteCV } from '../shared/types';
 import { Experience, Education, Certificate, Extracurricular } from '../shared/types';
 
-// Read Puppeteer configuration
-const puppeteerConfig = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), 'puppeteer-config.json'), 'utf8')
-);
+// Default Puppeteer configuration (fallback values)
+const defaultPuppeteerConfig = {
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--no-first-run',
+    '--no-zygote',
+    '--disable-gpu'
+  ],
+  headless: true
+};
+
+// Try to read Puppeteer configuration from file, fall back to defaults if not found
+let puppeteerConfig;
+try {
+  const configPath = path.join(process.cwd(), 'puppeteer-config.json');
+  if (fs.existsSync(configPath)) {
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    puppeteerConfig = JSON.parse(configContent);
+    console.log('Loaded Puppeteer configuration from file');
+  } else {
+    puppeteerConfig = defaultPuppeteerConfig;
+    console.log('Puppeteer configuration file not found, using defaults');
+  }
+} catch (error) {
+  console.warn('Error loading Puppeteer configuration file:', error);
+  puppeteerConfig = defaultPuppeteerConfig;
+  console.log('Using default Puppeteer configuration due to error');
+}
 
 /**
  * Generates a PDF from CV data using Puppeteer
@@ -17,12 +44,20 @@ const puppeteerConfig = JSON.parse(
 export async function generatePDF(cvData: CompleteCV): Promise<Buffer> {
   console.log('Starting PDF generation with Puppeteer');
   
-  // Launch a browser with the configuration options
-  const browser = await puppeteer.launch({
+  // Prepare browser launch options with fallbacks for every property
+  const launchOptions = {
     executablePath: process.env.CHROME_PATH || undefined, // Use the environment variable if available
-    args: puppeteerConfig.args,
-    headless: puppeteerConfig.headless === true ? true : false
+    args: puppeteerConfig.args || defaultPuppeteerConfig.args,
+    headless: puppeteerConfig.headless === false ? false : true
+  };
+  
+  console.log('Launching browser with options:', {
+    ...launchOptions,
+    executablePath: launchOptions.executablePath ? 'Custom Chrome path set' : 'Using default browser'
   });
+  
+  // Launch a browser with the configuration options
+  const browser = await puppeteer.launch(launchOptions);
   
   try {
     const page = await browser.newPage();
