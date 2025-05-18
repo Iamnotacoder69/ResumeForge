@@ -4,8 +4,14 @@ import puppeteer from 'puppeteer';
 import { CompleteCV } from '../shared/types';
 import { Experience, Education, Certificate, Extracurricular } from '../shared/types';
 
+// Define type for Puppeteer configuration
+type PuppeteerConfig = {
+  args: string[];
+  headless: boolean;
+};
+
 // Default Puppeteer configuration (fallback values)
-const defaultPuppeteerConfig = {
+const defaultPuppeteerConfig: PuppeteerConfig = {
   args: [
     '--no-sandbox',
     '--disable-setuid-sandbox',
@@ -19,7 +25,7 @@ const defaultPuppeteerConfig = {
 };
 
 // Try to read Puppeteer configuration from file, fall back to defaults if not found
-let puppeteerConfig;
+let puppeteerConfig: PuppeteerConfig = defaultPuppeteerConfig;
 try {
   const configPath = path.join(process.cwd(), 'puppeteer-config.json');
   if (fs.existsSync(configPath)) {
