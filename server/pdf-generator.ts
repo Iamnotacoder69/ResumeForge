@@ -1,17 +1,10 @@
-import fs from 'fs';
-import path from 'path';
 import puppeteer from 'puppeteer';
 import { CompleteCV } from '../shared/types';
 import { Experience, Education, Certificate, Extracurricular } from '../shared/types';
 
-// Define type for Puppeteer configuration
-type PuppeteerConfig = {
-  args: string[];
-  headless: boolean;
-};
-
-// Default Puppeteer configuration (fallback values)
-const defaultPuppeteerConfig: PuppeteerConfig = {
+// Puppeteer configuration directly embedded in the code
+// No file system dependencies that could cause issues in production
+const puppeteerConfig = {
   args: [
     '--no-sandbox',
     '--disable-setuid-sandbox',
@@ -24,24 +17,6 @@ const defaultPuppeteerConfig: PuppeteerConfig = {
   headless: true
 };
 
-// Try to read Puppeteer configuration from file, fall back to defaults if not found
-let puppeteerConfig: PuppeteerConfig = defaultPuppeteerConfig;
-try {
-  const configPath = path.join(process.cwd(), 'puppeteer-config.json');
-  if (fs.existsSync(configPath)) {
-    const configContent = fs.readFileSync(configPath, 'utf8');
-    puppeteerConfig = JSON.parse(configContent);
-    console.log('Loaded Puppeteer configuration from file');
-  } else {
-    puppeteerConfig = defaultPuppeteerConfig;
-    console.log('Puppeteer configuration file not found, using defaults');
-  }
-} catch (error) {
-  console.warn('Error loading Puppeteer configuration file:', error);
-  puppeteerConfig = defaultPuppeteerConfig;
-  console.log('Using default Puppeteer configuration due to error');
-}
-
 /**
  * Generates a PDF from CV data using Puppeteer
  * @param cvData The complete CV data
@@ -50,17 +25,14 @@ try {
 export async function generatePDF(cvData: CompleteCV): Promise<Buffer> {
   console.log('Starting PDF generation with Puppeteer');
   
-  // Prepare browser launch options with fallbacks for every property
+  // Simplified browser launch options for better compatibility with Railway
   const launchOptions = {
     executablePath: process.env.CHROME_PATH || undefined, // Use the environment variable if available
-    args: puppeteerConfig.args || defaultPuppeteerConfig.args,
-    headless: puppeteerConfig.headless === false ? false : true
+    args: puppeteerConfig.args,
+    headless: true // Force headless mode for production environments
   };
   
-  console.log('Launching browser with options:', {
-    ...launchOptions,
-    executablePath: launchOptions.executablePath ? 'Custom Chrome path set' : 'Using default browser'
-  });
+  console.log('Launching Puppeteer for PDF generation');
   
   // Launch a browser with the configuration options
   const browser = await puppeteer.launch(launchOptions);
