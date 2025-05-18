@@ -2,6 +2,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// Fix for ESM __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 // Increase JSON body size limit to 10MB to accommodate base64 encoded images
@@ -10,7 +16,7 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Serve static files from client/public in development mode
 if (process.env.NODE_ENV === "development") {
-  const publicPath = path.resolve(import.meta.dirname, "../client/public");
+  const publicPath = path.resolve(__dirname, "../client/public");
   app.use(express.static(publicPath));
 }
 

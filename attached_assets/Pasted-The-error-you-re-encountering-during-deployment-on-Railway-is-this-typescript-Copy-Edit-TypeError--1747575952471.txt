@@ -1,0 +1,56 @@
+The error you're encountering during deployment on Railway is this:
+
+typescript
+Copy
+Edit
+TypeError [ERR_INVALID_ARG_TYPE]: The "paths[0]" argument must be of type string. Received undefined
+This means somewhere in your code or dependencies, a path.resolve(...) or similar method is being called, but the argument is undefined.
+
+✅ Root Cause
+This error is usually caused by:
+
+Trying to resolve a path using a variable that is undefined (e.g. resolve(process.env.FILE_PATH) when FILE_PATH is not set).
+
+Using __dirname or __filename incorrectly in ES modules (type: "module" in your package.json).
+
+A missing asset or file that Puppeteer expects but can't find.
+
+And it points specifically to this line:
+
+js
+Copy
+Edit
+at file:///app/dist/index.js:1903:18
+✅ Solution Steps
+1. Check the code at line 1903 in dist/index.js
+This is where the issue is triggered. Look at what's being passed into path.resolve(...) or similar.
+
+If this is compiled code, trace back to the original line in your source file (like src/index.js) to understand which variable is undefined.
+
+2. Check for Missing Environment Variables
+If you're using process.env.SOME_VAR to build a path, make sure it's defined in Railway:
+
+Go to your Railway project.
+
+Click Settings → Variables.
+
+Ensure all environment variables your code needs are listed and correctly set.
+
+3. Puppeteer & Assets
+If you’re using Puppeteer to render a page (e.g. generate a PDF or screenshot), and you're referencing a local file (like an HTML or template), make sure that file is included in the deployment and the path to it is correct.
+
+In ES Modules, you cannot use __dirname directly. Use this instead:
+
+js
+Copy
+Edit
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const htmlPath = resolve(__dirname, 'template.html');
+4. Check Build Output
+If you're compiling from TypeScript or bundling with a tool like Webpack, ensure the build process includes all necessary files, including templates and static assets. Railway runs the app in /app/dist/ — make sure your files are in there after build.
+

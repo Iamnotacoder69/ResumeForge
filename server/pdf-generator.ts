@@ -1,6 +1,8 @@
 import puppeteer from 'puppeteer';
 import { CompleteCV } from '../shared/types';
 import { Experience, Education, Certificate, Extracurricular } from '../shared/types';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 // Puppeteer configuration directly embedded in the code
 // No file system dependencies that could cause issues in production
